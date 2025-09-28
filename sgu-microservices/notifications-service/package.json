@@ -1,0 +1,80 @@
+{
+  "name": "sgu-notifications-service",
+  "version": "1.0.0",
+  "description": "Microservicio de Notificaciones para SGU - Sistema de Gestión Universitaria",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "logs": "tail -f logs/notifications.log",
+    "logs:error": "tail -f logs/notifications-error.log"
+  },
+  "keywords": [
+    "sgu",
+    "notifications",
+    "email",
+    "microservice",
+    "university",
+    "management"
+  ],
+  "author": "SGU Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "bull": "^4.12.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "firebase-admin": "^12.0.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "nodemailer": "^6.9.7",
+    "redis": "^4.6.12",
+    "twilio": "^4.19.0",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js",
+      "!src/config/database.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/sgu-microservices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/sgu-microservices/issues"
+  },
+  "homepage": "https://github.com/your-org/sgu-microservices#readme"
+}

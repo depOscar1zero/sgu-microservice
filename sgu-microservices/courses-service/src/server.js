@@ -1,5 +1,5 @@
-const app = require('./app');
-const { connectDB } = require('./config/database');
+const app = require("./app");
+const { testConnection, syncDatabase } = require("./config/database");
 
 // Puerto del servidor
 const PORT = process.env.PORT || 3002;
@@ -7,71 +7,59 @@ const PORT = process.env.PORT || 3002;
 // Función para iniciar el servidor
 const startServer = async () => {
   try {
-    // Conectar a MongoDB Atlas
-    await connectDB();
-    
+    // Probar conexión a la base de datos
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      throw new Error("No se pudo conectar a la base de datos");
+    }
+
+    // Sincronizar modelos
+    await syncDatabase();
+
     // Iniciar servidor HTTP
     const server = app.listen(PORT, () => {
-      console.log('🚀 Courses Service iniciado correctamente');
+      console.log("🚀 Courses Service iniciado correctamente");
       console.log(`📡 Servidor corriendo en puerto ${PORT}`);
-      console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`📅 Fecha de inicio: ${new Date().toISOString()}`);
-      
-      // Endpoints disponibles
-      console.log('\n✅ Endpoints disponibles:');
-      console.log(`   GET  http://localhost:${PORT}/health`);
-      console.log(`   GET  http://localhost:${PORT}/info`);
-      console.log(`   GET  http://localhost:${PORT}/api/courses`);
-      console.log(`   POST http://localhost:${PORT}/api/courses`);
-      console.log(`   GET  http://localhost:${PORT}/api/courses/:id`);
-      console.log(`   GET  http://localhost:${PORT}/api/courses/code/:code`);
-      console.log(`   PUT  http://localhost:${PORT}/api/courses/:id`);
-      console.log(`   DELETE http://localhost:${PORT}/api/courses/:id`);
-      console.log(`   POST http://localhost:${PORT}/api/courses/:id/reserve`);
-      console.log(`   POST http://localhost:${PORT}/api/courses/:id/release`);
-      console.log(`   GET  http://localhost:${PORT}/api/courses/stats`);
+      console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+      console.log(`📚 API: http://localhost:${PORT}/api/courses`);
     });
 
-    // Manejo de cierre graceful
-    process.on('SIGTERM', () => {
-      console.log('👋 SIGTERM recibido. Cerrando servidor...');
-      server.close(() => {
-        console.log('💥 Servidor cerrado');
-        process.exit(0);
-      });
+    // Manejo de errores del servidor
+    server.on("error", (error) => {
+      if (error.code === "EADDRINUSE") {
+        console.error(`❌ Puerto ${PORT} ya está en uso`);
+      } else {
+        console.error("❌ Error del servidor:", error);
+      }
+      process.exit(1);
     });
-
-    process.on('SIGINT', () => {
-      console.log('👋 SIGINT recibido. Cerrando servidor...');
-      server.close(() => {
-        console.log('💥 Servidor cerrado');
-        process.exit(0);
-      });
-    });
-
-    return server;
   } catch (error) {
-    console.error('❌ Error iniciando el servidor:', error);
+    console.error("❌ Error iniciando el servidor:", error.message);
     process.exit(1);
   }
 };
 
+// Manejo de señales de terminación
+process.on("SIGTERM", () => {
+  console.log("🛑 SIGTERM recibido, cerrando servidor...");
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("🛑 SIGINT recibido, cerrando servidor...");
+  process.exit(0);
+});
+
 // Manejo de errores no capturados
-process.on('uncaughtException', (err) => {
-  console.log('💥 UNCAUGHT EXCEPTION! Cerrando servidor...');
-  console.log(err.name, err.message);
+process.on("uncaughtException", (error) => {
+  console.error("❌ Error no capturado:", error);
   process.exit(1);
 });
 
-process.on('unhandledRejection', (err) => {
-  console.log('💥 UNHANDLED REJECTION! Cerrando servidor...');
-  console.log(err.name, err.message);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ Promesa rechazada no manejada:", reason);
   process.exit(1);
 });
 
-// Iniciar servidor si este archivo se ejecuta directamente
-if (require.main === module) {
-  startServer();
-}
-
-module.exports = { startServer };
+// Iniciar el servidor
+startServer();

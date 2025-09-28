@@ -1,53 +1,57 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
+const { Sequelize } = require("sequelize");
+require("dotenv").config();
+
+// Debug: Mostrar variables de entorno
+console.log("🔍 Debug - NODE_ENV:", process.env.NODE_ENV);
+console.log("🔍 Debug - DATABASE_URL:", process.env.DATABASE_URL);
+
+// Configuración de la base de datos - SIEMPRE PostgreSQL como Auth Service
+console.log("🏭 Usando PostgreSQL como Auth Service");
+sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  logging: process.env.NODE_ENV === "development" ? console.log : false,
+  pool: {
+    max: 10,
+    min: 0,
+    acquire: 30000,
+    idle: 10000,
+  },
+  define: {
+    timestamps: true,
+    underscored: true,
+  },
+});
 
 /**
- * Configuración de MongoDB
+ * Función para probar la conexión
  */
-const connectDB = async () => {
+const testConnection = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/sgu_courses';
-    
-    const options = {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000
-    };
-
-    const conn = await mongoose.connect(mongoURI, options);
-
-    console.log(`MongoDB conectado: ${conn.connection.host}`);
-    console.log(`Base de datos: ${conn.connection.name}`);
-    
-    // Eventos de conexión
-    mongoose.connection.on('error', (err) => {
-      console.error('Error de conexión MongoDB:', err);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB desconectado');
-    });
-
-    return conn;
+    await sequelize.authenticate();
+    console.log("✅ Conexión a base de datos establecida correctamente");
+    return true;
   } catch (error) {
-    console.error('Error conectando a MongoDB:', error.message);
-    process.exit(1);
+    console.error("❌ No se pudo conectar a la base de datos:", error.message);
+    return false;
   }
 };
 
 /**
- * Cerrar conexión de MongoDB
+ * Función para sincronizar modelos
  */
-const disconnectDB = async () => {
+const syncDatabase = async () => {
   try {
-    await mongoose.connection.close();
-    console.log('Conexión MongoDB cerrada');
+    // Forzar recreación de tablas para evitar conflictos
+    await sequelize.sync({ force: true }); // force: true recrea las tablas
+    console.log("✅ Modelos sincronizados correctamente");
   } catch (error) {
-    console.error('Error cerrando conexión MongoDB:', error);
+    console.error("❌ Error sincronizando modelos:", error.message);
+    throw error;
   }
 };
 
 module.exports = {
-  connectDB,
-  disconnectDB
+  sequelize,
+  testConnection,
+  syncDatabase,
 };

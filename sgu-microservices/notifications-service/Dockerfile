@@ -1,13 +1,5 @@
-# Dockerfile para Courses Service
+# Dockerfile para Notifications Service
 FROM node:18-alpine
-
-# Instalar dependencias del sistema
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    postgresql-client \
-    && rm -rf /var/cache/apk/*
 
 # Establecer directorio de trabajo
 WORKDIR /app
@@ -25,7 +17,7 @@ COPY . .
 RUN mkdir -p logs
 
 # Exponer puerto
-EXPOSE 3002
+EXPOSE 3005
 
 # Comando para iniciar la aplicación
 CMD ["npm", "start"]

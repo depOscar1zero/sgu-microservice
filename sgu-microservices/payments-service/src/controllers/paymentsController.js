@@ -6,6 +6,7 @@ const {
   NotificationHelper,
 } = require("../services/externalServices");
 const { validationResult } = require("express-validator");
+const axios = require("axios");
 
 /**
  * Wrapper para manejo de errores async
@@ -14,6 +15,100 @@ const catchAsync = (fn) => {
   return (req, res, next) => {
     fn(req, res, next).catch(next);
   };
+};
+
+/**
+ * Función para enviar notificación de pago
+ */
+const sendPaymentNotification = async (
+  user,
+  payment,
+  type = "confirmation"
+) => {
+  try {
+    const notificationsUrl =
+      process.env.NOTIFICATIONS_SERVICE_URL || "http://localhost:3005";
+
+    let subject, message, priority, category;
+
+    if (type === "confirmation") {
+      subject = "Confirmación de Pago Exitoso";
+      message = `
+        <h2>¡Pago Confirmado!</h2>
+        <p>Hola <strong>${user.firstName}</strong>,</p>
+        <p>Tu pago ha sido procesado exitosamente.</p>
+        <div style="background: #f0f9ff; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #0ea5e9;">
+          <h3>Detalles del Pago:</h3>
+          <p><strong>Monto:</strong> $${payment.amount}</p>
+          <p><strong>Método:</strong> ${payment.paymentMethod}</p>
+          <p><strong>Referencia:</strong> ${payment.stripePaymentIntentId}</p>
+          <p><strong>Fecha:</strong> ${new Date(
+            payment.createdAt
+          ).toLocaleDateString()}</p>
+        </div>
+        <p>Gracias por tu pago. Tu inscripción está ahora completamente confirmada.</p>
+        <hr style="margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">
+          Este es un email automático del Sistema de Gestión Universitaria.
+        </p>
+      `;
+      priority = "normal";
+      category = "payment";
+    } else if (type === "reminder") {
+      subject = "Recordatorio de Pago Pendiente";
+      message = `
+        <h2>Recordatorio de Pago</h2>
+        <p>Hola <strong>${user.firstName}</strong>,</p>
+        <p>Tienes un pago pendiente que requiere tu atención.</p>
+        <div style="background: #fef2f2; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #dc2626;">
+          <h3>Detalles del Pago:</h3>
+          <p><strong>Monto:</strong> $${payment.amount}</p>
+          <p><strong>Descripción:</strong> ${payment.description}</p>
+          <p><strong>Fecha de Vencimiento:</strong> ${new Date(
+            payment.dueDate
+          ).toLocaleDateString()}</p>
+        </div>
+        <p>Por favor, realiza el pago antes de la fecha de vencimiento para evitar inconvenientes.</p>
+        <hr style="margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">
+          Este es un email automático del Sistema de Gestión Universitaria.
+        </p>
+      `;
+      priority = "urgent";
+      category = "payment";
+    }
+
+    const notificationData = {
+      recipient: {
+        userId: user.id.toString(),
+        email: user.email,
+        name: `${user.firstName} ${user.lastName}`,
+      },
+      subject,
+      message,
+      type: "email",
+      channel: "email",
+      priority,
+      category,
+      metadata: {
+        paymentId: payment.id,
+        amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        stripePaymentIntentId: payment.stripePaymentIntentId,
+        dueDate: payment.dueDate,
+        description: payment.description,
+      },
+    };
+
+    await axios.post(
+      `${notificationsUrl}/api/notifications/`,
+      notificationData
+    );
+    console.log(`✅ Notificación de pago enviada a ${user.email}`);
+  } catch (error) {
+    console.error("❌ Error enviando notificación de pago:", error.message);
+    // No lanzar error para no interrumpir el proceso de pago
+  }
 };
 
 /**

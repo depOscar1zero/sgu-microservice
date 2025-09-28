@@ -1,0 +1,95 @@
+# Docker Compose simplificado para probar el sistema SGU
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: sgu-postgres
+    environment:
+      POSTGRES_DB: sgu_db
+      POSTGRES_USER: sgu_user
+      POSTGRES_PASSWORD: sgu_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Base de datos MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: sgu-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sgu_admin
+      MONGO_INITDB_ROOT_PASSWORD: sgu_mongo_password
+      MONGO_INITDB_DATABASE: sgu_notifications
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Redis para caché y colas
+  redis:
+    image: redis:7-alpine
+    container_name: sgu-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Servicio de Autenticación
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: sgu-auth-service
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Servicio de Cursos
+  courses-service:
+    build:
+      context: ./courses-service
+      dockerfile: Dockerfile
+    container_name: sgu-courses-service
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
+      AUTH_SERVICE_URL: http://auth-service:3001
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+      - auth-service
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+# Volúmenes persistentes
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+
+# Red para comunicación entre servicios
+networks:
+  sgu-network:
+    driver: bridge

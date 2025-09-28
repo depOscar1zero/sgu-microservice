@@ -1,7 +1,8 @@
-version: "3.8"
+# Docker Compose para Sistema de Gestión Universitaria (SGU)
+# Arquitectura de Microservicios con Docker
 
 services:
-  # Base de datos PostgreSQL para servicios principales
+  # Base de datos PostgreSQL
   postgres:
     image: postgres:15-alpine
     container_name: sgu-postgres
@@ -13,12 +14,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/init-scripts:/docker-entrypoint-initdb.d
     networks:
       - sgu-network
     restart: unless-stopped
 
-  # Base de datos MongoDB para notificaciones
+  # Base de datos MongoDB
   mongodb:
     image: mongo:7.0
     container_name: sgu-mongodb
@@ -34,7 +34,7 @@ services:
       - sgu-network
     restart: unless-stopped
 
-  # Redis para colas de mensajes y cache
+  # Redis para caché y colas
   redis:
     image: redis:7-alpine
     container_name: sgu-redis
@@ -45,7 +45,6 @@ services:
     networks:
       - sgu-network
     restart: unless-stopped
-    command: redis-server --appendonly yes
 
   # Servicio de Autenticación
   auth-service:
@@ -58,13 +57,11 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      JWT_EXPIRES_IN: 24h
-      REDIS_URL: redis://redis:6379
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3006
     ports:
       - "3001:3001"
     depends_on:
       - postgres
-      - redis
     networks:
       - sgu-network
     restart: unless-stopped
@@ -83,13 +80,11 @@ services:
       PORT: 3002
       DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
       AUTH_SERVICE_URL: http://auth-service:3001
-      REDIS_URL: redis://redis:6379
     ports:
       - "3002:3002"
     depends_on:
       - postgres
       - auth-service
-      - redis
     networks:
       - sgu-network
     restart: unless-stopped
@@ -109,14 +104,14 @@ services:
       DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
       AUTH_SERVICE_URL: http://auth-service:3001
       COURSES_SERVICE_URL: http://courses-service:3002
-      REDIS_URL: redis://redis:6379
+      PAYMENTS_SERVICE_URL: http://payments-service:3004
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3006
     ports:
       - "3003:3003"
     depends_on:
       - postgres
       - auth-service
       - courses-service
-      - redis
     networks:
       - sgu-network
     restart: unless-stopped
@@ -136,6 +131,7 @@ services:
       DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
       AUTH_SERVICE_URL: http://auth-service:3001
       ENROLLMENT_SERVICE_URL: http://enrollment-service:3003
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3006
       REDIS_URL: redis://redis:6379
       PAYMENT_GATEWAY_API_KEY: your-payment-gateway-api-key
       PAYMENT_GATEWAY_URL: https://api.payment-gateway.com
@@ -153,6 +149,43 @@ services:
       - ./payments-service:/app
       - /app/node_modules
 
+  # Servicio de Notificaciones
+  notifications-service:
+    build:
+      context: ./notifications-service
+      dockerfile: Dockerfile
+    container_name: sgu-notifications-service
+    environment:
+      NODE_ENV: production
+      PORT: 3006
+      MONGODB_URI: mongodb://sgu_admin:sgu_mongo_password@mongodb:27017/sgu_notifications?authSource=admin
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      AUTH_SERVICE_URL: http://auth-service:3001
+      COURSES_SERVICE_URL: http://courses-service:3002
+      ENROLLMENT_SERVICE_URL: http://enrollment-service:3003
+      PAYMENTS_SERVICE_URL: http://payments-service:3004
+      REDIS_URL: redis://redis:6379
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: your-email@gmail.com
+      SMTP_PASS: your-app-password
+      EMAIL_FROM: noreply@sgu.edu
+    ports:
+      - "3006:3006"
+    depends_on:
+      - mongodb
+      - auth-service
+      - courses-service
+      - enrollment-service
+      - payments-service
+      - redis
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./notifications-service:/app
+      - /app/node_modules
+
   # Frontend SPA (Astro)
   frontend-spa:
     build:
@@ -162,11 +195,43 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      VITE_API_BASE_URL: http://localhost:3001
+      VITE_API_BASE_URL: http://localhost:3000
       VITE_AUTH_SERVICE_URL: http://localhost:3001
       VITE_COURSES_SERVICE_URL: http://localhost:3002
       VITE_ENROLLMENT_SERVICE_URL: http://localhost:3003
       VITE_PAYMENTS_SERVICE_URL: http://localhost:3004
+      VITE_NOTIFICATIONS_SERVICE_URL: http://localhost:3006
+    ports:
+      - "3005:3000"
+    depends_on:
+      - auth-service
+      - courses-service
+      - enrollment-service
+      - payments-service
+      - notifications-service
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./frontend-spa:/app
+      - /app/node_modules
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: sgu-api-gateway
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      REDIS_URL: redis://redis:6379
+      AUTH_SERVICE_URL: http://auth-service:3001
+      COURSES_SERVICE_URL: http://courses-service:3002
+      ENROLLMENT_SERVICE_URL: http://enrollment-service:3003
+      PAYMENTS_SERVICE_URL: http://payments-service:3004
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3006
     ports:
       - "3000:3000"
     depends_on:
@@ -174,11 +239,13 @@ services:
       - courses-service
       - enrollment-service
       - payments-service
+      - notifications-service
+      - redis
     networks:
       - sgu-network
     restart: unless-stopped
     volumes:
-      - ./frontend-spa:/app
+      - ./api-gateway:/app
       - /app/node_modules
 
   # Nginx como reverse proxy
@@ -194,10 +261,12 @@ services:
       - ./infrastructure/ssl:/etc/nginx/ssl
     depends_on:
       - frontend-spa
+      - api-gateway
       - auth-service
       - courses-service
       - enrollment-service
       - payments-service
+      - notifications-service
     networks:
       - sgu-network
     restart: unless-stopped
@@ -209,52 +278,44 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
       - "--web.console.libraries=/etc/prometheus/console_libraries"
       - "--web.console.templates=/etc/prometheus/consoles"
-      - "--storage.tsdb.retention.time=200h"
       - "--web.enable-lifecycle"
     networks:
       - sgu-network
     restart: unless-stopped
 
-  # Grafana para visualización de métricas
+  # Grafana para visualización
   grafana:
     image: grafana/grafana:latest
     container_name: sgu-grafana
     ports:
       - "3001:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./infrastructure/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./infrastructure/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus
     networks:
       - sgu-network
     restart: unless-stopped
 
+# Volúmenes persistentes
 volumes:
   postgres_data:
-    driver: local
   mongodb_data:
-    driver: local
   redis_data:
-    driver: local
   prometheus_data:
-    driver: local
   grafana_data:
-    driver: local
 
+# Red para comunicación entre servicios
 networks:
   sgu-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

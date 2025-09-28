@@ -1,6 +1,14 @@
 # Dockerfile para Auth Service
 FROM node:18-alpine
 
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    sqlite \
+    && rm -rf /var/cache/apk/*
+
 # Establecer directorio de trabajo
 WORKDIR /app
 
@@ -13,20 +21,11 @@ RUN npm ci --only=production
 # Copiar código fuente
 COPY . .
 
-# Crear usuario no-root para seguridad
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-
-# Cambiar ownership de archivos
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+# Crear directorio para logs
+RUN mkdir -p logs
 
 # Exponer puerto
 EXPOSE 3001
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3001/health || exit 1
 
 # Comando para iniciar la aplicación
 CMD ["npm", "start"]
