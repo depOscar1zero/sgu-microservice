@@ -162,17 +162,46 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3005
+      HOST: 0.0.0.0
+      # Base de datos MongoDB
       MONGODB_URI: mongodb://sgu_admin:sgu_mongo_password@mongodb:27017/sgu_notifications?authSource=admin
-      REDIS_URL: redis://redis:6379
-      EMAIL_SERVICE_API_KEY: your-email-service-api-key
-      SMS_SERVICE_API_KEY: your-sms-service-api-key
-      EMAIL_SERVICE_URL: https://api.email-service.com
-      SMS_SERVICE_URL: https://api.sms-service.com
+      # Redis para colas
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: 
+      REDIS_DB: 0
+      # Autenticación
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      AUTH_SERVICE_URL: http://auth-service:3001
+      # Email (SMTP)
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_USER: your-email@gmail.com
+      SMTP_PASS: your-app-password
+      SMTP_FROM: SGU <noreply@sgu.edu>
+      # SMS (Twilio)
+      TWILIO_ACCOUNT_SID: your-twilio-account-sid
+      TWILIO_AUTH_TOKEN: your-twilio-auth-token
+      TWILIO_PHONE_NUMBER: +1234567890
+      # Push (Firebase)
+      FIREBASE_PROJECT_ID: your-firebase-project-id
+      FIREBASE_PRIVATE_KEY_ID: your-private-key-id
+      FIREBASE_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"
+      FIREBASE_CLIENT_EMAIL: firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+      FIREBASE_CLIENT_ID: your-client-id
+      # CORS
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://localhost:3005
+      # Logging
+      LOG_LEVEL: info
+      # Timezone
+      TIMEZONE: America/Mexico_City
     ports:
       - "3005:3005"
     depends_on:
       - mongodb
       - redis
+      - auth-service
     networks:
       - sgu-network
     restart: unless-stopped
