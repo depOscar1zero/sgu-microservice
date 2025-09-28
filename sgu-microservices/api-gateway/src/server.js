@@ -1,104 +1,65 @@
-const app = require("./app");
+#!/usr/bin/env node
 
-// Puerto del servidor
-const PORT = process.env.PORT || 3000;
+/**
+ * Servidor principal del API Gateway
+ * Sistema de Gestión Universitaria (SGU)
+ */
 
-// Función para iniciar el servidor
-const startServer = () => {
-  try {
-    const server = app.listen(PORT, () => {
-      console.log("🚀 API Gateway iniciado correctamente");
-      console.log(`📡 Servidor corriendo en puerto ${PORT}`);
-      console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}`);
-      console.log(`📅 Fecha de inicio: ${new Date().toISOString()}`);
+const GatewayApp = require("./app");
+const logger = require("./utils/logger");
 
-      // Servicios configurados
-      console.log("\n🔗 Servicios registrados:");
-      console.log(
-        `   Auth Service: ${
-          process.env.AUTH_SERVICE_URL || "http://localhost:3001"
-        }`
-      );
-      console.log(
-        `   Courses Service: ${
-          process.env.COURSES_SERVICE_URL || "http://localhost:3002"
-        }`
-      );
+// Configurar variables de entorno
+require("dotenv").config();
 
-      // Endpoints del Gateway
-      console.log("\n✅ Endpoints del Gateway:");
-      console.log(`   GET  http://localhost:${PORT}/health`);
-      console.log(`   GET  http://localhost:${PORT}/status`);
-      console.log(`   GET  http://localhost:${PORT}/info`);
+// Validar variables de entorno requeridas
+const requiredEnvVars = ["JWT_SECRET"];
 
-      // Rutas proxeadas
-      console.log("\n🔄 Rutas proxeadas:");
-      console.log(
-        `   POST http://localhost:${PORT}/api/auth/register → Auth Service`
-      );
-      console.log(
-        `   POST http://localhost:${PORT}/api/auth/login → Auth Service`
-      );
-      console.log(
-        `   GET  http://localhost:${PORT}/api/auth/profile → Auth Service`
-      );
-      console.log(
-        `   GET  http://localhost:${PORT}/api/courses → Courses Service`
-      );
-      console.log(
-        `   POST http://localhost:${PORT}/api/courses → Courses Service`
-      );
-      console.log(
-        `   GET  http://localhost:${PORT}/api/courses/:id → Courses Service`
-      );
+const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
-      console.log("\n🛡️  Características habilitadas:");
-      console.log("   - Rate Limiting");
-      console.log("   - JWT Authentication");
-      console.log("   - Health Monitoring");
-      console.log("   - Request Logging");
-      console.log("   - CORS");
-      console.log("   - Security Headers");
-    });
-
-    // Manejo de cierre graceful
-    process.on("SIGTERM", () => {
-      console.log("👋 SIGTERM recibido. Cerrando Gateway...");
-      server.close(() => {
-        console.log("💥 Gateway cerrado");
-        process.exit(0);
-      });
-    });
-
-    process.on("SIGINT", () => {
-      console.log("👋 SIGINT recibido. Cerrando Gateway...");
-      server.close(() => {
-        console.log("💥 Gateway cerrado");
-        process.exit(0);
-      });
-    });
-
-    return server;
-  } catch (error) {
-    console.error("❌ Error iniciando el Gateway:", error);
-    process.exit(1);
-  }
-};
-
-// Manejo de errores no capturados
-process.on("uncaughtException", (err) => {
-  console.log("💥 UNCAUGHT EXCEPTION! Cerrando Gateway...");
-  console.log(err.name, err.message);
+if (missingEnvVars.length > 0) {
+  logger.error("Missing required environment variables:", {
+    missing: missingEnvVars,
+  });
   process.exit(1);
-});
-
-process.on("unhandledRejection", (err) => {
-  console.log("💥 UNHANDLED REJECTION! Cerrando Gateway...");
-  console.log(err.name, err.message);
-  process.exit(1);
-});
-
-// Iniciar servidor si este archivo se ejecuta directamente
-if (require.main === module) {
-  startServer();
 }
+
+// Configurar timezone
+process.env.TZ = process.env.TIMEZONE || "America/Mexico_City";
+
+// Configurar límites de memoria
+if (process.env.NODE_ENV === "production") {
+  process.env.NODE_OPTIONS = "--max-old-space-size=2048";
+}
+
+// Crear e iniciar aplicación
+const app = new GatewayApp();
+
+// Manejar errores no capturados
+process.on("uncaughtException", (error) => {
+  logger.error("Uncaught Exception:", {
+    error: error.message,
+    stack: error.stack,
+  });
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  logger.error("Unhandled Promise Rejection:", {
+    reason: reason.toString(),
+    stack: reason.stack,
+    promise: promise.toString(),
+  });
+  process.exit(1);
+});
+
+// Iniciar servidor
+app.start().catch((error) => {
+  logger.error("Failed to start API Gateway:", {
+    error: error.message,
+    stack: error.stack,
+  });
+  process.exit(1);
+});
+
+// Exportar para testing
+module.exports = app;

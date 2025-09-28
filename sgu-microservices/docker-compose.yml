@@ -209,6 +209,85 @@ services:
       - ./notifications-service:/app
       - /app/node_modules
 
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: sgu-api-gateway
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      # Service URLs
+      AUTH_SERVICE_URL: http://auth-service:3001
+      COURSES_SERVICE_URL: http://courses-service:3002
+      ENROLLMENT_SERVICE_URL: http://enrollment-service:3003
+      PAYMENTS_SERVICE_URL: http://payments-service:3004
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:3005
+      # JWT Configuration
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 24h
+      # CORS Configuration
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://localhost:3005
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: 
+      REDIS_DB: 0
+      # Cache Configuration
+      CACHE_ENABLED: true
+      CACHE_TTL: 300
+      # Rate Limiting
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 1000
+      # Circuit Breaker
+      CIRCUIT_BREAKER_ENABLED: true
+      CIRCUIT_BREAKER_THRESHOLD: 5
+      CIRCUIT_BREAKER_TIMEOUT: 60000
+      CIRCUIT_BREAKER_RESET: 30000
+      # Load Balancing
+      LOAD_BALANCING_STRATEGY: round-robin
+      HEALTH_CHECK_ENABLED: true
+      HEALTH_CHECK_INTERVAL: 30000
+      HEALTH_CHECK_TIMEOUT: 5000
+      # Monitoring
+      MONITORING_ENABLED: true
+      PROMETHEUS_ENABLED: true
+      PROMETHEUS_PORT: 9090
+      # Swagger Documentation
+      SWAGGER_ENABLED: true
+      # API Keys
+      API_KEYS: your-api-key-1,your-api-key-2
+      # Logging
+      LOG_LEVEL: info
+      LOG_FORMAT: combined
+      LOG_FILE: logs/gateway.log
+      # Timeouts
+      REQUEST_TIMEOUT: 30000
+      CONNECTION_TIMEOUT: 5000
+      # Retry
+      RETRY_ATTEMPTS: 3
+      RETRY_DELAY: 1000
+      RETRY_BACKOFF: exponential
+      # Timezone
+      TIMEZONE: America/Mexico_City
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - auth-service
+      - courses-service
+      - enrollment-service
+      - payments-service
+      - notifications-service
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+
   # Frontend SPA (Astro)
   frontend-spa:
     build:
@@ -217,21 +296,17 @@ services:
     container_name: sgu-frontend
     environment:
       NODE_ENV: production
-      PORT: 3000
-      VITE_API_BASE_URL: http://localhost:3001
-      VITE_AUTH_SERVICE_URL: http://localhost:3001
-      VITE_COURSES_SERVICE_URL: http://localhost:3002
-      VITE_ENROLLMENT_SERVICE_URL: http://localhost:3003
-      VITE_PAYMENTS_SERVICE_URL: http://localhost:3004
-      VITE_NOTIFICATIONS_SERVICE_URL: http://localhost:3005
+      PORT: 3006
+      VITE_API_BASE_URL: http://api-gateway:3000
+      VITE_AUTH_SERVICE_URL: http://api-gateway:3000/api/auth
+      VITE_COURSES_SERVICE_URL: http://api-gateway:3000/api/courses
+      VITE_ENROLLMENT_SERVICE_URL: http://api-gateway:3000/api/enrollments
+      VITE_PAYMENTS_SERVICE_URL: http://api-gateway:3000/api/payments
+      VITE_NOTIFICATIONS_SERVICE_URL: http://api-gateway:3000/api/notifications
     ports:
-      - "3000:3000"
+      - "3006:3006"
     depends_on:
-      - auth-service
-      - courses-service
-      - enrollment-service
-      - payments-service
-      - notifications-service
+      - api-gateway
     networks:
       - sgu-network
     restart: unless-stopped
@@ -251,12 +326,8 @@ services:
       - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d
       - ./infrastructure/ssl:/etc/nginx/ssl
     depends_on:
+      - api-gateway
       - frontend-spa
-      - auth-service
-      - courses-service
-      - enrollment-service
-      - payments-service
-      - notifications-service
     networks:
       - sgu-network
     restart: unless-stopped

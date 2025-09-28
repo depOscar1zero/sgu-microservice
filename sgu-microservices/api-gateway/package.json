@@ -1,32 +1,49 @@
 {
   "name": "sgu-api-gateway",
   "version": "1.0.0",
-  "description": "API Gateway para el Sistema de Gestión Universitaria",
+  "description": "API Gateway para el Sistema de Gestión Universitaria (SGU)",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
-  "keywords": [
-    "sgu",
-    "api-gateway",
-    "microservices",
-    "proxy"
-  ],
-  "author": "Tu Nombre",
-  "license": "MIT",
   "dependencies": {
-    "axios": "^1.6.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "express-rate-limit": "^7.1.5",
+    "cors": "^2.8.5",
     "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1",
     "http-proxy-middleware": "^2.0.6",
+    "express-rate-limit": "^7.1.5",
+    "compression": "^1.7.4",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0"
+    "axios": "^1.6.2",
+    "redis": "^4.6.10",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0",
+    "express-validator": "^7.0.1",
+    "swagger-ui-express": "^5.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "express-openapi-validator": "^5.0.0",
+    "prom-client": "^15.1.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
-  }
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "@types/jest": "^29.5.8"
+  },
+  "keywords": [
+    "api-gateway",
+    "microservices",
+    "proxy",
+    "authentication",
+    "rate-limiting",
+    "sgu"
+  ],
+  "author": "SGU Development Team",
+  "license": "MIT"
 }
