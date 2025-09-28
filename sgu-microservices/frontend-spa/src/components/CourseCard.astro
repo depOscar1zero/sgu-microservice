@@ -1,0 +1,279 @@
+---
+export interface Props {
+  course: {
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+    credits: number;
+    teacherName: string;
+    maxStudents: number;
+    currentStudents: number;
+    isActive: boolean;
+    schedule: Array<{
+      dayOfWeek: number;
+      startTime: string;
+      endTime: string;
+      classroom: string;
+    }>;
+  };
+  showEnrollButton?: boolean;
+}
+
+const { course, showEnrollButton = false } = Astro.props;
+
+const getStatusColor = (
+  isActive: boolean,
+  currentStudents: number,
+  maxStudents: number
+) => {
+  if (!isActive) return "bg-yellow-100 text-yellow-800";
+  if (currentStudents >= maxStudents) return "bg-red-100 text-red-800";
+  return "bg-green-100 text-green-800";
+};
+
+const getStatusText = (
+  isActive: boolean,
+  currentStudents: number,
+  maxStudents: number
+) => {
+  if (!isActive) return "Próximamente";
+  if (currentStudents >= maxStudents) return "Completo";
+  return "Disponible";
+};
+
+const formatSchedule = (schedule: typeof course.schedule) => {
+  const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  return schedule
+    .map((s) => `${days[s.dayOfWeek]} ${s.startTime}-${s.endTime}`)
+    .join(", ");
+};
+---
+
+<div
+  class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+>
+  <div class="p-6">
+    <div class="flex items-start justify-between">
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold text-gray-900">
+          {course.name}
+        </h3>
+        <p class="text-sm text-gray-500 mt-1">Código: {course.code}</p>
+        <p class="text-sm text-gray-600 mt-2">
+          {course.description}
+        </p>
+      </div>
+      <span
+        class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(course.isActive, course.currentStudents, course.maxStudents)}`}
+      >
+        {
+          getStatusText(
+            course.isActive,
+            course.currentStudents,
+            course.maxStudents
+          )
+        }
+      </span>
+    </div>
+
+    <div class="mt-4 space-y-2">
+      <div class="flex items-center text-sm text-gray-500">
+        <svg
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+          ></path>
+        </svg>
+        {course.teacherName}
+      </div>
+      <div class="flex items-center text-sm text-gray-500">
+        <svg
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        {formatSchedule(course.schedule)}
+      </div>
+      <div class="flex items-center text-sm text-gray-500">
+        <svg
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          ></path>
+        </svg>
+        {course.currentStudents}/{course.maxStudents} estudiantes
+      </div>
+      <div class="flex items-center text-sm text-gray-500">
+        <svg
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          ></path>
+        </svg>
+        {course.credits} créditos
+      </div>
+    </div>
+
+    <div class="mt-6 flex space-x-3">
+      {
+        showEnrollButton &&
+        course.isActive &&
+        course.currentStudents < course.maxStudents ? (
+          <button
+            class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 enroll-button"
+            data-course-id={course.id}
+          >
+            Inscribirse
+          </button>
+        ) : showEnrollButton ? (
+          <button
+            class="flex-1 px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
+            disabled
+          >
+            {course.currentStudents >= course.maxStudents
+              ? "Completo"
+              : "No Disponible"}
+          </button>
+        ) : null
+      }
+
+      <button
+        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 view-details-button"
+        data-course-id={course.id}
+      >
+        Ver Detalles
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Manejar clic en botón de inscripción
+    document.querySelectorAll(".enroll-button").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        const target = e.target as HTMLButtonElement;
+        const courseId = target.dataset.courseId;
+
+        if (!courseId) return;
+
+        try {
+          // Mostrar loading
+          target.disabled = true;
+          target.textContent = "Inscribiendo...";
+
+          // Aquí harías la llamada a la API para inscribirse
+          // await EnrollmentsService.enrollInCourse(courseId);
+
+          // Simular delay de API
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // Mostrar éxito
+          target.textContent = "Inscrito";
+          target.classList.remove("bg-primary-600", "hover:bg-primary-700");
+          target.classList.add("bg-green-600", "cursor-not-allowed");
+          target.disabled = true;
+
+          // Mostrar notificación de éxito
+          showNotification("Inscripción exitosa", "success");
+        } catch (error: any) {
+          console.error("Error enrolling in course:", error);
+
+          // Restaurar botón
+          target.disabled = false;
+          target.textContent = "Inscribirse";
+
+          // Mostrar error
+          showNotification(
+            error.message || "Error al inscribirse en el curso",
+            "error"
+          );
+        }
+      });
+    });
+
+    // Manejar clic en botón de ver detalles
+    document.querySelectorAll(".view-details-button").forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const target = e.target as HTMLButtonElement;
+        const courseId = target.dataset.courseId;
+
+        if (!courseId) return;
+
+        // Redirigir a página de detalles del curso
+        window.location.href = `/courses/${courseId}`;
+      });
+    });
+  });
+
+  function showNotification(
+    message: string,
+    type: "success" | "error" | "info"
+  ) {
+    // Crear elemento de notificación
+    const notification = document.createElement("div");
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+      type === "success"
+        ? "bg-green-50 border border-green-200 text-green-800"
+        : type === "error"
+          ? "bg-red-50 border border-red-200 text-red-800"
+          : "bg-blue-50 border border-blue-200 text-blue-800"
+    }`;
+
+    notification.innerHTML = `
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            ${
+              type === "success"
+                ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />'
+                : type === "error"
+                  ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />'
+                  : '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />'
+            }
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium">{message}</p>
+        </div>
+      </div>
+    `;
+
+    // Agregar al DOM
+    document.body.appendChild(notification);
+
+    // Remover después de 5 segundos
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
+  }
+</script>

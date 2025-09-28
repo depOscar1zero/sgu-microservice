@@ -1,0 +1,572 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+import { PaymentsService } from "../services/paymentsService";
+
+// Datos de ejemplo para desarrollo
+const mockPayments = [
+  {
+    id: "1",
+    studentId: "12345",
+    enrollmentId: "1",
+    amount: 450.0,
+    currency: "USD",
+    status: "completed",
+    paymentMethod: "credit_card",
+    description: "Pago de matrícula - Programación Web",
+    createdAt: "2024-09-15T10:00:00Z",
+    completedAt: "2024-09-15T10:05:00Z",
+    metadata: {
+      courseName: "Programación Web",
+      semester: "2024-1",
+    },
+  },
+  {
+    id: "2",
+    studentId: "12345",
+    enrollmentId: "2",
+    amount: 350.0,
+    currency: "USD",
+    status: "pending",
+    paymentMethod: "debit_card",
+    description: "Pago de matrícula - Base de Datos",
+    createdAt: "2024-09-12T09:00:00Z",
+    metadata: {
+      courseName: "Base de Datos",
+      semester: "2024-1",
+    },
+  },
+  {
+    id: "3",
+    studentId: "12345",
+    enrollmentId: "3",
+    amount: 500.0,
+    currency: "USD",
+    status: "failed",
+    paymentMethod: "bank_transfer",
+    description: "Pago de matrícula - Inteligencia Artificial",
+    createdAt: "2024-09-10T11:00:00Z",
+    failedAt: "2024-09-10T11:30:00Z",
+    metadata: {
+      courseName: "Inteligencia Artificial",
+      semester: "2024-1",
+      failureReason: "Fondos insuficientes",
+    },
+  },
+];
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "completed":
+      return "bg-green-100 text-green-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "processing":
+      return "bg-blue-100 text-blue-800";
+    case "failed":
+      return "bg-red-100 text-red-800";
+    case "refunded":
+      return "bg-gray-100 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case "completed":
+      return "Completado";
+    case "pending":
+      return "Pendiente";
+    case "processing":
+      return "Procesando";
+    case "failed":
+      return "Fallido";
+    case "refunded":
+      return "Reembolsado";
+    default:
+      return "Desconocido";
+  }
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatCurrency = (amount: number, currency: string) => {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: currency,
+  }).format(amount);
+};
+---
+
+<DashboardLayout title="Pagos" description="Gestiona tus pagos y facturas">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Mis Pagos</h1>
+          <p class="text-gray-600 mt-1">
+            Gestiona tus pagos y descarga tus facturas
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <select
+            id="status-filter"
+            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">Todos los estados</option>
+            <option value="pending">Pendientes</option>
+            <option value="processing">Procesando</option>
+            <option value="completed">Completados</option>
+            <option value="failed">Fallidos</option>
+            <option value="refunded">Reembolsados</option>
+          </select>
+          <button
+            id="filter-button"
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
+            Filtrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen Financiero -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Total Pagado</p>
+            <p class="text-2xl font-bold text-gray-900" id="total-paid">
+              {
+                formatCurrency(
+                  mockPayments
+                    .filter((p) => p.status === "completed")
+                    .reduce((sum, p) => sum + p.amount, 0),
+                  "USD"
+                )
+              }
+            </p>
+            <p class="text-sm text-green-600">+15% vs mes anterior</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-yellow-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Pendientes</p>
+            <p class="text-2xl font-bold text-gray-900" id="pending-amount">
+              {
+                formatCurrency(
+                  mockPayments
+                    .filter((p) => p.status === "pending")
+                    .reduce((sum, p) => sum + p.amount, 0),
+                  "USD"
+                )
+              }
+            </p>
+            <p class="text-sm text-yellow-600" id="pending-count">
+              {mockPayments.filter((p) => p.status === "pending").length} pagos pendientes
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Este Mes</p>
+            <p class="text-2xl font-bold text-gray-900" id="monthly-amount">
+              {
+                formatCurrency(
+                  mockPayments
+                    .filter((p) => p.status === "completed")
+                    .reduce((sum, p) => sum + p.amount, 0),
+                  "USD"
+                )
+              }
+            </p>
+            <p class="text-sm text-blue-600" id="monthly-count">
+              {mockPayments.filter((p) => p.status === "completed").length} pagos
+              realizados
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Pagos -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Historial de Pagos</h3>
+      </div>
+      <div id="payments-list" class="divide-y divide-gray-200">
+        {
+          mockPayments.map((payment) => (
+            <div class="p-6">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <div
+                        class={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                          payment.status === "completed"
+                            ? "bg-green-100"
+                            : payment.status === "pending"
+                              ? "bg-yellow-100"
+                              : payment.status === "processing"
+                                ? "bg-blue-100"
+                                : payment.status === "failed"
+                                  ? "bg-red-100"
+                                  : "bg-gray-100"
+                        }`}
+                      >
+                        <svg
+                          class={`w-6 h-6 ${
+                            payment.status === "completed"
+                              ? "text-green-600"
+                              : payment.status === "pending"
+                                ? "text-yellow-600"
+                                : payment.status === "processing"
+                                  ? "text-blue-600"
+                                  : payment.status === "failed"
+                                    ? "text-red-600"
+                                    : "text-gray-600"
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <h4 class="text-lg font-medium text-gray-900">
+                        {payment.description}
+                      </h4>
+                      <p class="text-sm text-gray-500">
+                        {payment.metadata.courseName} •{" "}
+                        {payment.paymentMethod.replace("_", " ").toUpperCase()}
+                      </p>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Creado el {formatDate(payment.createdAt)}
+                      </p>
+                      {payment.metadata.failureReason && (
+                        <p class="text-sm text-red-600 mt-1">
+                          Razón: {payment.metadata.failureReason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <div class="text-right">
+                    <p class="text-lg font-semibold text-gray-900">
+                      {formatCurrency(payment.amount, payment.currency)}
+                    </p>
+                    <span
+                      class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(payment.status)}`}
+                    >
+                      {getStatusText(payment.status)}
+                    </span>
+                  </div>
+                  <div class="flex space-x-2">
+                    <button
+                      class="px-3 py-1 text-sm text-primary-600 hover:text-primary-700 border border-primary-300 rounded-lg hover:bg-primary-50 view-details-button"
+                      data-payment-id={payment.id}
+                    >
+                      Ver Detalles
+                    </button>
+                    {payment.status === "completed" ? (
+                      <button
+                        class="px-3 py-1 text-sm text-green-600 hover:text-green-700 border border-green-300 rounded-lg hover:bg-green-50 download-receipt-button"
+                        data-payment-id={payment.id}
+                      >
+                        Descargar
+                      </button>
+                    ) : payment.status === "pending" ? (
+                      <button
+                        class="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50 retry-payment-button"
+                        data-payment-id={payment.id}
+                      >
+                        Reintentar
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { PaymentsService } from "../services/paymentsService";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const paymentsList = document.getElementById("payments-list");
+    const filterButton = document.getElementById("filter-button");
+    const statusFilter = document.getElementById(
+      "status-filter"
+    ) as HTMLSelectElement;
+
+    // Función para cargar pagos
+    const loadPayments = async (filters?: any) => {
+      try {
+        // En un entorno real, aquí harías la llamada a la API
+        // const payments = await PaymentsService.getPayments(filters);
+
+        // Por ahora usamos datos mock
+        console.log("Loading payments with filters:", filters);
+      } catch (error: any) {
+        console.error("Error loading payments:", error);
+        showNotification(error.message || "Error al cargar los pagos", "error");
+      }
+    };
+
+    // Cargar pagos inicialmente
+    await loadPayments();
+
+    // Manejar filtros
+    filterButton?.addEventListener("click", async () => {
+      const filters = {
+        status: statusFilter?.value || undefined,
+      };
+      await loadPayments(filters);
+    });
+
+    // Manejar clic en botón de ver detalles
+    document.querySelectorAll(".view-details-button").forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const target = e.target as HTMLButtonElement;
+        const paymentId = target.dataset.paymentId;
+
+        if (!paymentId) return;
+
+        // Redirigir a página de detalles del pago
+        window.location.href = `/payments/${paymentId}`;
+      });
+    });
+
+    // Manejar clic en botón de descargar recibo
+    document.querySelectorAll(".download-receipt-button").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        const target = e.target as HTMLButtonElement;
+        const paymentId = target.dataset.paymentId;
+
+        if (!paymentId) return;
+
+        try {
+          // Mostrar loading
+          target.disabled = true;
+          target.textContent = "Descargando...";
+
+          // Aquí harías la llamada a la API para descargar el recibo
+          // await PaymentsService.downloadReceipt(paymentId);
+
+          // Simular delay de descarga
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // Mostrar éxito
+          target.textContent = "Descargado";
+          target.classList.remove(
+            "text-green-600",
+            "hover:text-green-700",
+            "border-green-300",
+            "hover:bg-green-50"
+          );
+          target.classList.add(
+            "text-gray-400",
+            "border-gray-300",
+            "cursor-not-allowed"
+          );
+          target.disabled = true;
+
+          // Mostrar notificación de éxito
+          showNotification("Recibo descargado exitosamente", "success");
+        } catch (error: any) {
+          console.error("Error downloading receipt:", error);
+
+          // Restaurar botón
+          target.disabled = false;
+          target.textContent = "Descargar";
+
+          // Mostrar error
+          showNotification(
+            error.message || "Error al descargar el recibo",
+            "error"
+          );
+        }
+      });
+    });
+
+    // Manejar clic en botón de reintentar pago
+    document.querySelectorAll(".retry-payment-button").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        const target = e.target as HTMLButtonElement;
+        const paymentId = target.dataset.paymentId;
+
+        if (!paymentId) return;
+
+        try {
+          // Mostrar loading
+          target.disabled = true;
+          target.textContent = "Reintentando...";
+
+          // Aquí harías la llamada a la API para reintentar el pago
+          // await PaymentsService.retryPayment(paymentId);
+
+          // Simular delay de API
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Mostrar éxito
+          target.textContent = "Reintentado";
+          target.classList.remove(
+            "text-blue-600",
+            "hover:text-blue-700",
+            "border-blue-300",
+            "hover:bg-blue-50"
+          );
+          target.classList.add(
+            "text-gray-400",
+            "border-gray-300",
+            "cursor-not-allowed"
+          );
+          target.disabled = true;
+
+          // Mostrar notificación de éxito
+          showNotification("Pago reintentado exitosamente", "success");
+        } catch (error: any) {
+          console.error("Error retrying payment:", error);
+
+          // Restaurar botón
+          target.disabled = false;
+          target.textContent = "Reintentar";
+
+          // Mostrar error
+          showNotification(
+            error.message || "Error al reintentar el pago",
+            "error"
+          );
+        }
+      });
+    });
+  });
+
+  function showNotification(
+    message: string,
+    type: "success" | "error" | "info"
+  ) {
+    // Crear elemento de notificación
+    const notification = document.createElement("div");
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+      type === "success"
+        ? "bg-green-50 border border-green-200 text-green-800"
+        : type === "error"
+          ? "bg-red-50 border border-red-200 text-red-800"
+          : "bg-blue-50 border border-blue-200 text-blue-800"
+    }`;
+
+    notification.innerHTML = `
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            ${
+              type === "success"
+                ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />'
+                : type === "error"
+                  ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />'
+                  : '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />'
+            }
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium">{message}</p>
+        </div>
+      </div>
+    `;
+
+    // Agregar al DOM
+    document.body.appendChild(notification);
+
+    // Remover después de 5 segundos
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
+  }
+</script>

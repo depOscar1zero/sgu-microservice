@@ -1,0 +1,339 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+---
+
+<DashboardLayout
+  title="Mi Perfil"
+  description="Gestiona tu información personal"
+>
+  <div class="space-y-6">
+    <!-- Header del Perfil -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center space-x-6">
+        <div class="flex-shrink-0">
+          <div
+            class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center"
+          >
+            <span class="text-2xl font-bold text-primary-700">JP</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-2xl font-bold text-gray-900">Juan Pérez</h1>
+          <p class="text-gray-600">Estudiante • ID: 2024-001234</p>
+          <p class="text-sm text-gray-500 mt-1">
+            juan.perez@universidad.edu • Último acceso: Hoy, 09:30 AM
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <button
+            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
+            Editar Perfil
+          </button>
+          <button
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
+            Cambiar Contraseña
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información Personal -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Datos Personales -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Información Personal
+          </h3>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700"
+                >Nombre</label
+              >
+              <p class="mt-1 text-sm text-gray-900">Juan</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700"
+                >Apellido</label
+              >
+              <p class="mt-1 text-sm text-gray-900">Pérez</p>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <p class="mt-1 text-sm text-gray-900">juan.perez@universidad.edu</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >ID de Estudiante</label
+            >
+            <p class="mt-1 text-sm text-gray-900">2024-001234</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Teléfono</label
+            >
+            <p class="mt-1 text-sm text-gray-900">+1 (555) 123-4567</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Fecha de Nacimiento</label
+            >
+            <p class="mt-1 text-sm text-gray-900">15 de marzo, 2000</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información Académica -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Información Académica
+          </h3>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Programa</label
+            >
+            <p class="mt-1 text-sm text-gray-900">Ingeniería en Sistemas</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Semestre Actual</label
+            >
+            <p class="mt-1 text-sm text-gray-900">Séptimo Semestre</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Promedio General</label
+            >
+            <p class="mt-1 text-sm text-gray-900">8.5 / 10.0</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Estado</label
+            >
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+            >
+              Activo
+            </span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Fecha de Ingreso</label
+            >
+            <p class="mt-1 text-sm text-gray-900">Agosto 2020</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas del Estudiante -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Cursos Completados</p>
+            <p class="text-2xl font-bold text-gray-900">24</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Cursos Actuales</p>
+            <p class="text-2xl font-bold text-gray-900">6</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-yellow-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Total Pagado</p>
+            <p class="text-2xl font-bold text-gray-900">$3,250</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Promedio</p>
+            <p class="text-2xl font-bold text-gray-900">8.5</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cursos Actuales -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Cursos Actuales</h3>
+      </div>
+      <div class="p-6">
+        <div class="space-y-4">
+          <div
+            class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+          >
+            <div class="flex items-center space-x-4">
+              <div
+                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium text-gray-900">
+                  Programación Web
+                </h4>
+                <p class="text-sm text-gray-500">Prof. María García</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-medium text-gray-900">
+                Lun y Mie, 10:00-12:00
+              </p>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+              >
+                En Progreso
+              </span>
+            </div>
+          </div>
+
+          <div
+            class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+          >
+            <div class="flex items-center space-x-4">
+              <div
+                class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium text-gray-900">Base de Datos</h4>
+                <p class="text-sm text-gray-500">Prof. Carlos López</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-medium text-gray-900">
+                Mar y Jue, 14:00-16:00
+              </p>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+              >
+                En Progreso
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>

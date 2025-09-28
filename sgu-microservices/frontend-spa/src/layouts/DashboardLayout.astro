@@ -1,0 +1,31 @@
+---
+import Layout from "./Layout.astro";
+import Header from "@/components/Header.astro";
+import Sidebar from "@/components/Sidebar.astro";
+
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<Layout title={title} description={description}>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <Header />
+
+    <div class="flex">
+      <!-- Sidebar -->
+      <Sidebar />
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6 ml-64">
+        <div class="max-w-7xl mx-auto">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </div>
+</Layout>

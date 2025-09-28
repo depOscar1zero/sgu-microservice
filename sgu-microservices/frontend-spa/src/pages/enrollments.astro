@@ -1,0 +1,487 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+import { EnrollmentsService } from "../services/enrollmentsService";
+
+// Datos de ejemplo para desarrollo
+const mockEnrollments = [
+  {
+    id: "1",
+    studentId: "12345",
+    courseId: "1",
+    status: "approved",
+    enrollmentDate: "2024-09-15T10:00:00Z",
+    approvedDate: "2024-09-16T14:30:00Z",
+    course: {
+      id: "1",
+      name: "Programación Web",
+      code: "PW-2024-01",
+      teacherName: "Prof. María García",
+    },
+  },
+  {
+    id: "2",
+    studentId: "12345",
+    courseId: "2",
+    status: "pending",
+    enrollmentDate: "2024-09-12T09:00:00Z",
+    course: {
+      id: "2",
+      name: "Base de Datos",
+      code: "BD-2024-01",
+      teacherName: "Prof. Carlos López",
+    },
+  },
+  {
+    id: "3",
+    studentId: "12345",
+    courseId: "3",
+    status: "rejected",
+    enrollmentDate: "2024-09-10T11:00:00Z",
+    rejectedDate: "2024-09-11T16:00:00Z",
+    reason: "Cupo completo",
+    course: {
+      id: "3",
+      name: "Inteligencia Artificial",
+      code: "IA-2024-01",
+      teacherName: "Prof. Ana Martínez",
+    },
+  },
+];
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "approved":
+      return "bg-green-100 text-green-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "rejected":
+      return "bg-red-100 text-red-800";
+    case "cancelled":
+      return "bg-gray-100 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case "approved":
+      return "Aprobada";
+    case "pending":
+      return "Pendiente";
+    case "rejected":
+      return "Rechazada";
+    case "cancelled":
+      return "Cancelada";
+    default:
+      return "Desconocido";
+  }
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+---
+
+<DashboardLayout
+  title="Inscripciones"
+  description="Gestiona tus inscripciones a cursos"
+>
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Mis Inscripciones</h1>
+          <p class="text-gray-600 mt-1">
+            Gestiona y revisa el estado de tus inscripciones
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <select
+            id="status-filter"
+            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">Todos los estados</option>
+            <option value="pending">Pendientes</option>
+            <option value="approved">Aprobadas</option>
+            <option value="rejected">Rechazadas</option>
+            <option value="cancelled">Canceladas</option>
+          </select>
+          <button
+            id="filter-button"
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
+            Filtrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-yellow-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-gray-500">Pendientes</p>
+            <p class="text-lg font-semibold text-gray-900" id="pending-count">
+              {mockEnrollments.filter((e) => e.status === "pending").length}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-gray-500">Aprobadas</p>
+            <p class="text-lg font-semibold text-gray-900" id="approved-count">
+              {mockEnrollments.filter((e) => e.status === "approved").length}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-gray-500">Rechazadas</p>
+            <p class="text-lg font-semibold text-gray-900" id="rejected-count">
+              {mockEnrollments.filter((e) => e.status === "rejected").length}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-gray-500">Canceladas</p>
+            <p class="text-lg font-semibold text-gray-900" id="cancelled-count">
+              {mockEnrollments.filter((e) => e.status === "cancelled").length}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Inscripciones -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Historial de Inscripciones
+        </h3>
+      </div>
+      <div id="enrollments-list" class="divide-y divide-gray-200">
+        {
+          mockEnrollments.map((enrollment) => (
+            <div class="p-6">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg
+                          class="w-6 h-6 text-blue-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <h4 class="text-lg font-medium text-gray-900">
+                        {enrollment.course.name}
+                      </h4>
+                      <p class="text-sm text-gray-500">
+                        Código: {enrollment.course.code} •{" "}
+                        {enrollment.course.teacherName}
+                      </p>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Inscrito el {formatDate(enrollment.enrollmentDate)}
+                      </p>
+                      {enrollment.reason && (
+                        <p class="text-sm text-red-600 mt-1">
+                          Razón: {enrollment.reason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <span
+                    class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(enrollment.status)}`}
+                  >
+                    {getStatusText(enrollment.status)}
+                  </span>
+                  <div class="flex space-x-2">
+                    <button
+                      class="px-3 py-1 text-sm text-primary-600 hover:text-primary-700 border border-primary-300 rounded-lg hover:bg-primary-50 view-details-button"
+                      data-enrollment-id={enrollment.id}
+                    >
+                      Ver Detalles
+                    </button>
+                    {enrollment.status === "pending" ||
+                    enrollment.status === "approved" ? (
+                      <button
+                        class="px-3 py-1 text-sm text-red-600 hover:text-red-700 border border-red-300 rounded-lg hover:bg-red-50 cancel-enrollment-button"
+                        data-enrollment-id={enrollment.id}
+                      >
+                        Cancelar
+                      </button>
+                    ) : (
+                      <button
+                        class="px-3 py-1 text-sm text-gray-400 border border-gray-300 rounded-lg cursor-not-allowed"
+                        disabled
+                      >
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { EnrollmentsService } from "../services/enrollmentsService";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const enrollmentsList = document.getElementById("enrollments-list");
+    const filterButton = document.getElementById("filter-button");
+    const statusFilter = document.getElementById(
+      "status-filter"
+    ) as HTMLSelectElement;
+
+    // Función para cargar inscripciones
+    const loadEnrollments = async (filters?: any) => {
+      try {
+        // En un entorno real, aquí harías la llamada a la API
+        // const enrollments = await EnrollmentsService.getEnrollments(filters);
+
+        // Por ahora usamos datos mock
+        console.log("Loading enrollments with filters:", filters);
+      } catch (error: any) {
+        console.error("Error loading enrollments:", error);
+        showNotification(
+          error.message || "Error al cargar las inscripciones",
+          "error"
+        );
+      }
+    };
+
+    // Cargar inscripciones inicialmente
+    await loadEnrollments();
+
+    // Manejar filtros
+    filterButton?.addEventListener("click", async () => {
+      const filters = {
+        status: statusFilter?.value || undefined,
+      };
+      await loadEnrollments(filters);
+    });
+
+    // Manejar clic en botón de ver detalles
+    document.querySelectorAll(".view-details-button").forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const target = e.target as HTMLButtonElement;
+        const enrollmentId = target.dataset.enrollmentId;
+
+        if (!enrollmentId) return;
+
+        // Redirigir a página de detalles de la inscripción
+        window.location.href = `/enrollments/${enrollmentId}`;
+      });
+    });
+
+    // Manejar clic en botón de cancelar inscripción
+    document.querySelectorAll(".cancel-enrollment-button").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        const target = e.target as HTMLButtonElement;
+        const enrollmentId = target.dataset.enrollmentId;
+
+        if (!enrollmentId) return;
+
+        // Confirmar cancelación
+        if (
+          !confirm("¿Estás seguro de que quieres cancelar esta inscripción?")
+        ) {
+          return;
+        }
+
+        try {
+          // Mostrar loading
+          target.disabled = true;
+          target.textContent = "Cancelando...";
+
+          // Aquí harías la llamada a la API para cancelar
+          // await EnrollmentsService.cancelEnrollment(enrollmentId, 'Cancelado por el usuario');
+
+          // Simular delay de API
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // Mostrar éxito
+          target.textContent = "Cancelada";
+          target.classList.remove(
+            "text-red-600",
+            "hover:text-red-700",
+            "border-red-300",
+            "hover:bg-red-50"
+          );
+          target.classList.add(
+            "text-gray-400",
+            "border-gray-300",
+            "cursor-not-allowed"
+          );
+          target.disabled = true;
+
+          // Mostrar notificación de éxito
+          showNotification("Inscripción cancelada exitosamente", "success");
+        } catch (error: any) {
+          console.error("Error canceling enrollment:", error);
+
+          // Restaurar botón
+          target.disabled = false;
+          target.textContent = "Cancelar";
+
+          // Mostrar error
+          showNotification(
+            error.message || "Error al cancelar la inscripción",
+            "error"
+          );
+        }
+      });
+    });
+  });
+
+  function showNotification(
+    message: string,
+    type: "success" | "error" | "info"
+  ) {
+    // Crear elemento de notificación
+    const notification = document.createElement("div");
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+      type === "success"
+        ? "bg-green-50 border border-green-200 text-green-800"
+        : type === "error"
+          ? "bg-red-50 border border-red-200 text-red-800"
+          : "bg-blue-50 border border-blue-200 text-blue-800"
+    }`;
+
+    notification.innerHTML = `
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            ${
+              type === "success"
+                ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />'
+                : type === "error"
+                  ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />'
+                  : '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />'
+            }
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium">{message}</p>
+        </div>
+      </div>
+    `;
+
+    // Agregar al DOM
+    document.body.appendChild(notification);
+
+    // Remover después de 5 segundos
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
+  }
+</script>

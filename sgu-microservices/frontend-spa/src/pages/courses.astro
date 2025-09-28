@@ -1,0 +1,240 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+import CourseCard from "../components/CourseCard.astro";
+import { CoursesService } from "../services/coursesService";
+
+// Datos de ejemplo para desarrollo
+const mockCourses = [
+  {
+    id: "1",
+    name: "Programación Web",
+    code: "PW-2024-01",
+    description:
+      "Aprende desarrollo web moderno con HTML, CSS, JavaScript y frameworks.",
+    credits: 4,
+    teacherName: "Prof. María García",
+    maxStudents: 30,
+    currentStudents: 15,
+    isActive: true,
+    schedule: [
+      {
+        dayOfWeek: 1,
+        startTime: "10:00",
+        endTime: "12:00",
+        classroom: "A-101",
+      },
+      {
+        dayOfWeek: 3,
+        startTime: "10:00",
+        endTime: "12:00",
+        classroom: "A-101",
+      },
+    ],
+  },
+  {
+    id: "2",
+    name: "Base de Datos",
+    code: "BD-2024-01",
+    description:
+      "Fundamentos de diseño y administración de bases de datos relacionales.",
+    credits: 3,
+    teacherName: "Prof. Carlos López",
+    maxStudents: 25,
+    currentStudents: 22,
+    isActive: true,
+    schedule: [
+      {
+        dayOfWeek: 2,
+        startTime: "14:00",
+        endTime: "16:00",
+        classroom: "B-201",
+      },
+      {
+        dayOfWeek: 4,
+        startTime: "14:00",
+        endTime: "16:00",
+        classroom: "B-201",
+      },
+    ],
+  },
+  {
+    id: "3",
+    name: "Algoritmos y Estructuras",
+    code: "AE-2024-01",
+    description:
+      "Diseño y análisis de algoritmos eficientes y estructuras de datos.",
+    credits: 5,
+    teacherName: "Prof. Ana Martínez",
+    maxStudents: 20,
+    currentStudents: 0,
+    isActive: false,
+    schedule: [
+      {
+        dayOfWeek: 5,
+        startTime: "09:00",
+        endTime: "12:00",
+        classroom: "C-301",
+      },
+    ],
+  },
+];
+---
+
+<DashboardLayout title="Cursos" description="Catálogo de cursos disponibles">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Cursos Disponibles</h1>
+          <p class="text-gray-600 mt-1">
+            Explora y selecciona los cursos que te interesan
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <select
+            id="semester-filter"
+            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">Todos los semestres</option>
+            <option value="1">Primer Semestre</option>
+            <option value="2">Segundo Semestre</option>
+          </select>
+          <button
+            id="filter-button"
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
+            Filtrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid de Cursos -->
+    <div
+      id="courses-grid"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      {
+        mockCourses.map((course) => (
+          <CourseCard course={course} showEnrollButton={true} />
+        ))
+      }
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="hidden text-center py-8">
+      <div class="inline-flex items-center">
+        <svg
+          class="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        Cargando cursos...
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden text-center py-8">
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg
+              class="h-5 w-5 text-red-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              Error al cargar cursos
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <p id="error-message">
+                No se pudieron cargar los cursos. Por favor, intenta de nuevo.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { CoursesService } from "../services/coursesService";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const coursesGrid = document.getElementById("courses-grid");
+    const loadingState = document.getElementById("loading-state");
+    const errorState = document.getElementById("error-state");
+    const filterButton = document.getElementById("filter-button");
+    const semesterFilter = document.getElementById(
+      "semester-filter"
+    ) as HTMLSelectElement;
+
+    // Función para cargar cursos
+    const loadCourses = async (filters?: any) => {
+      try {
+        // Mostrar loading
+        coursesGrid?.classList.add("hidden");
+        loadingState?.classList.remove("hidden");
+        errorState?.classList.add("hidden");
+
+        // En un entorno real, aquí harías la llamada a la API
+        // const courses = await CoursesService.getCourses(filters);
+
+        // Por ahora usamos datos mock
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simular delay de API
+
+        // Ocultar loading y mostrar cursos
+        loadingState?.classList.add("hidden");
+        coursesGrid?.classList.remove("hidden");
+      } catch (error: any) {
+        console.error("Error loading courses:", error);
+
+        // Mostrar error
+        loadingState?.classList.add("hidden");
+        coursesGrid?.classList.add("hidden");
+        errorState?.classList.remove("hidden");
+
+        const errorMessage = document.getElementById("error-message");
+        if (errorMessage) {
+          errorMessage.textContent =
+            error.message || "Error al cargar los cursos";
+        }
+      }
+    };
+
+    // Cargar cursos inicialmente
+    await loadCourses();
+
+    // Manejar filtros
+    filterButton?.addEventListener("click", async () => {
+      const filters = {
+        semester: semesterFilter?.value || undefined,
+      };
+      await loadCourses(filters);
+    });
+  });
+</script>
