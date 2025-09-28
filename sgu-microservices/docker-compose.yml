@@ -153,33 +153,6 @@ services:
       - ./payments-service:/app
       - /app/node_modules
 
-  # Servicio de Notificaciones
-  notifications-service:
-    build:
-      context: ./notifications-service
-      dockerfile: Dockerfile
-    container_name: sgu-notifications-service
-    environment:
-      NODE_ENV: production
-      PORT: 3005
-      MONGODB_URI: mongodb://sgu_admin:sgu_mongo_password@mongodb:27017/sgu_notifications?authSource=admin
-      REDIS_URL: redis://redis:6379
-      EMAIL_SERVICE_API_KEY: your-email-service-api-key
-      SMS_SERVICE_API_KEY: your-sms-service-api-key
-      EMAIL_SERVICE_URL: https://api.email-service.com
-      SMS_SERVICE_URL: https://api.sms-service.com
-    ports:
-      - "3005:3005"
-    depends_on:
-      - mongodb
-      - redis
-    networks:
-      - sgu-network
-    restart: unless-stopped
-    volumes:
-      - ./notifications-service:/app
-      - /app/node_modules
-
   # Frontend SPA (Astro)
   frontend-spa:
     build:
@@ -194,7 +167,6 @@ services:
       VITE_COURSES_SERVICE_URL: http://localhost:3002
       VITE_ENROLLMENT_SERVICE_URL: http://localhost:3003
       VITE_PAYMENTS_SERVICE_URL: http://localhost:3004
-      VITE_NOTIFICATIONS_SERVICE_URL: http://localhost:3005
     ports:
       - "3000:3000"
     depends_on:
@@ -202,7 +174,6 @@ services:
       - courses-service
       - enrollment-service
       - payments-service
-      - notifications-service
     networks:
       - sgu-network
     restart: unless-stopped
@@ -227,7 +198,6 @@ services:
       - courses-service
       - enrollment-service
       - payments-service
-      - notifications-service
     networks:
       - sgu-network
     restart: unless-stopped
