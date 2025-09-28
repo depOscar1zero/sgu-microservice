@@ -1,10 +1,16 @@
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
+// Debug: Mostrar variables de entorno
+console.log("🔍 Debug - NODE_ENV:", process.env.NODE_ENV);
+console.log("🔍 Debug - DB_STORAGE:", process.env.DB_STORAGE);
+
 // Configuración de la base de datos
 let sequelize;
 
-if (process.env.NODE_ENV === "development") {
+// Forzar SQLite para desarrollo
+if (process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
+  console.log("📱 Usando SQLite para desarrollo");
   // Para desarrollo local usamos SQLite
   sequelize = new Sequelize({
     dialect: "sqlite",
@@ -23,6 +29,7 @@ if (process.env.NODE_ENV === "development") {
     },
   });
 } else {
+  console.log("🏭 Usando PostgreSQL para producción");
   // Para producción usaremos PostgreSQL
   sequelize = new Sequelize(
     process.env.DATABASE_URL || process.env.DB_NAME,

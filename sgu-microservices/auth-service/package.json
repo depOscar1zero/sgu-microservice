@@ -20,6 +20,7 @@
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.15.1",
     "redis": "^4.6.10",
     "sequelize": "^6.35.0",
     "sqlite3": "^5.1.7",

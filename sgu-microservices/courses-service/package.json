@@ -24,7 +24,9 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "mongoose": "^7.8.7",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "jest": "^29.7.0",
