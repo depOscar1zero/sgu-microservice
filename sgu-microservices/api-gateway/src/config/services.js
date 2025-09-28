@@ -20,12 +20,16 @@ const services = {
     healthCheck: '/health',
     timeout: parseInt(process.env.SERVICE_TIMEOUT) || 5000,
     retries: 3
-  }
+  },
   
-  // Aquí agregaremos más servicios en el futuro:
-  // enrollments: { ... },
-  // payments: { ... },
-  // notifications: { ... }
+  enrollments: {
+    name: 'Enrollment Service',
+    url: process.env.ENROLLMENT_SERVICE_URL || 'http://localhost:3003',
+    routes: ['/api/enrollments'],
+    healthCheck: '/health',
+    timeout: parseInt(process.env.SERVICE_TIMEOUT) || 5000,
+    retries: 3
+  }
 };
 
 /**

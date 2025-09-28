@@ -82,7 +82,8 @@ app.get('/info', (req, res) => {
     services: Object.keys(services),
     routes: {
       auth: '/api/auth/*',
-      courses: '/api/courses/*'
+      courses: '/api/courses/*',
+      enrollments: '/api/enrollments/*'
     },
     features: [
       'Authentication & Authorization',
@@ -102,10 +103,6 @@ app.get('/info', (req, res) => {
 // Proxy para Auth Service con rate limiting específico
 app.use('/api/auth/register', registerLimiter);
 app.use('/api/auth/login', authLimiter);
-
-// Middleware para parsear el body antes del proxy
-app.use('/api/auth', express.json());
-
 app.use('/api/auth', createProxyMiddleware({
   target: services.auth.url,
   changeOrigin: true,
@@ -132,7 +129,6 @@ app.use('/api/auth', createProxyMiddleware({
 }));
 
 // Proxy para Courses Service
-// Rutas públicas (sin autenticación)
 app.use('/api/courses', (req, res, next) => {
   // Permitir GET sin autenticación
   if (req.method === 'GET') {
@@ -149,9 +145,51 @@ app.use('/api/courses', (req, res, next) => {
   next();
 }, createProxyMiddleware({
   target: services.courses.url,
-  ...proxyConfig,
-  pathRewrite: {
-    '^/api/courses': '/api/courses'
+  changeOrigin: true,
+  timeout: 30000,
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+    
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('Error en proxy courses:', err.message);
+    res.status(503).json({
+      success: false,
+      message: 'Servicio de cursos temporalmente no disponible',
+      timestamp: new Date().toISOString()
+    });
+  }
+}));
+
+// Proxy para Enrollment Service (requiere autenticación)
+app.use('/api/enrollments', authenticateToken, createProxyMiddleware({
+  target: services.enrollments.url,
+  changeOrigin: true,
+  timeout: 30000,
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+    
+    // Si hay un body, asegurar que se envía correctamente
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('Error en proxy enrollment:', err.message);
+    res.status(503).json({
+      success: false,
+      message: 'Servicio de inscripciones temporalmente no disponible',
+      timestamp: new Date().toISOString()
+    });
   }
 }));
 
@@ -224,7 +262,10 @@ app.use('*', (req, res) => {
       'GET /api/auth/profile',
       'GET /api/courses',
       'POST /api/courses',
-      'GET /api/courses/:id'
+      'GET /api/courses/:id',
+      'POST /api/enrollments',
+      'GET /api/enrollments/my',
+      'GET /api/enrollments/:id'
     ],
     requestId: req.headers['x-request-id'],
     timestamp: new Date().toISOString()

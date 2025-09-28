@@ -1,0 +1,430 @@
+const Enrollment = require('../models/Enrollment');
+const { AuthServiceClient, CoursesServiceClient } = require('../services/externalServices');
+
+/**
+ * Wrapper para manejo de errores async
+ */
+const catchAsync = (fn) => {
+  return (req, res, next) => {
+    fn(req, res, next).catch(next);
+  };
+};
+
+/**
+ * Inscribir estudiante a un curso
+ */
+const enrollStudent = catchAsync(async (req, res) => {
+  const { courseId } = req.body;
+  const userId = req.user.userId;
+
+  // 1. Verificar que el curso existe y está disponible
+  const courseResult = await CoursesServiceClient.checkCourseAvailability(courseId);
+  if (!courseResult.success) {
+    return res.status(400).json({
+      success: false,
+      message: courseResult.error,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  const course = courseResult.data;
+  if (!course.canEnroll) {
+    return res.status(400).json({
+      success: false,
+      message: 'El curso no está disponible para inscripción',
+      details: {
+        status: course.status,
+        availableSlots: course.availableSlots
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // 2. Verificar que el estudiante no esté ya inscrito
+  const existingEnrollment = await Enrollment.findOne({
+    where: {
+      userId,
+      courseId,
+      status: ['Pending', 'Confirmed', 'Paid', 'Completed']
+    }
+  });
+
+  if (existingEnrollment) {
+    return res.status(409).json({
+      success: false,
+      message: 'Ya estás inscrito en este curso',
+      enrollment: existingEnrollment.toPublicJSON(),
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // 3. Verificar límite de inscripciones del estudiante
+  const activeEnrollments = await Enrollment.findActiveByUser(userId);
+  const maxEnrollments = parseInt(process.env.MAX_ENROLLMENTS_PER_STUDENT) || 8;
+  
+  if (activeEnrollments.length >= maxEnrollments) {
+    return res.status(400).json({
+      success: false,
+      message: `Has alcanzado el límite máximo de ${maxEnrollments} inscripciones activas`,
+      currentEnrollments: activeEnrollments.length,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // 4. Verificar prerrequisitos
+  const prerequisitesResult = await CoursesServiceClient.checkPrerequisites(courseId, userId, req.headers.authorization);
+  if (!prerequisitesResult.success) {
+    return res.status(400).json({
+      success: false,
+      message: 'Error verificando prerrequisitos',
+      error: prerequisitesResult.error,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  if (!prerequisitesResult.data.canEnroll) {
+    return res.status(400).json({
+      success: false,
+      message: 'No cumples con los prerrequisitos para este curso',
+      missingPrerequisites: prerequisitesResult.data.missingPrerequisites,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // 5. Reservar cupo en el curso
+  const reservationResult = await CoursesServiceClient.reserveSlots(courseId, 1);
+  if (!reservationResult.success) {
+    return res.status(400).json({
+      success: false,
+      message: 'No se pudo reservar cupo en el curso',
+      error: reservationResult.error,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  try {
+    // 6. Crear la inscripción
+    const enrollment = await Enrollment.create({
+      userId,
+      courseId,
+      studentEmail: req.user.email,
+      studentName: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
+      studentId: req.user.studentId,
+      courseCode: course.code,
+      courseName: course.name,
+      courseCredits: course.credits,
+      courseSemester: course.semester,
+      amount: course.price,
+      currency: course.currency || 'USD',
+      status: 'Pending',
+      enrolledBy: userId
+    });
+
+    // 7. Confirmar automáticamente la inscripción
+    await enrollment.confirm();
+
+    res.status(201).json({
+      success: true,
+      message: 'Inscripción realizada exitosamente',
+      data: {
+        enrollment: enrollment.toPublicJSON(),
+        course: {
+          id: course.id,
+          code: course.code,
+          name: course.name,
+          availableSlots: reservationResult.data.availableSlots
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    // Si falla la creación de la inscripción, liberar el cupo
+    console.error('Error creando inscripción, liberando cupo:', error);
+    await CoursesServiceClient.releaseSlots(courseId, 1);
+    throw error;
+  }
+});
+
+/**
+ * Obtener inscripciones de un estudiante
+ */
+const getStudentEnrollments = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const { status, semester } = req.query;
+
+  const whereClause = { userId };
+  if (status) whereClause.status = status;
+  if (semester) whereClause.courseSemester = semester;
+
+  const enrollments = await Enrollment.findAll({
+    where: whereClause,
+    order: [['enrollmentDate', 'DESC']]
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      enrollments: enrollments.map(e => e.toPublicJSON()),
+      summary: {
+        total: enrollments.length,
+        byStatus: {
+          pending: enrollments.filter(e => e.status === 'Pending').length,
+          confirmed: enrollments.filter(e => e.status === 'Confirmed').length,
+          paid: enrollments.filter(e => e.status === 'Paid').length,
+          completed: enrollments.filter(e => e.status === 'Completed').length,
+          cancelled: enrollments.filter(e => e.status === 'Cancelled').length
+        }
+      }
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * Obtener inscripciones de un curso (solo para administradores)
+ */
+const getCourseEnrollments = catchAsync(async (req, res) => {
+  const { courseId } = req.params;
+
+  // Verificar que el curso existe
+  const courseResult = await CoursesServiceClient.getCourseById(courseId);
+  if (!courseResult.success) {
+    return res.status(404).json({
+      success: false,
+      message: 'Curso no encontrado',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  const enrollments = await Enrollment.findByCourse(courseId);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      course: courseResult.data,
+      enrollments: enrollments.map(e => e.toPublicJSON()),
+      summary: {
+        totalEnrolled: enrollments.length,
+        byStatus: {
+          confirmed: enrollments.filter(e => e.status === 'Confirmed').length,
+          paid: enrollments.filter(e => e.status === 'Paid').length,
+          completed: enrollments.filter(e => e.status === 'Completed').length
+        }
+      }
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * Obtener detalles de una inscripción específica
+ */
+const getEnrollmentById = catchAsync(async (req, res) => {
+  const { enrollmentId } = req.params;
+  const userId = req.user.userId;
+  const userRole = req.user.role;
+
+  const enrollment = await Enrollment.findByPk(enrollmentId);
+
+  if (!enrollment) {
+    return res.status(404).json({
+      success: false,
+      message: 'Inscripción no encontrada',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Verificar permisos: solo el propietario o un admin puede ver la inscripción
+  if (enrollment.userId !== userId && userRole !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'No tienes permisos para ver esta inscripción',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      enrollment: enrollment.toPublicJSON()
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * Cancelar inscripción
+ */
+const cancelEnrollment = catchAsync(async (req, res) => {
+  const { enrollmentId } = req.params;
+  const { reason } = req.body;
+  const userId = req.user.userId;
+  const userRole = req.user.role;
+
+  const enrollment = await Enrollment.findByPk(enrollmentId);
+
+  if (!enrollment) {
+    return res.status(404).json({
+      success: false,
+      message: 'Inscripción no encontrada',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Verificar permisos
+  if (enrollment.userId !== userId && userRole !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'No tienes permisos para cancelar esta inscripción',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Verificar que se puede cancelar
+  if (!enrollment.canBeCancelled()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Esta inscripción no puede ser cancelada',
+      currentStatus: enrollment.status,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Liberar cupo en el curso
+  const releaseResult = await CoursesServiceClient.releaseSlots(enrollment.courseId, 1);
+  if (!releaseResult.success) {
+    console.warn('No se pudo liberar cupo en el curso:', releaseResult.error);
+  }
+
+  // Cancelar inscripción
+  await enrollment.cancel(reason, userId);
+
+  res.status(200).json({
+    success: true,
+    message: 'Inscripción cancelada exitosamente',
+    data: {
+      enrollment: enrollment.toPublicJSON()
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * Procesar pago de inscripción
+ */
+const processPayment = catchAsync(async (req, res) => {
+  const { enrollmentId } = req.params;
+  const { paymentId, amount } = req.body;
+  const userId = req.user.userId;
+
+  const enrollment = await Enrollment.findByPk(enrollmentId);
+
+  if (!enrollment) {
+    return res.status(404).json({
+      success: false,
+      message: 'Inscripción no encontrada',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Verificar permisos
+  if (enrollment.userId !== userId) {
+    return res.status(403).json({
+      success: false,
+      message: 'No tienes permisos para procesar el pago de esta inscripción',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Verificar que requiere pago
+  if (!enrollment.requiresPayment()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Esta inscripción no requiere pago',
+      paymentStatus: enrollment.paymentStatus,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Verificar monto
+  if (amount && parseFloat(amount) !== parseFloat(enrollment.amount)) {
+    return res.status(400).json({
+      success: false,
+      message: 'El monto del pago no coincide con el monto de la inscripción',
+      expected: enrollment.amount,
+      received: amount,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Marcar como pagada
+  await enrollment.markAsPaid(paymentId);
+
+  res.status(200).json({
+    success: true,
+    message: 'Pago procesado exitosamente',
+    data: {
+      enrollment: enrollment.toPublicJSON()
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * Obtener estadísticas de inscripciones
+ */
+const getEnrollmentStats = catchAsync(async (req, res) => {
+  const { semester } = req.query;
+
+  // Estadísticas generales
+  const totalEnrollments = await Enrollment.count({
+    where: semester ? { courseSemester: semester } : {}
+  });
+
+  const enrollmentsByStatus = await Enrollment.findAll({
+    attributes: [
+      'status',
+      [Enrollment.sequelize.fn('COUNT', Enrollment.sequelize.col('status')), 'count']
+    ],
+    where: semester ? { courseSemester: semester } : {},
+    group: ['status'],
+    raw: true
+  });
+
+  const enrollmentsBySemester = await Enrollment.findAll({
+    attributes: [
+      'courseSemester',
+      [Enrollment.sequelize.fn('COUNT', Enrollment.sequelize.col('courseSemester')), 'count']
+    ],
+    group: ['courseSemester'],
+    order: [['courseSemester', 'DESC']],
+    raw: true
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      total: totalEnrollments,
+      byStatus: enrollmentsByStatus.reduce((acc, item) => {
+        acc[item.status] = parseInt(item.count);
+        return acc;
+      }, {}),
+      bySemester: enrollmentsBySemester.map(item => ({
+        semester: item.courseSemester,
+        count: parseInt(item.count)
+      }))
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+module.exports = {
+  enrollStudent,
+  getStudentEnrollments,
+  getCourseEnrollments,
+  getEnrollmentById,
+  cancelEnrollment,
+  processPayment,
+  getEnrollmentStats
+};
