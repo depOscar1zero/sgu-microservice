@@ -49,7 +49,7 @@ const validateEnrollment = [
   body('courseId')
     .notEmpty()
     .withMessage('ID del curso es requerido')
-    .isLength({ min: 20, max: 30 })
+    .isLength({ min: 3, max: 50 })
     .withMessage('ID del curso debe tener formato válido')
 ];
 
@@ -72,27 +72,19 @@ const validatePayment = [
 
 const validateObjectId = [
   param('enrollmentId')
-    .isUUID()
+    .isLength({ min: 3, max: 50 })
     .withMessage('ID de inscripción inválido')
 ];
 
 const validateCourseId = [
   param('courseId')
-    .isLength({ min: 20, max: 30 })
+    .isLength({ min: 3, max: 50 })
     .withMessage('ID de curso inválido')
 ];
 
 /**
- * RUTAS PARA ESTUDIANTES
+ * RUTAS ESPECÍFICAS PRIMERO (antes de las rutas con parámetros)
  */
-
-// POST /api/enrollments - Inscribir estudiante a un curso
-router.post('/', [
-  authenticateToken,
-  requireStudent,
-  ...validateEnrollment,
-  handleValidationErrors
-], enrollStudent);
 
 // GET /api/enrollments/my - Obtener mis inscripciones
 router.get('/my', [
@@ -108,6 +100,41 @@ router.get('/my', [
     .withMessage('Formato de semestre inválido'),
   handleValidationErrors
 ], getStudentEnrollments);
+
+// GET /api/enrollments/stats - Obtener estadísticas de inscripciones
+router.get('/stats', [
+  authenticateToken,
+  requireAdmin,
+  query('semester')
+    .optional()
+    .matches(/^(Primavera|Verano|Otoño|Invierno)\s\d{4}$/)
+    .withMessage('Formato de semestre inválido'),
+  handleValidationErrors
+], getEnrollmentStats);
+
+// GET /api/enrollments/course/:courseId - Obtener inscripciones de un curso
+router.get('/course/:courseId', [
+  authenticateToken,
+  requireAdmin,
+  ...validateCourseId,
+  handleValidationErrors
+], getCourseEnrollments);
+
+/**
+ * RUTAS GENERALES
+ */
+
+// POST /api/enrollments - Inscribir estudiante a un curso
+router.post('/', [
+  authenticateToken,
+  requireStudent,
+  ...validateEnrollment,
+  handleValidationErrors
+], enrollStudent);
+
+/**
+ * RUTAS CON PARÁMETROS AL FINAL
+ */
 
 // GET /api/enrollments/:enrollmentId - Obtener detalles de una inscripción
 router.get('/:enrollmentId', [
@@ -134,28 +161,5 @@ router.put('/:enrollmentId/payment', [
   ...validatePayment,
   handleValidationErrors
 ], processPayment);
-
-/**
- * RUTAS PARA ADMINISTRADORES
- */
-
-// GET /api/enrollments/course/:courseId - Obtener inscripciones de un curso
-router.get('/course/:courseId', [
-  authenticateToken,
-  requireAdmin,
-  ...validateCourseId,
-  handleValidationErrors
-], getCourseEnrollments);
-
-// GET /api/enrollments/stats - Obtener estadísticas de inscripciones
-router.get('/stats', [
-  authenticateToken,
-  requireAdmin,
-  query('semester')
-    .optional()
-    .matches(/^(Primavera|Verano|Otoño|Invierno)\s\d{4}$/)
-    .withMessage('Formato de semestre inválido'),
-  handleValidationErrors
-], getEnrollmentStats);
 
 module.exports = router;
