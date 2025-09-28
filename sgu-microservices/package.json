@@ -1,0 +1,53 @@
+{
+  "name": "sgu-microservices",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión Universitaria - Arquitectura de Microservicios",
+  "main": "index.js",
+  "scripts": {
+    "dev": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
+    "stop": "powershell -ExecutionPolicy Bypass -File stop-dev.ps1",
+    "start": "docker-compose up -d",
+    "stop:all": "docker-compose down",
+    "build": "docker-compose build",
+    "logs": "docker-compose logs -f",
+    "logs:auth": "docker-compose logs -f auth-service",
+    "logs:courses": "docker-compose logs -f courses-service",
+    "logs:enrollment": "docker-compose logs -f enrollment-service",
+    "logs:payments": "docker-compose logs -f payments-service",
+    "logs:notifications": "docker-compose logs -f notifications-service",
+    "logs:frontend": "docker-compose logs -f frontend-spa",
+    "status": "docker-compose ps",
+    "restart": "docker-compose restart",
+    "clean": "docker-compose down -v && docker system prune -f",
+    "test": "echo 'Tests no implementados aún'",
+    "setup": "npm install && cp env.example .env"
+  },
+  "keywords": [
+    "microservices",
+    "nodejs",
+    "docker",
+    "university",
+    "management",
+    "system"
+  ],
+  "author": "SGU Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@aws-sdk/client-lambda": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/sgu-microservices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/sgu-microservices/issues"
+  },
+  "homepage": "https://github.com/your-org/sgu-microservices#readme",
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  }
+}

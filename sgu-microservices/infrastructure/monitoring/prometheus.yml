@@ -1,0 +1,79 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Auth Service
+  - job_name: "auth-service"
+    static_configs:
+      - targets: ["auth-service:3001"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # Courses Service
+  - job_name: "courses-service"
+    static_configs:
+      - targets: ["courses-service:3002"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # Enrollment Service
+  - job_name: "enrollment-service"
+    static_configs:
+      - targets: ["enrollment-service:3003"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # Payments Service
+  - job_name: "payments-service"
+    static_configs:
+      - targets: ["payments-service:3004"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # Notifications Service
+  - job_name: "notifications-service"
+    static_configs:
+      - targets: ["notifications-service:3005"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # Frontend SPA
+  - job_name: "frontend-spa"
+    static_configs:
+      - targets: ["frontend-spa:3000"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # PostgreSQL
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres:5432"]
+    scrape_interval: 30s
+
+  # Redis
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis:6379"]
+    scrape_interval: 30s
+
+  # MongoDB
+  - job_name: "mongodb"
+    static_configs:
+      - targets: ["mongodb:27017"]
+    scrape_interval: 30s
+
+  # Nginx
+  - job_name: "nginx"
+    static_configs:
+      - targets: ["nginx:80"]
+    scrape_interval: 30s

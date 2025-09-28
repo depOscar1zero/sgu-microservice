@@ -1,0 +1,290 @@
+version: "3.8"
+
+services:
+  # Base de datos PostgreSQL para servicios principales
+  postgres:
+    image: postgres:15-alpine
+    container_name: sgu-postgres
+    environment:
+      POSTGRES_DB: sgu_db
+      POSTGRES_USER: sgu_user
+      POSTGRES_PASSWORD: sgu_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Base de datos MongoDB para notificaciones
+  mongodb:
+    image: mongo:7.0
+    container_name: sgu-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sgu_admin
+      MONGO_INITDB_ROOT_PASSWORD: sgu_mongo_password
+      MONGO_INITDB_DATABASE: sgu_notifications
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Redis para colas de mensajes y cache
+  redis:
+    image: redis:7-alpine
+    container_name: sgu-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Servicio de Autenticación
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: sgu-auth-service
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 24h
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+
+  # Servicio de Cursos
+  courses-service:
+    build:
+      context: ./courses-service
+      dockerfile: Dockerfile
+    container_name: sgu-courses-service
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
+      AUTH_SERVICE_URL: http://auth-service:3001
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+      - auth-service
+      - redis
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./courses-service:/app
+      - /app/node_modules
+
+  # Servicio de Inscripciones
+  enrollment-service:
+    build:
+      context: ./enrollment-service
+      dockerfile: Dockerfile
+    container_name: sgu-enrollment-service
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
+      AUTH_SERVICE_URL: http://auth-service:3001
+      COURSES_SERVICE_URL: http://courses-service:3002
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - auth-service
+      - courses-service
+      - redis
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./enrollment-service:/app
+      - /app/node_modules
+
+  # Servicio de Pagos
+  payments-service:
+    build:
+      context: ./payments-service
+      dockerfile: Dockerfile
+    container_name: sgu-payments-service
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      DATABASE_URL: postgresql://sgu_user:sgu_password@postgres:5432/sgu_db
+      AUTH_SERVICE_URL: http://auth-service:3001
+      ENROLLMENT_SERVICE_URL: http://enrollment-service:3003
+      REDIS_URL: redis://redis:6379
+      PAYMENT_GATEWAY_API_KEY: your-payment-gateway-api-key
+      PAYMENT_GATEWAY_URL: https://api.payment-gateway.com
+    ports:
+      - "3004:3004"
+    depends_on:
+      - postgres
+      - auth-service
+      - enrollment-service
+      - redis
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./payments-service:/app
+      - /app/node_modules
+
+  # Servicio de Notificaciones
+  notifications-service:
+    build:
+      context: ./notifications-service
+      dockerfile: Dockerfile
+    container_name: sgu-notifications-service
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      MONGODB_URI: mongodb://sgu_admin:sgu_mongo_password@mongodb:27017/sgu_notifications?authSource=admin
+      REDIS_URL: redis://redis:6379
+      EMAIL_SERVICE_API_KEY: your-email-service-api-key
+      SMS_SERVICE_API_KEY: your-sms-service-api-key
+      EMAIL_SERVICE_URL: https://api.email-service.com
+      SMS_SERVICE_URL: https://api.sms-service.com
+    ports:
+      - "3005:3005"
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./notifications-service:/app
+      - /app/node_modules
+
+  # Frontend SPA (Astro)
+  frontend-spa:
+    build:
+      context: ./frontend-spa
+      dockerfile: Dockerfile
+    container_name: sgu-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      VITE_API_BASE_URL: http://localhost:3001
+      VITE_AUTH_SERVICE_URL: http://localhost:3001
+      VITE_COURSES_SERVICE_URL: http://localhost:3002
+      VITE_ENROLLMENT_SERVICE_URL: http://localhost:3003
+      VITE_PAYMENTS_SERVICE_URL: http://localhost:3004
+      VITE_NOTIFICATIONS_SERVICE_URL: http://localhost:3005
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - courses-service
+      - enrollment-service
+      - payments-service
+      - notifications-service
+    networks:
+      - sgu-network
+    restart: unless-stopped
+    volumes:
+      - ./frontend-spa:/app
+      - /app/node_modules
+
+  # Nginx como reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: sgu-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d
+      - ./infrastructure/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend-spa
+      - auth-service
+      - courses-service
+      - enrollment-service
+      - payments-service
+      - notifications-service
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Prometheus para monitoreo
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sgu-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+  # Grafana para visualización de métricas
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sgu-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infrastructure/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - sgu-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  sgu-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
