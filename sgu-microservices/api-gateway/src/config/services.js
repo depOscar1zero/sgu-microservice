@@ -29,6 +29,15 @@ const services = {
     healthCheck: '/health',
     timeout: parseInt(process.env.SERVICE_TIMEOUT) || 5000,
     retries: 3
+  },
+  
+  payments: {
+    name: 'Payments Service',
+    url: process.env.PAYMENTS_SERVICE_URL || 'http://localhost:3004',
+    routes: ['/api/payments'],
+    healthCheck: '/health',
+    timeout: parseInt(process.env.SERVICE_TIMEOUT) || 5000,
+    retries: 3
   }
 };
 

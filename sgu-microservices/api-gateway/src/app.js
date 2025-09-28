@@ -18,6 +18,31 @@ app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true
+}))
+// Proxy para Payments Service (requiere autenticación)
+app.use('/api/payments', authenticateToken, createProxyMiddleware({
+  target: services.payments.url,
+  changeOrigin: true,
+  timeout: 30000,
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`💳 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+    
+    // Si hay un body, asegurar que se envía correctamente
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('Error en proxy payments:', err.message);
+    res.status(503).json({
+      success: false,
+      message: 'Servicio de pagos temporalmente no disponible',
+      timestamp: new Date().toISOString()
+    });
+  }
 }));
 
 // Middleware de logging
@@ -83,7 +108,8 @@ app.get('/info', (req, res) => {
     routes: {
       auth: '/api/auth/*',
       courses: '/api/courses/*',
-      enrollments: '/api/enrollments/*'
+      enrollments: '/api/enrollments/*',
+      payments: '/api/payments/*'
     },
     features: [
       'Authentication & Authorization',
@@ -265,7 +291,10 @@ app.use('*', (req, res) => {
       'GET /api/courses/:id',
       'POST /api/enrollments',
       'GET /api/enrollments/my',
-      'GET /api/enrollments/:id'
+      'GET /api/enrollments/:id',
+      'POST /api/payments',
+      'GET /api/payments/my',
+      'PUT /api/payments/:id/confirm'
     ],
     requestId: req.headers['x-request-id'],
     timestamp: new Date().toISOString()
