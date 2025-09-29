@@ -1,0 +1,149 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "SGU System Overview",
+    "tags": ["sgu", "microservices"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Health Overview",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "up{job=~\"api-gateway|auth-service|courses-service|enrollment-service|payments-service|notifications-service|frontend-spa\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "API Gateway Metrics",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"api-gateway\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Requests/sec"
+          },
+          {
+            "expr": "rate(http_request_duration_seconds{job=\"api-gateway\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Duration/sec"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Database Connections",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "pg_stat_database_numbackends{job=\"postgres\"}",
+            "refId": "A",
+            "legendFormat": "PostgreSQL Connections"
+          },
+          {
+            "expr": "mongodb_connections{job=\"mongodb\"}",
+            "refId": "B",
+            "legendFormat": "MongoDB Connections"
+          },
+          {
+            "expr": "redis_connected_clients{job=\"redis\"}",
+            "refId": "C",
+            "legendFormat": "Redis Connections"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Service Response Times",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~\"auth-service|courses-service|enrollment-service|payments-service|notifications-service\"}[5m]))",
+            "refId": "A",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=~\"auth-service|courses-service|enrollment-service|payments-service|notifications-service\"}[5m]))",
+            "refId": "B",
+            "legendFormat": "50th percentile"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Error Rates",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=~\"auth-service|courses-service|enrollment-service|payments-service|notifications-service\",code=~\"5..\"}[5m])",
+            "refId": "A",
+            "legendFormat": "5xx Errors/sec"
+          },
+          {
+            "expr": "rate(http_requests_total{job=~\"auth-service|courses-service|enrollment-service|payments-service|notifications-service\",code=~\"4..\"}[5m])",
+            "refId": "B",
+            "legendFormat": "4xx Errors/sec"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

@@ -269,4 +269,33 @@ router.get("/validate", authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/auth/profile
+ * Obtener perfil del usuario autenticado
+ */
+router.get("/profile", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.userId);
+    if (!user || !user.isActive) {
+      return res.status(401).json({
+        error: "Usuario no encontrado",
+        message: "El usuario no existe o está inactivo",
+      });
+    }
+
+    logger.info(`Perfil solicitado por: ${user.email}`);
+
+    res.json({
+      success: true,
+      user: user.toPublicJSON(),
+    });
+  } catch (error) {
+    logger.error("Error obteniendo perfil:", error);
+    res.status(500).json({
+      error: "Error interno del servidor",
+      message: "No se pudo obtener el perfil del usuario",
+    });
+  }
+});
+
 module.exports = router;

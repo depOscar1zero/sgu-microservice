@@ -30,7 +30,7 @@ import Layout from "../layouts/Layout.astro";
       </div>
 
       <!-- Formulario de Registro -->
-      <form class="mt-8 space-y-6" action="#" method="POST">
+      <form id="register-form" class="mt-8 space-y-6">
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -170,8 +170,9 @@ import Layout from "../layouts/Layout.astro";
 
         <div>
           <button
+            id="register-button"
             type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
               <svg
@@ -185,7 +186,7 @@ import Layout from "../layouts/Layout.astro";
                   clip-rule="evenodd"></path>
               </svg>
             </span>
-            Crear Cuenta
+            <span id="register-button-text">Crear Cuenta</span>
           </button>
         </div>
 
@@ -201,6 +202,33 @@ import Layout from "../layouts/Layout.astro";
           </p>
         </div>
       </form>
+
+      <!-- Mensaje de error -->
+      <div
+        id="error-message"
+        class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg"
+      >
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg
+              class="h-5 w-5 text-red-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">Error</h3>
+            <div class="mt-2 text-sm text-red-700">
+              <p id="error-text"></p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Información adicional -->
       <div class="mt-8 bg-green-50 border border-green-200 rounded-lg p-4">
@@ -235,3 +263,68 @@ import Layout from "../layouts/Layout.astro";
     </div>
   </div>
 </Layout>
+
+<script src="/src/scripts/auth.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const registerForm = document.getElementById("register-form");
+    const registerButton = document.getElementById("register-button");
+    const registerButtonText = document.getElementById("register-button-text");
+    const errorMessage = document.getElementById("error-message");
+    const errorText = document.getElementById("error-text");
+
+    if (registerForm) {
+      registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Mostrar estado de carga
+        registerButton.disabled = true;
+        registerButtonText.textContent = "Creando cuenta...";
+        errorMessage.classList.add("hidden");
+
+        try {
+          const formData = new FormData(registerForm);
+
+          // Validar contraseñas
+          const password = formData.get("password");
+          const confirmPassword = formData.get("confirmPassword");
+
+          if (password !== confirmPassword) {
+            throw new Error("Las contraseñas no coinciden");
+          }
+
+          const userData = {
+            firstName: formData.get("firstName"),
+            lastName: formData.get("lastName"),
+            email: formData.get("email"),
+            password: password,
+            studentId: formData.get("studentId") || `STU${Date.now()}`,
+            department: "Computer Science",
+          };
+
+          console.log("🔍 Intentando registro con:", userData.email);
+
+          const response = await AuthService.register(userData);
+
+          console.log("✅ Registro exitoso:", response);
+
+          // Guardar tokens
+          AuthService.setTokens(response.token, response.refreshToken);
+
+          // Redirigir al dashboard
+          window.location.href = "/";
+        } catch (error) {
+          console.error("❌ Error en registro:", error);
+
+          // Mostrar error
+          errorText.textContent = error.message;
+          errorMessage.classList.remove("hidden");
+
+          // Restaurar botón
+          registerButton.disabled = false;
+          registerButtonText.textContent = "Crear Cuenta";
+        }
+      });
+    }
+  });
+</script>

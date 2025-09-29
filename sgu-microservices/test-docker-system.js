@@ -10,7 +10,7 @@ const SERVICES = {
   "Notifications Service": "http://localhost:3006",
   "Frontend SPA": "http://localhost:3005",
   Prometheus: "http://localhost:9090",
-  Grafana: "http://localhost:3001",
+  Grafana: "http://localhost:3007",
 };
 
 const HEALTH_ENDPOINTS = {

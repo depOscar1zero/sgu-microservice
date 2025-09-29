@@ -123,23 +123,14 @@
   </div>
 </div>
 
+<script src="/src/scripts/auth.js"></script>
 <script>
-  import { AuthService } from "../services/authService";
-
   document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("login-form") as HTMLFormElement;
-    const loginButton = document.getElementById(
-      "login-button"
-    ) as HTMLButtonElement;
-    const loginButtonText = document.getElementById(
-      "login-button-text"
-    ) as HTMLSpanElement;
-    const errorMessage = document.getElementById(
-      "error-message"
-    ) as HTMLDivElement;
-    const errorText = document.getElementById(
-      "error-text"
-    ) as HTMLParagraphElement;
+    const loginForm = document.getElementById("login-form");
+    const loginButton = document.getElementById("login-button");
+    const loginButtonText = document.getElementById("login-button-text");
+    const errorMessage = document.getElementById("error-message");
+    const errorText = document.getElementById("error-text");
 
     if (loginForm) {
       loginForm.addEventListener("submit", async (e) => {
@@ -153,18 +144,24 @@
         try {
           const formData = new FormData(loginForm);
           const credentials = {
-            email: formData.get("email") as string,
-            password: formData.get("password") as string,
+            email: formData.get("email"),
+            password: formData.get("password"),
           };
 
+          console.log("🔍 Intentando login con:", credentials.email);
+
           const response = await AuthService.login(credentials);
+
+          console.log("✅ Login exitoso:", response);
 
           // Guardar tokens
           AuthService.setTokens(response.token, response.refreshToken);
 
           // Redirigir al dashboard
           window.location.href = "/";
-        } catch (error: any) {
+        } catch (error) {
+          console.error("❌ Error en login:", error);
+
           // Mostrar error
           errorText.textContent = error.message;
           errorMessage.classList.remove("hidden");

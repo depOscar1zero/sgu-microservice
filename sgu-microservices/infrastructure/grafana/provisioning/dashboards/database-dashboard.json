@@ -1,0 +1,139 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "SGU Database Monitoring",
+    "tags": ["sgu", "database", "postgresql", "mongodb", "redis"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "PostgreSQL Connections",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "pg_stat_database_numbackends{job=\"postgres\"}",
+            "refId": "A",
+            "legendFormat": "Active Connections"
+          },
+          {
+            "expr": "pg_stat_database_max_connections{job=\"postgres\"}",
+            "refId": "B",
+            "legendFormat": "Max Connections"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "PostgreSQL Transactions",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "rate(pg_stat_database_xact_commit{job=\"postgres\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Commits/sec"
+          },
+          {
+            "expr": "rate(pg_stat_database_xact_rollback{job=\"postgres\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Rollbacks/sec"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "MongoDB Operations",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(mongodb_opcounters{job=\"mongodb\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Operations/sec"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Redis Memory Usage",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "redis_memory_used_bytes{job=\"redis\"}",
+            "refId": "A",
+            "legendFormat": "Memory Used"
+          },
+          {
+            "expr": "redis_memory_max_bytes{job=\"redis\"}",
+            "refId": "B",
+            "legendFormat": "Memory Max"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Database Health Status",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        },
+        "targets": [
+          {
+            "expr": "up{job=~\"postgres|mongodb|redis\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

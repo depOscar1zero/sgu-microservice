@@ -1,0 +1,154 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "SGU Microservices Detailed",
+    "tags": ["sgu", "microservices", "detailed"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Auth Service Metrics",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"auth-service\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Auth Requests/sec"
+          },
+          {
+            "expr": "rate(http_request_duration_seconds{job=\"auth-service\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Auth Duration/sec"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Courses Service Metrics",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"courses-service\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Courses Requests/sec"
+          },
+          {
+            "expr": "rate(http_request_duration_seconds{job=\"courses-service\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Courses Duration/sec"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Enrollment Service Metrics",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"enrollment-service\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Enrollment Requests/sec"
+          },
+          {
+            "expr": "rate(http_request_duration_seconds{job=\"enrollment-service\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Enrollment Duration/sec"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Payments Service Metrics",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"payments-service\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Payments Requests/sec"
+          },
+          {
+            "expr": "rate(http_request_duration_seconds{job=\"payments-service\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Payments Duration/sec"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Notifications Service Metrics",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"notifications-service\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Notifications Requests/sec"
+          },
+          {
+            "expr": "rate(http_request_duration_seconds{job=\"notifications-service\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Notifications Duration/sec"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Frontend SPA Metrics",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"frontend-spa\"}[5m])",
+            "refId": "A",
+            "legendFormat": "Frontend Requests/sec"
+          },
+          {
+            "expr": "rate(http_request_duration_seconds{job=\"frontend-spa\"}[5m])",
+            "refId": "B",
+            "legendFormat": "Frontend Duration/sec"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}
