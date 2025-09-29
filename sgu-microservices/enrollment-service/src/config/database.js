@@ -8,44 +8,22 @@ console.log("🔍 Debug - DB_STORAGE:", process.env.DB_STORAGE);
 // Configuración de la base de datos
 let sequelize;
 
-// Forzar SQLite para desarrollo
-if (process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
-  console.log("📱 Usando SQLite para desarrollo");
-  // Para desarrollo local usamos SQLite
-  sequelize = new Sequelize({
-    dialect: "sqlite",
-    storage: process.env.DB_STORAGE || "./enrollments.sqlite",
-    logging: console.log,
-    define: {
-      timestamps: true,
-      underscored: true,
-    },
-  });
-} else {
-  console.log("🏭 Usando MySQL para producción");
-  // Para producción usaremos MySQL/RDS
-  sequelize = new Sequelize(
-    process.env.DB_NAME,
-    process.env.DB_USER,
-    process.env.DB_PASSWORD,
-    {
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT || 3306,
-      dialect: "mysql",
-      logging: false,
-      pool: {
-        max: 10,
-        min: 0,
-        acquire: 30000,
-        idle: 10000,
-      },
-      define: {
-        timestamps: true,
-        underscored: true,
-      },
-    }
-  );
-}
+// Configuración de la base de datos - SIEMPRE PostgreSQL como Auth Service
+console.log("🏭 Usando PostgreSQL como Auth Service");
+sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  logging: process.env.NODE_ENV === "development" ? console.log : false,
+  pool: {
+    max: 10,
+    min: 0,
+    acquire: 30000,
+    idle: 10000,
+  },
+  define: {
+    timestamps: true,
+    underscored: true,
+  },
+});
 
 /**
  * Función para probar la conexión

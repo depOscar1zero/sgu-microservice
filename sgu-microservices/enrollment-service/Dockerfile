@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    sqlite3 \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Establecer directorio de trabajo

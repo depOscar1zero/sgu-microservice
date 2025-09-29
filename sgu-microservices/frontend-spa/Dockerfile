@@ -14,17 +14,14 @@ WORKDIR /app
 # Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias (usar npm install en lugar de npm ci)
+# Instalar dependencias
 RUN npm install
 
 # Copiar código fuente
 COPY . .
 
-# Construir la aplicación
-RUN npm run build
-
 # Exponer puerto
 EXPOSE 3000
 
-# Comando para iniciar la aplicación
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
+# Comando para iniciar la aplicación en modo desarrollo
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
