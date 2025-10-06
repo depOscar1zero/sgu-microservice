@@ -37,7 +37,7 @@ app.use(limiter);
 // Rate limiting específico para autenticación
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // máximo 5 intentos de login por IP cada 15 minutos
+  max: process.env.NODE_ENV === 'test' ? 100 : 5, // más permisivo en tests
   message: {
     error: "Demasiados intentos de login, intenta de nuevo más tarde.",
   },
@@ -110,4 +110,9 @@ process.on("SIGINT", () => {
   process.exit(0);
 });
 
-startServer();
+// Solo iniciar servidor si no estamos en modo test
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
+
+module.exports = app;

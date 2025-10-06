@@ -3,36 +3,56 @@ require("dotenv").config();
 
 // Debug: Mostrar variables de entorno
 console.log("🔍 Debug - NODE_ENV:", process.env.NODE_ENV);
-console.log("🔍 Debug - DB_STORAGE:", process.env.DB_STORAGE);
+console.log("🔍 Debug - DATABASE_URL:", process.env.DATABASE_URL ? "Definida" : "No definida");
 
 // Configuración de la base de datos
 let sequelize;
 
-// Forzar SQLite para desarrollo
-if (process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
+// Configuración según el entorno
+if (process.env.NODE_ENV === "test") {
+  console.log("📱 Usando SQLite en memoria para tests");
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: ":memory:",
+    logging: false,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+} else if (process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
   console.log("📱 Usando SQLite para desarrollo");
-  // Para desarrollo local usamos SQLite (más simple)
   sequelize = new Sequelize({
     dialect: "sqlite",
     storage: process.env.DB_STORAGE || "./database.sqlite",
-    logging: console.log, // Muestra las queries SQL en desarrollo
+    logging: console.log,
     define: {
-      timestamps: true, // Agrega createdAt y updatedAt automáticamente
-      underscored: true, // Usa snake_case para los nombres de columna
+      timestamps: true,
+      underscored: true,
     },
   });
-} else {
+} else if (process.env.DATABASE_URL) {
   console.log("🏭 Usando PostgreSQL para producción");
-  // Para producción usaremos PostgreSQL
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
-    logging: false, // En producción no mostrar queries
+    logging: false,
     pool: {
       max: 10,
       min: 0,
       acquire: 30000,
       idle: 10000,
     },
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+} else {
+  console.log("📱 Fallback a SQLite");
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: "./database.sqlite",
+    logging: false,
     define: {
       timestamps: true,
       underscored: true,
@@ -59,7 +79,7 @@ const testConnection = async () => {
  */
 const syncDatabase = async () => {
   try {
-    await sequelize.sync({ force: false }); // force: true recrea las tablas
+    await sequelize.sync({ force: false });
     console.log("✅ Modelos sincronizados correctamente");
   } catch (error) {
     console.error("❌ Error sincronizando modelos:", error.message);

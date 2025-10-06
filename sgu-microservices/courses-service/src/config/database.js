@@ -3,24 +3,62 @@ require("dotenv").config();
 
 // Debug: Mostrar variables de entorno
 console.log("🔍 Debug - NODE_ENV:", process.env.NODE_ENV);
-console.log("🔍 Debug - DATABASE_URL:", process.env.DATABASE_URL);
+console.log("🔍 Debug - DATABASE_URL:", process.env.DATABASE_URL ? "Definida" : "No definida");
 
-// Configuración de la base de datos - SIEMPRE PostgreSQL como Auth Service
-console.log("🏭 Usando PostgreSQL como Auth Service");
-sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-  logging: process.env.NODE_ENV === "development" ? console.log : false,
-  pool: {
-    max: 10,
-    min: 0,
-    acquire: 30000,
-    idle: 10000,
-  },
-  define: {
-    timestamps: true,
-    underscored: true,
-  },
-});
+// Configuración de la base de datos
+let sequelize;
+
+// Configuración según el entorno
+if (process.env.NODE_ENV === "test") {
+  console.log("📱 Usando SQLite en memoria para tests");
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: ":memory:",
+    logging: false,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+} else if (process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
+  console.log("📱 Usando SQLite para desarrollo");
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: "./database/courses.db",
+    logging: console.log,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+} else if (process.env.DATABASE_URL) {
+  console.log("🏭 Usando PostgreSQL para producción");
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+    logging: false,
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+} else {
+  console.log("📱 Fallback a SQLite");
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: "./database/courses.db",
+    logging: false,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+}
 
 /**
  * Función para probar la conexión
@@ -41,8 +79,7 @@ const testConnection = async () => {
  */
 const syncDatabase = async () => {
   try {
-    // Forzar recreación de tablas para evitar conflictos
-    await sequelize.sync({ force: true }); // force: true recrea las tablas
+    await sequelize.sync({ force: false });
     console.log("✅ Modelos sincronizados correctamente");
   } catch (error) {
     console.error("❌ Error sincronizando modelos:", error.message);

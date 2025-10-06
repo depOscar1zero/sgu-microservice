@@ -38,5 +38,10 @@
     "nodemon": "^3.0.2",
     "jest": "^29.7.0",
     "@jest/globals": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testMatch": ["**/tests/**/*.test.js"]
   }
 }

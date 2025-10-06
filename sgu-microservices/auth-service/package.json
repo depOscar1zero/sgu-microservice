@@ -39,6 +39,11 @@
     "nodemon": "^3.0.2",
     "supertest": "^6.3.3"
   },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testMatch": ["**/tests/**/*.test.js"]
+  },
   "keywords": [
     "authentication",
     "jwt",
