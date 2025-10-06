@@ -263,7 +263,11 @@ describe('NotificationFactory Tests', () => {
         createNotification(data) {
           return {
             category: 'custom',
-            recipient: data.recipient,
+            recipient: {
+              userId: data.user.id,
+              email: data.user.email,
+              name: `${data.user.firstName} ${data.user.lastName}`
+            },
             subject: 'Custom Notification',
             message: 'Custom message',
             type: 'email',
@@ -277,7 +281,7 @@ describe('NotificationFactory Tests', () => {
       notificationFactoryManager.registerFactory('custom', new CustomNotificationFactory());
 
       const notification = notificationFactoryManager.createNotification('custom', {
-        recipient: { userId: 'user-123', email: 'test@example.com', name: 'Test User' }
+        user: { id: 'user-123', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
       });
 
       expect(notification.category).toBe('custom');

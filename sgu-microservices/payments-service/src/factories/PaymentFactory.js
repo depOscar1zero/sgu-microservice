@@ -26,11 +26,28 @@ class PaymentFactory {
    * @returns {Payment} - Pago creado
    */
   buildPayment(data) {
+    this.validateInputData(data);
     const payment = this.createPayment(data);
     this.validatePayment(payment);
     this.setDefaultValues(payment);
     this.calculateFees(payment);
     return payment;
+  }
+
+  /**
+   * Validar datos de entrada
+   * @param {Object} data - Datos de entrada
+   */
+  validateInputData(data) {
+    if (!data.enrollmentId) {
+      throw new Error('EnrollmentId es requerido');
+    }
+    if (!data.userId) {
+      throw new Error('UserId es requerido');
+    }
+    if (!data.amount || data.amount <= 0) {
+      throw new Error('Amount debe ser mayor a 0');
+    }
   }
 
   /**

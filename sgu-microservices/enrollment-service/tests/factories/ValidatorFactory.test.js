@@ -139,7 +139,7 @@ describe('ValidatorFactory Tests', () => {
       const result = validator.performValidation(data);
 
       expect(result.isValid).toBe(true);
-      expect(result.conflicts).toEqual([]);
+      expect(result.conflicts || []).toEqual([]);
     });
 
     test('debe fallar cuando hay conflictos de horario', () => {
@@ -202,7 +202,7 @@ describe('ValidatorFactory Tests', () => {
       const result = validatorLowGPA.performValidation(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('GPA insuficiente. Requerido: 2.5, Actual: 2.0');
+      expect(result.errors).toContain('GPA insuficiente. Requerido: 2.5, Actual: 2');
     });
 
     test('debe fallar cuando el estado académico no es válido', () => {

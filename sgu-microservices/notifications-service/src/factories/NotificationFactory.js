@@ -26,10 +26,21 @@ class NotificationFactory {
    * @returns {Notification} - Notificación creada
    */
   buildNotification(data) {
+    this.validateInputData(data);
     const notification = this.createNotification(data);
     this.validateNotification(notification);
     this.setDefaultValues(notification);
     return notification;
+  }
+
+  /**
+   * Validar datos de entrada
+   * @param {Object} data - Datos de entrada
+   */
+  validateInputData(data) {
+    if (!data.user || !data.user.email) {
+      throw new Error('Recipient email es requerido');
+    }
   }
 
   /**
