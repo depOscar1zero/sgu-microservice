@@ -1,0 +1,15 @@
+{
+  "*.js": [
+    "eslint --fix",
+    "prettier --write",
+    "git add"
+  ],
+  "*.{json,md,yml,yaml}": [
+    "prettier --write",
+    "git add"
+  ],
+  "sgu-microservices/**/src/**/*.js": [
+    "npm run test:patterns -- --bail --findRelatedTests",
+    "git add"
+  ]
+}

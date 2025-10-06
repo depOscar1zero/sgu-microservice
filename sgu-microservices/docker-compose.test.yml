@@ -1,0 +1,180 @@
+version: '3.8'
+
+services:
+  # Base de datos para tests
+  postgres-test:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: sgu_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis para tests
+  redis-test:
+    image: redis:7
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB para tests
+  mongo-test:
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_test_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Auth Service para tests
+  auth-service-test:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@postgres-test:5432/sgu_test
+      JWT_SECRET: test-secret
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    command: npm test
+
+  # Enrollment Service para tests
+  enrollment-service-test:
+    build:
+      context: ./enrollment-service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@postgres-test:5432/sgu_test
+      REDIS_URL: redis://redis-test:6379
+      PORT: 3003
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    volumes:
+      - ./enrollment-service:/app
+      - /app/node_modules
+    command: npm test
+
+  # Courses Service para tests
+  courses-service-test:
+    build:
+      context: ./courses-service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@postgres-test:5432/sgu_test
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    volumes:
+      - ./courses-service:/app
+      - /app/node_modules
+    command: npm test
+
+  # Notifications Service para tests
+  notifications-service-test:
+    build:
+      context: ./notifications-service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: test
+      MONGODB_URL: mongodb://root:password@mongo-test:27017/sgu_test?authSource=admin
+      SMTP_HOST: localhost
+      SMTP_PORT: 587
+      SMTP_USER: test@example.com
+      SMTP_PASS: test-password
+      PORT: 3004
+    ports:
+      - "3004:3004"
+    depends_on:
+      mongo-test:
+        condition: service_healthy
+    volumes:
+      - ./notifications-service:/app
+      - /app/node_modules
+    command: npm test
+
+  # Payments Service para tests
+  payments-service-test:
+    build:
+      context: ./payments-service
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@postgres-test:5432/sgu_test
+      STRIPE_SECRET_KEY: sk_test_fake_key
+      PORT: 3005
+    ports:
+      - "3005:3005"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    volumes:
+      - ./payments-service:/app
+      - /app/node_modules
+    command: npm test
+
+  # API Gateway para tests
+  api-gateway-test:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: test
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service-test:3001
+      COURSES_SERVICE_URL: http://courses-service-test:3002
+      ENROLLMENT_SERVICE_URL: http://enrollment-service-test:3003
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service-test:3004
+      PAYMENTS_SERVICE_URL: http://payments-service-test:3005
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service-test
+      - courses-service-test
+      - enrollment-service-test
+      - notifications-service-test
+      - payments-service-test
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    command: npm test
+
+volumes:
+  postgres_test_data:
+  mongo_test_data:

@@ -9,7 +9,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:decorators": "jest tests/decorators/"
+    "test:decorators": "jest tests/decorators/",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write src/ tests/",
+    "format:check": "prettier --check src/ tests/"
   },
   "keywords": [
     "sgu",
