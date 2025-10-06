@@ -1,5 +1,5 @@
-const { Sequelize } = require("sequelize");
 require("dotenv").config();
+const { Sequelize } = require("sequelize");
 
 // Debug: Mostrar variables de entorno
 console.log("🔍 Debug - NODE_ENV:", process.env.NODE_ENV);
@@ -8,22 +8,35 @@ console.log("🔍 Debug - DB_STORAGE:", process.env.DB_STORAGE);
 // Configuración de la base de datos
 let sequelize;
 
-// Configuración de la base de datos - SIEMPRE PostgreSQL como Auth Service
-console.log("🏭 Usando PostgreSQL como Auth Service");
-sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-  logging: process.env.NODE_ENV === "development" ? console.log : false,
-  pool: {
-    max: 10,
-    min: 0,
-    acquire: 30000,
-    idle: 10000,
-  },
-  define: {
-    timestamps: true,
-    underscored: true,
-  },
-});
+// Configuración de la base de datos
+if (process.env.NODE_ENV === "development" && !process.env.FORCE_POSTGRES) {
+  console.log("🏭 Usando SQLite para desarrollo");
+  sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: "./enrollments.sqlite",
+    logging: console.log,
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+} else {
+  console.log("🏭 Usando PostgreSQL como Auth Service");
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+    logging: process.env.NODE_ENV === "development" ? console.log : false,
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
+    define: {
+      timestamps: true,
+      underscored: true,
+    },
+  });
+}
 
 /**
  * Función para probar la conexión
