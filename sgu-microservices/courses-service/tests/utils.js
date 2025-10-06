@@ -8,11 +8,13 @@ const testUtils = {
       name: `Test Course ${Date.now()}`,
       code: `TC${Date.now()}`,
       description: 'Test course description',
+      department: 'Computer Science',
       credits: 3,
-      instructor: 'Test Instructor',
-      schedule: 'Monday 9:00-11:00',
       capacity: 30,
-      semester: '2025-1'
+      price: 100.00,
+      professor: 'Test Professor',
+      status: 'ACTIVE',
+      isVisible: true
     };
     
     return { ...baseCourse, ...overrides };

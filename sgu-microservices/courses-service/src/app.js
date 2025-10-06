@@ -34,7 +34,8 @@ app.use("/api/courses", coursesRoutes);
 app.get("/health", async (req, res) => {
   try {
     res.status(200).json({
-      status: "OK",
+      success: true,
+      status: "healthy",
       service: "Courses Service",
       timestamp: new Date().toISOString(),
       version: "1.0.0",
@@ -42,6 +43,7 @@ app.get("/health", async (req, res) => {
     });
   } catch (error) {
     res.status(503).json({
+      success: false,
       status: "ERROR",
       service: "Courses Service",
       timestamp: new Date().toISOString(),

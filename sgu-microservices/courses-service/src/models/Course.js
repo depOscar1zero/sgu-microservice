@@ -33,6 +33,10 @@ const Course = sequelize.define(
     credits: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      validate: {
+        min: 1,
+        max: 10
+      }
     },
 
     // Configuración del curso
@@ -40,12 +44,16 @@ const Course = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 30,
+      validate: {
+        min: 1
+      }
     },
 
     enrolled: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      field: 'enrolled'
     },
 
     // Costos
@@ -72,6 +80,7 @@ const Course = sequelize.define(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
+      field: 'is_visible'
     },
   },
   {

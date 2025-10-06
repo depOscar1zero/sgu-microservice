@@ -61,5 +61,9 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1);
 });
 
-// Iniciar el servidor
-startServer();
+// Solo iniciar servidor si no estamos en modo test
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
+
+module.exports = app;

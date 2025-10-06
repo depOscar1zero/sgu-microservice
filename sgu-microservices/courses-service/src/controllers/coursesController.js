@@ -1,4 +1,5 @@
 const Course = require('../models/Course');
+const { Op } = require('sequelize');
 
 /**
  * Wrapper para manejo de errores async
@@ -17,47 +18,46 @@ const getAllCourses = catchAsync(async (req, res) => {
     page = 1,
     limit = 20,
     department,
-    level,
-    semester,
-    status = 'Activo',
+    status = 'ACTIVE',
     search
   } = req.query;
 
   // Construcción de filtros
-  const filters = { isVisible: true };
+  const where = { isVisible: true };
 
-  if (department) filters.department = department;
-  if (level) filters.level = level;
-  if (semester) filters.semester = semester;
-  if (status) filters.status = status;
+  if (department) where.department = department;
+  if (status) where.status = status;
 
   // Búsqueda por texto en nombre y descripción
   if (search) {
-    filters.$text = { $search: search };
+    where[Op.or] = [
+      { name: { [Op.like]: `%${search}%` } },
+      { description: { [Op.like]: `%${search}%` } }
+    ];
   }
 
   // Configuración de paginación
-  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page) - 1) * parseInt(limit);
   const limitNum = Math.min(parseInt(limit), 100); // Máximo 100 por página
 
-  // Consulta con paginación
-  const courses = await Course.find(filters)
-    .skip(skip)
-    .limit(limitNum)
-    .sort({ createdAt: -1 })
-    .select('-__v');
+  // Consulta con paginación usando Sequelize
+  const { count, rows: courses } = await Course.findAndCountAll({
+    where,
+    limit: limitNum,
+    offset,
+    order: [['createdAt', 'DESC']]
+  });
 
-  const total = await Course.countDocuments(filters);
-  const totalPages = Math.ceil(total / limitNum);
+  const totalPages = Math.ceil(count / limitNum);
 
   res.status(200).json({
     success: true,
     data: {
-      courses,
+      courses: courses,
       pagination: {
         currentPage: parseInt(page),
         totalPages,
-        totalResults: total,
+        totalResults: count,
         hasNextPage: page < totalPages,
         hasPrevPage: page > 1
       }
@@ -70,7 +70,7 @@ const getAllCourses = catchAsync(async (req, res) => {
  * Obtener un curso por ID
  */
 const getCourseById = catchAsync(async (req, res) => {
-  const course = await Course.findById(req.params.id).select('-__v');
+  const course = await Course.findByPk(req.params.id);
 
   if (!course) {
     return res.status(404).json({
@@ -82,7 +82,7 @@ const getCourseById = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: { course },
+    data: course,
     timestamp: new Date().toISOString()
   });
 });
@@ -92,9 +92,11 @@ const getCourseById = catchAsync(async (req, res) => {
  */
 const getCourseByCode = catchAsync(async (req, res) => {
   const course = await Course.findOne({ 
-    code: req.params.code.toUpperCase(),
-    isVisible: true 
-  }).select('-__v');
+    where: {
+      code: req.params.code.toUpperCase(),
+      isVisible: true 
+    }
+  });
 
   if (!course) {
     return res.status(404).json({
@@ -106,7 +108,7 @@ const getCourseByCode = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: { course },
+    data: course,
     timestamp: new Date().toISOString()
   });
 });
@@ -115,8 +117,17 @@ const getCourseByCode = catchAsync(async (req, res) => {
  * Crear nuevo curso
  */
 const createCourse = catchAsync(async (req, res) => {
+  // Verificar si el código existe
+  if (!req.body.code) {
+    return res.status(400).json({
+      success: false,
+      message: 'El código del curso es requerido',
+      timestamp: new Date().toISOString()
+    });
+  }
+
   // Verificar si ya existe un curso con el mismo código
-  const existingCourse = await Course.findOne({ code: req.body.code });
+  const existingCourse = await Course.findOne({ where: { code: req.body.code } });
   if (existingCourse) {
     return res.status(409).json({
       success: false,
@@ -125,18 +136,13 @@ const createCourse = catchAsync(async (req, res) => {
     });
   }
 
-  // Establecer cupos disponibles igual a la capacidad por defecto
-  if (!req.body.availableSlots) {
-    req.body.availableSlots = req.body.capacity;
-  }
-
-  const course = new Course(req.body);
-  await course.save();
+  // Crear el curso usando Sequelize
+  const course = await Course.create(req.body);
 
   res.status(201).json({
     success: true,
     message: 'Curso creado exitosamente',
-    data: { course },
+    data: course,
     timestamp: new Date().toISOString()
   });
 });
@@ -145,7 +151,7 @@ const createCourse = catchAsync(async (req, res) => {
  * Actualizar curso
  */
 const updateCourse = catchAsync(async (req, res) => {
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findByPk(req.params.id);
 
   if (!course) {
     return res.status(404).json({
@@ -158,8 +164,10 @@ const updateCourse = catchAsync(async (req, res) => {
   // Verificar si se está cambiando el código y ya existe otro curso con ese código
   if (req.body.code && req.body.code !== course.code) {
     const existingCourse = await Course.findOne({ 
-      code: req.body.code,
-      _id: { $ne: req.params.id }
+      where: {
+        code: req.body.code,
+        id: { [Op.ne]: req.params.id }
+      }
     });
     
     if (existingCourse) {
@@ -171,17 +179,16 @@ const updateCourse = catchAsync(async (req, res) => {
     }
   }
 
-  // Actualizar campos
-  Object.keys(req.body).forEach(key => {
-    course[key] = req.body[key];
-  });
+  // Actualizar campos usando Sequelize
+  await course.update(req.body);
 
-  await course.save();
+  // Recargar el curso para obtener los datos actualizados
+  await course.reload();
 
   res.status(200).json({
     success: true,
     message: 'Curso actualizado exitosamente',
-    data: { course },
+    data: course,
     timestamp: new Date().toISOString()
   });
 });
@@ -190,7 +197,7 @@ const updateCourse = catchAsync(async (req, res) => {
  * Eliminar curso (soft delete)
  */
 const deleteCourse = catchAsync(async (req, res) => {
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findByPk(req.params.id);
 
   if (!course) {
     return res.status(404).json({
@@ -201,9 +208,10 @@ const deleteCourse = catchAsync(async (req, res) => {
   }
 
   // Soft delete - solo marcamos como no visible
-  course.isVisible = false;
-  course.status = 'Inactivo';
-  await course.save();
+  await course.update({
+    isVisible: false,
+    status: 'INACTIVE'
+  });
 
   res.status(200).json({
     success: true,
@@ -217,7 +225,7 @@ const deleteCourse = catchAsync(async (req, res) => {
  */
 const reserveSlots = catchAsync(async (req, res) => {
   const { quantity = 1 } = req.body;
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findByPk(req.params.id);
 
   if (!course) {
     return res.status(404).json({
@@ -227,7 +235,7 @@ const reserveSlots = catchAsync(async (req, res) => {
     });
   }
 
-  if (course.status !== 'Activo') {
+  if (course.status !== 'ACTIVE') {
     return res.status(400).json({
       success: false,
       message: 'No se pueden reservar cupos en un curso inactivo',
@@ -235,31 +243,33 @@ const reserveSlots = catchAsync(async (req, res) => {
     });
   }
 
-  const success = course.reserveSlots(quantity);
+  const availableSlots = course.getAvailableSlots();
 
-  if (!success) {
+  if (quantity > availableSlots) {
     return res.status(400).json({
       success: false,
       message: 'No hay suficientes cupos disponibles',
       data: { 
         requested: quantity,
-        available: course.availableSlots 
+        available: availableSlots 
       },
       timestamp: new Date().toISOString()
     });
   }
 
-  await course.save();
+  await course.update({
+    enrolled: course.enrolled + quantity
+  });
 
   res.status(200).json({
     success: true,
     message: `${quantity} cupo(s) reservado(s) exitosamente`,
     data: { 
       course: {
-        id: course._id,
+        id: course.id,
         code: course.code,
         name: course.name,
-        availableSlots: course.availableSlots,
+        availableSlots: course.getAvailableSlots(),
         capacity: course.capacity,
         status: course.status
       }
@@ -273,7 +283,7 @@ const reserveSlots = catchAsync(async (req, res) => {
  */
 const releaseSlots = catchAsync(async (req, res) => {
   const { quantity = 1 } = req.body;
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findByPk(req.params.id);
 
   if (!course) {
     return res.status(404).json({
@@ -283,18 +293,20 @@ const releaseSlots = catchAsync(async (req, res) => {
     });
   }
 
-  course.releaseSlots(quantity);
-  await course.save();
+  const newEnrolled = Math.max(0, course.enrolled - quantity);
+  await course.update({
+    enrolled: newEnrolled
+  });
 
   res.status(200).json({
     success: true,
     message: `${quantity} cupo(s) liberado(s) exitosamente`,
     data: { 
       course: {
-        id: course._id,
+        id: course.id,
         code: course.code,
         name: course.name,
-        availableSlots: course.availableSlots,
+        availableSlots: course.getAvailableSlots(),
         capacity: course.capacity,
         status: course.status
       }
@@ -307,42 +319,58 @@ const releaseSlots = catchAsync(async (req, res) => {
  * Obtener estadísticas de cursos
  */
 const getCourseStats = catchAsync(async (req, res) => {
-  const stats = await Course.aggregate([
-    { $match: { isVisible: true } },
-    {
-      $group: {
-        _id: null,
-        totalCourses: { $sum: 1 },
-        activeCourses: {
-          $sum: { $cond: [{ $eq: ['$status', 'Activo'] }, 1, 0] }
-        },
-        fullCourses: {
-          $sum: { $cond: [{ $eq: ['$status', 'Lleno'] }, 1, 0] }
-        },
-        totalCapacity: { $sum: '$capacity' },
-        totalEnrolled: { $sum: { $subtract: ['$capacity', '$availableSlots'] } },
-        avgPrice: { $avg: '$price' }
-      }
-    }
-  ]);
+  // Obtener estadísticas generales usando Sequelize
+  const totalCourses = await Course.count({ where: { isVisible: true } });
+  const activeCourses = await Course.count({ 
+    where: { 
+      isVisible: true, 
+      status: 'ACTIVE' 
+    } 
+  });
+  
+  const courses = await Course.findAll({
+    where: { isVisible: true },
+    attributes: ['capacity', 'enrolled', 'price', 'department']
+  });
 
-  const departmentStats = await Course.aggregate([
-    { $match: { isVisible: true } },
-    {
-      $group: {
-        _id: '$department',
-        count: { $sum: 1 },
-        avgPrice: { $avg: '$price' }
-      }
-    },
-    { $sort: { count: -1 } }
-  ]);
+  const totalCapacity = courses.reduce((sum, course) => sum + course.capacity, 0);
+  const totalEnrolled = courses.reduce((sum, course) => sum + course.enrolled, 0);
+  const avgPrice = courses.length > 0 
+    ? courses.reduce((sum, course) => sum + parseFloat(course.price), 0) / courses.length 
+    : 0;
+
+  // Estadísticas por departamento
+  const departmentStats = {};
+  courses.forEach(course => {
+    if (!departmentStats[course.department]) {
+      departmentStats[course.department] = {
+        count: 0,
+        totalPrice: 0,
+        courses: []
+      };
+    }
+    departmentStats[course.department].count++;
+    departmentStats[course.department].totalPrice += parseFloat(course.price);
+    departmentStats[course.department].courses.push(course);
+  });
+
+  // Calcular promedios por departamento
+  const departmentStatsArray = Object.keys(departmentStats).map(dept => ({
+    department: dept,
+    count: departmentStats[dept].count,
+    avgPrice: departmentStats[dept].totalPrice / departmentStats[dept].count
+  })).sort((a, b) => b.count - a.count);
 
   res.status(200).json({
     success: true,
     data: {
-      general: stats[0] || {},
-      byDepartment: departmentStats
+      totalCourses,
+      activeCourses,
+      inactiveCourses: totalCourses - activeCourses,
+      totalCapacity,
+      totalEnrolled,
+      avgPrice: Math.round(avgPrice * 100) / 100,
+      byDepartment: departmentStatsArray
     },
     timestamp: new Date().toISOString()
   });

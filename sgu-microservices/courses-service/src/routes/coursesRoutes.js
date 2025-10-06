@@ -1,6 +1,17 @@
 const express = require("express");
 const { body, validationResult } = require("express-validator");
 const Course = require("../models/Course");
+const {
+  getAllCourses,
+  getCourseById,
+  getCourseByCode,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  reserveSlots,
+  releaseSlots,
+  getCourseStats
+} = require("../controllers/coursesController");
 
 const router = express.Router();
 
@@ -19,101 +30,25 @@ const validateCourse = [
 ];
 
 // GET /api/courses - Obtener todos los cursos
-router.get("/", async (req, res) => {
-  try {
-    const { page = 1, limit = 20, department, status = "ACTIVE" } = req.query;
-    const offset = (page - 1) * limit;
+router.get("/", getAllCourses);
 
-    const where = {};
-    if (department) where.department = department;
-    if (status) where.status = status;
-    where.isVisible = true;
+// GET /api/courses/stats - Obtener estadísticas de cursos
+router.get("/stats", getCourseStats);
 
-    const { count, rows } = await Course.findAndCountAll({
-      where,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      order: [["code", "ASC"]],
-    });
-
-    res.json({
-      data: rows,
-      total: count,
-      page: parseInt(page),
-      totalPages: Math.ceil(count / limit),
-    });
-  } catch (error) {
-    console.error("Error fetching courses:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
+// GET /api/courses/code/:code - Obtener curso por código
+router.get("/code/:code", getCourseByCode);
 
 // GET /api/courses/:id - Obtener un curso por ID
-router.get("/:id", async (req, res) => {
-  try {
-    const course = await Course.findByPk(req.params.id);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-    res.json(course);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.get("/:id", getCourseById);
 
 // POST /api/courses - Crear un nuevo curso
-router.post("/", validateCourse, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const course = await Course.create(req.body);
-    res.status(201).json(course);
-  } catch (error) {
-    console.error("Error creating course:", error);
-    res.status(400).json({ error: error.message });
-  }
-});
+router.post("/", validateCourse, createCourse);
 
 // PUT /api/courses/:id - Actualizar un curso
-router.put("/:id", validateCourse, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const course = await Course.findByPk(req.params.id);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    await course.update(req.body);
-    res.json(course);
-  } catch (error) {
-    console.error("Error updating course:", error);
-    res.status(400).json({ error: error.message });
-  }
-});
+router.put("/:id", validateCourse, updateCourse);
 
 // DELETE /api/courses/:id - Eliminar un curso (soft delete)
-router.delete("/:id", async (req, res) => {
-  try {
-    const course = await Course.findByPk(req.params.id);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    // Soft delete - marcar como invisible
-    await course.update({ isVisible: false, status: "INACTIVE" });
-    res.json({ message: "Course deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting course:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
+router.delete("/:id", deleteCourse);
 
 // GET /api/courses/:id/availability - Verificar disponibilidad
 router.get("/:id/availability", async (req, res) => {
@@ -139,6 +74,12 @@ router.get("/:id/availability", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// POST /api/courses/:id/reserve - Reservar cupos
+router.post("/:id/reserve", reserveSlots);
+
+// POST /api/courses/:id/release - Liberar cupos
+router.post("/:id/release", releaseSlots);
 
 // POST /api/courses/:id/enroll - Inscribir estudiante
 router.post("/:id/enroll", async (req, res) => {
