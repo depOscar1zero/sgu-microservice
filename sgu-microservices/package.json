@@ -30,6 +30,7 @@
     "test:e2e": "jest tests/e2e",
     "test:all": "jest --runInBand",
     "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:docker-strategy": "node test-docker-strategy.js",
     "setup": "npm install && cp env.example .env"
   },
   "keywords": [
