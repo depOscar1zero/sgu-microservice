@@ -1,4 +1,4 @@
-const ValidationStrategy = require("./ValidationStrategy");
+const { ValidationStrategy } = require("./ValidationStrategy");
 const { CoursesServiceClient } = require("../services/externalServices");
 
 /**
@@ -27,7 +27,7 @@ class AvailabilityValidationStrategy extends ValidationStrategy {
         return {
           isValid: false,
           error: courseResult.error,
-          strategy: this.getName(),
+          strategy: this.getStrategyName(),
         };
       }
 
@@ -42,7 +42,7 @@ class AvailabilityValidationStrategy extends ValidationStrategy {
             availableSlots: course.availableSlots,
             reason: course.reason || "Curso no disponible",
           },
-          strategy: this.getName(),
+          strategy: this.getStrategyName(),
         };
       }
 
@@ -52,14 +52,14 @@ class AvailabilityValidationStrategy extends ValidationStrategy {
           course: course,
           availableSlots: course.availableSlots,
         },
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     } catch (error) {
       return {
         isValid: false,
         error: "Error verificando disponibilidad del curso",
         details: error.message,
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     }
   }

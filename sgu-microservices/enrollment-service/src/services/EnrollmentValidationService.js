@@ -40,7 +40,7 @@ class EnrollmentValidationService {
     this.validationContext.clearStrategies();
 
     // Agregar estrategia de prerequisitos si es necesario
-    if (courseConfig.requiredCourses && courseConfig.requiredCourses.length > 0) {
+    if (courseConfig && courseConfig.requiredCourses && courseConfig.requiredCourses.length > 0) {
       const prerequisitesStrategy = new PrerequisitesValidationStrategy({
         requiredCourses: courseConfig.requiredCourses,
         studentCompletedCourses: courseConfig.studentCompletedCourses || [],
@@ -51,7 +51,7 @@ class EnrollmentValidationService {
     }
 
     // Agregar estrategia de capacidad si es necesario
-    if (courseConfig.maxCapacity && courseConfig.maxCapacity > 0) {
+    if (courseConfig && courseConfig.maxCapacity && courseConfig.maxCapacity > 0) {
       const capacityStrategy = new CapacityValidationStrategy({
         maxCapacity: courseConfig.maxCapacity,
         currentEnrollments: courseConfig.currentEnrollments || 0,
@@ -61,7 +61,7 @@ class EnrollmentValidationService {
     }
 
     // Agregar estrategia de horarios si es necesario
-    if (courseConfig.courseSchedule && courseConfig.courseSchedule.timeSlots) {
+    if (courseConfig && courseConfig.courseSchedule && courseConfig.courseSchedule.timeSlots) {
       const scheduleStrategy = new ScheduleValidationStrategy({
         courseSchedule: courseConfig.courseSchedule,
         studentSchedule: courseConfig.studentSchedule || []
@@ -70,7 +70,7 @@ class EnrollmentValidationService {
     }
 
     // Agregar estrategia de pagos si es necesario
-    if (courseConfig.studentPendingPayments !== undefined) {
+    if (courseConfig && courseConfig.studentPendingPayments !== undefined) {
       const paymentStrategy = new PaymentValidationStrategy({
         allowEnrollmentWithPendingPayments: courseConfig.allowEnrollmentWithPendingPayments || false,
         studentPendingPayments: courseConfig.studentPendingPayments || []

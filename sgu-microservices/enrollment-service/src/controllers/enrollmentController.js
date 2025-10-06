@@ -477,21 +477,17 @@ const getEnrollmentStats = catchAsync(async (req, res) => {
     raw: true,
   });
 
-  const enrollmentsBySemester = await Enrollment.findAll({
-    attributes: [
-      "courseSemester",
-      [
-        Enrollment.sequelize.fn(
-          "COUNT",
-          Enrollment.sequelize.col("courseSemester")
-        ),
-        "count",
-      ],
-    ],
-    group: ["courseSemester"],
-    order: [["courseSemester", "DESC"]],
+  // Obtener inscripciones por semestre de forma más simple
+  const allEnrollments = await Enrollment.findAll({
+    attributes: ["courseSemester"],
     raw: true,
   });
+  
+  const enrollmentsBySemester = allEnrollments.reduce((acc, enrollment) => {
+    const semester = enrollment.courseSemester || "Unknown";
+    acc[semester] = (acc[semester] || 0) + 1;
+    return acc;
+  }, {});
 
   res.status(200).json({
     success: true,
@@ -501,10 +497,129 @@ const getEnrollmentStats = catchAsync(async (req, res) => {
         acc[item.status] = parseInt(item.count);
         return acc;
       }, {}),
-      bySemester: enrollmentsBySemester.map((item) => ({
-        semester: item.courseSemester,
-        count: parseInt(item.count),
+      bySemester: Object.entries(enrollmentsBySemester).map(([semester, count]) => ({
+        semester,
+        count,
       })),
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * Obtener todas las inscripciones con filtros opcionales (admin)
+ */
+const getAllEnrollments = catchAsync(async (req, res) => {
+  const { studentId, courseId, status } = req.query;
+
+  const whereClause = {};
+  if (studentId) whereClause.userId = studentId;
+  if (courseId) whereClause.courseId = courseId;
+  if (status) whereClause.status = status;
+
+  const enrollments = await Enrollment.findAll({
+    where: whereClause,
+    order: [["enrollmentDate", "DESC"]],
+  });
+
+  res.status(200).json({
+    success: true,
+    data: enrollments.map((e) => e.toPublicJSON()),
+    summary: {
+      total: enrollments.length,
+      byStatus: {
+        pending: enrollments.filter((e) => e.status === "Pending").length,
+        confirmed: enrollments.filter((e) => e.status === "Confirmed").length,
+        paid: enrollments.filter((e) => e.status === "Paid").length,
+        completed: enrollments.filter((e) => e.status === "Completed").length,
+        cancelled: enrollments.filter((e) => e.status === "Cancelled").length,
+      },
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * Aprobar inscripción (admin)
+ */
+const approveEnrollment = catchAsync(async (req, res) => {
+  const { enrollmentId } = req.params;
+
+  const enrollment = await Enrollment.findByPk(enrollmentId);
+
+  if (!enrollment) {
+    return res.status(404).json({
+      success: false,
+      message: "Inscripción no encontrada",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  if (enrollment.status !== "Pending") {
+    return res.status(400).json({
+      success: false,
+      message: "Solo se pueden aprobar inscripciones pendientes",
+      currentStatus: enrollment.status,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  await enrollment.confirm();
+
+  res.status(200).json({
+    success: true,
+    message: "Inscripción aprobada exitosamente",
+    data: {
+      enrollment: enrollment.toPublicJSON(),
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * Rechazar inscripción (admin)
+ */
+const rejectEnrollment = catchAsync(async (req, res) => {
+  const { enrollmentId } = req.params;
+  const { reason } = req.body;
+
+  const enrollment = await Enrollment.findByPk(enrollmentId);
+
+  if (!enrollment) {
+    return res.status(404).json({
+      success: false,
+      message: "Inscripción no encontrada",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  if (!["Pending", "Confirmed"].includes(enrollment.status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Solo se pueden rechazar inscripciones pendientes o confirmadas",
+      currentStatus: enrollment.status,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Liberar cupo en el curso si estaba confirmada
+  if (enrollment.status === "Confirmed") {
+    const releaseResult = await CoursesServiceClient.releaseSlots(
+      enrollment.courseId,
+      1
+    );
+    if (!releaseResult.success) {
+      console.warn("No se pudo liberar cupo en el curso:", releaseResult.error);
+    }
+  }
+
+  await enrollment.cancel(reason || "Rechazada por administrador", req.user.userId);
+
+  res.status(200).json({
+    success: true,
+    message: "Inscripción rechazada exitosamente",
+    data: {
+      enrollment: enrollment.toPublicJSON(),
     },
     timestamp: new Date().toISOString(),
   });
@@ -513,9 +628,12 @@ const getEnrollmentStats = catchAsync(async (req, res) => {
 module.exports = {
   enrollStudent,
   getStudentEnrollments,
+  getAllEnrollments,
   getCourseEnrollments,
   getEnrollmentById,
   cancelEnrollment,
   processPayment,
   getEnrollmentStats,
+  approveEnrollment,
+  rejectEnrollment,
 };

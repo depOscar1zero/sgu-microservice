@@ -1,4 +1,4 @@
-const ValidationStrategy = require("./ValidationStrategy");
+const { ValidationStrategy } = require("./ValidationStrategy");
 const Enrollment = require("../models/Enrollment");
 
 /**
@@ -36,7 +36,7 @@ class DuplicateEnrollmentValidationStrategy extends ValidationStrategy {
             currentStatus: existingEnrollment.status,
             enrollmentDate: existingEnrollment.enrollmentDate,
           },
-          strategy: this.getName(),
+          strategy: this.getStrategyName(),
         };
       }
 
@@ -45,14 +45,14 @@ class DuplicateEnrollmentValidationStrategy extends ValidationStrategy {
         data: {
           message: "No hay inscripción duplicada",
         },
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     } catch (error) {
       return {
         isValid: false,
         error: "Error verificando inscripciones duplicadas",
         details: error.message,
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     }
   }

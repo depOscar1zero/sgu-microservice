@@ -1,4 +1,4 @@
-const ValidationStrategy = require("./ValidationStrategy");
+const { ValidationStrategy } = require("./ValidationStrategy");
 const { CoursesServiceClient } = require("../services/externalServices");
 
 /**
@@ -30,7 +30,7 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
           isValid: false,
           error: "Error verificando prerrequisitos",
           details: prerequisitesResult.error,
-          strategy: this.getName(),
+          strategy: this.getStrategyName(),
         };
       }
 
@@ -43,7 +43,7 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
             requiredPrerequisites:
               prerequisitesResult.data.requiredPrerequisites,
           },
-          strategy: this.getName(),
+          strategy: this.getStrategyName(),
         };
       }
 
@@ -54,14 +54,14 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
           completedPrerequisites:
             prerequisitesResult.data.completedPrerequisites,
         },
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     } catch (error) {
       return {
         isValid: false,
         error: "Error verificando prerrequisitos",
         details: error.message,
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     }
   }

@@ -1,4 +1,4 @@
-const ValidationStrategy = require("./ValidationStrategy");
+const { ValidationStrategy } = require("./ValidationStrategy");
 
 /**
  * Contexto que orquesta las estrategias de validación de inscripción

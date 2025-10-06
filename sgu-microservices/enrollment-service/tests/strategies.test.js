@@ -1,7 +1,7 @@
 const { describe, test, expect, beforeEach } = require("@jest/globals");
 
 // Importar las estrategias
-const ValidationStrategy = require("../src/strategies/ValidationStrategy");
+const { ValidationStrategy } = require("../src/strategies/ValidationStrategy");
 const AvailabilityValidationStrategy = require("../src/strategies/AvailabilityValidationStrategy");
 const PrerequisitesValidationStrategy = require("../src/strategies/PrerequisitesValidationStrategy");
 const EnrollmentLimitValidationStrategy = require("../src/strategies/EnrollmentLimitValidationStrategy");
@@ -37,14 +37,14 @@ describe("Patrón Strategy - Validaciones de Inscripción", () => {
     test("debe lanzar error si se intenta usar la clase base directamente", async () => {
       const strategy = new ValidationStrategy();
 
-      await expect(strategy.validate({})).rejects.toThrow(
-        "Método validate debe ser implementado por las clases hijas"
+      expect(() => strategy.validate({})).toThrow(
+        "validate debe ser implementado por subclases"
       );
     });
 
     test("debe retornar el nombre correcto de la estrategia", () => {
       const strategy = new ValidationStrategy();
-      expect(strategy.getName()).toBe("ValidationStrategy");
+      expect(strategy.getStrategyName()).toBe("ValidationStrategy");
     });
 
     test("debe retornar la prioridad por defecto", () => {

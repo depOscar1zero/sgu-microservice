@@ -3,11 +3,14 @@ const { body, param, query } = require('express-validator');
 const {
   enrollStudent,
   getStudentEnrollments,
+  getAllEnrollments,
   getCourseEnrollments,
   getEnrollmentById,
   cancelEnrollment,
   processPayment,
-  getEnrollmentStats
+  getEnrollmentStats,
+  approveEnrollment,
+  rejectEnrollment
 } = require('../controllers/enrollmentController');
 
 const {
@@ -112,6 +115,25 @@ router.get('/stats', [
   handleValidationErrors
 ], getEnrollmentStats);
 
+// GET /api/enrollments - Obtener todas las inscripciones (con filtros opcionales)
+router.get('/', [
+  authenticateToken,
+  requireAdmin,
+  query('studentId')
+    .optional()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('ID de estudiante inválido'),
+  query('courseId')
+    .optional()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('ID de curso inválido'),
+  query('status')
+    .optional()
+    .isIn(['Pending', 'Confirmed', 'Paid', 'Cancelled', 'Completed', 'Failed'])
+    .withMessage('Estado de inscripción inválido'),
+  handleValidationErrors
+], getAllEnrollments);
+
 // GET /api/enrollments/course/:courseId - Obtener inscripciones de un curso
 router.get('/course/:courseId', [
   authenticateToken,
@@ -161,5 +183,25 @@ router.put('/:enrollmentId/payment', [
   ...validatePayment,
   handleValidationErrors
 ], processPayment);
+
+// PUT /api/enrollments/:enrollmentId/approve - Aprobar inscripción (admin)
+router.put('/:enrollmentId/approve', [
+  authenticateToken,
+  requireAdmin,
+  ...validateObjectId,
+  handleValidationErrors
+], approveEnrollment);
+
+// PUT /api/enrollments/:enrollmentId/reject - Rechazar inscripción (admin)
+router.put('/:enrollmentId/reject', [
+  authenticateToken,
+  requireAdmin,
+  ...validateObjectId,
+  body('reason')
+    .optional()
+    .isLength({ max: 500 })
+    .withMessage('La razón no puede exceder 500 caracteres'),
+  handleValidationErrors
+], rejectEnrollment);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-const ValidationStrategy = require("./ValidationStrategy");
+const { ValidationStrategy } = require("./ValidationStrategy");
 const Enrollment = require("../models/Enrollment");
 
 /**
@@ -37,7 +37,7 @@ class EnrollmentLimitValidationStrategy extends ValidationStrategy {
               status: e.status,
             })),
           },
-          strategy: this.getName(),
+          strategy: this.getStrategyName(),
         };
       }
 
@@ -48,14 +48,14 @@ class EnrollmentLimitValidationStrategy extends ValidationStrategy {
           maxEnrollments: maxEnrollments,
           remainingSlots: maxEnrollments - activeEnrollments.length,
         },
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     } catch (error) {
       return {
         isValid: false,
         error: "Error verificando límites de inscripción",
         details: error.message,
-        strategy: this.getName(),
+        strategy: this.getStrategyName(),
       };
     }
   }

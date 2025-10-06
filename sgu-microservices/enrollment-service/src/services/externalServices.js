@@ -75,7 +75,7 @@ class CoursesServiceClient {
 
       return {
         success: true,
-        data: response.data.data.course
+        data: response.data.data
       };
     } catch (error) {
       console.error('Error obteniendo curso:', error.message);
@@ -99,7 +99,7 @@ class CoursesServiceClient {
 
       return {
         success: true,
-        data: response.data.data.course
+        data: response.data.data
       };
     } catch (error) {
       console.error('Error reservando cupos:', error.message);
@@ -123,7 +123,7 @@ class CoursesServiceClient {
 
       return {
         success: true,
-        data: response.data.data.course
+        data: response.data.data
       };
     } catch (error) {
       console.error('Error liberando cupos:', error.message);
@@ -151,8 +151,8 @@ class CoursesServiceClient {
         success: true,
         data: {
           ...course,
-          isAvailable: course.status === 'Activo' && course.availableSlots > 0,
-          canEnroll: course.status === 'Activo' && course.availableSlots > 0
+          isAvailable: course.status === 'ACTIVE' && course.availableSlots > 0,
+          canEnroll: course.status === 'ACTIVE' && course.availableSlots > 0
         }
       };
     } catch (error) {

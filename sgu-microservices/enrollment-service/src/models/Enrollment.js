@@ -119,7 +119,7 @@ const Enrollment = sequelize.define(
     enrollmentDate: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW,
+      defaultValue: () => new Date(),
     },
 
     confirmationDate: {

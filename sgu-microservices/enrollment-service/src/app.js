@@ -26,7 +26,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
-    status: 'OK',
+    success: true,
+    status: 'healthy',
     service: 'Enrollment Service',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
