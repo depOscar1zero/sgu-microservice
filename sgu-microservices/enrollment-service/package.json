@@ -15,6 +15,8 @@
     "demo:strategy:simple": "node src/demo/strategy-pattern-demo-simple.js",
     "test:microservice": "node test-microservice.js",
     "test:strategy-integration": "node test-strategy-integration.js",
+    "test:domain": "jest tests/domain/",
+    "test:ddd": "jest tests/domain/ --verbose",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix"
   },
