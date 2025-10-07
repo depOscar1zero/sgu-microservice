@@ -32,6 +32,14 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Logging agresivo para debug
+app.use((req, res, next) => {
+  console.log(`📥 REQUEST: ${req.method} ${req.url} from ${req.headers.origin || 'no-origin'}`);
+  console.log(`   Headers:`, JSON.stringify(req.headers, null, 2));
+  next();
+});
+
 // Proxy para Payments Service (requiere autenticación)
 app.use('/api/payments', authenticateToken, createProxyMiddleware({
   target: services.payments.url,
