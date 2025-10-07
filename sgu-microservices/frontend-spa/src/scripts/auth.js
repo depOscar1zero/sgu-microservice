@@ -91,31 +91,45 @@ function updateUserInfo() {
 
 // Ejecutar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Inicializando autenticación...');
+  console.log('🔐 Inicializando autenticación...');
   initAuth();
   updateUserInfo();
   
-  // Configurar logout button si existe
-  const logoutButton = document.getElementById('logout-button');
-  if (logoutButton) {
-    logoutButton.addEventListener('click', logout);
-  }
-  
-  // Configurar menú de usuario si existe
-  const userMenuButton = document.getElementById('user-menu-button');
-  const userMenu = document.getElementById('user-menu');
-  
-  if (userMenuButton && userMenu) {
-    userMenuButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      userMenu.classList.toggle('hidden');
-    });
+  // Usar setTimeout para asegurar que los elementos estén en el DOM
+  setTimeout(() => {
+    // Configurar logout button si existe
+    const logoutButton = document.getElementById('logout-button');
+    console.log('🔍 Buscando botón de logout:', logoutButton ? 'Encontrado' : 'No encontrado');
     
-    // Cerrar menú al hacer clic fuera
-    document.addEventListener('click', () => {
-      userMenu.classList.add('hidden');
-    });
-  }
+    if (logoutButton) {
+      console.log('✅ Configurando evento de logout');
+      logoutButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('🚪 Cerrando sesión...');
+        logout();
+      });
+    }
+    
+    // Configurar menú de usuario si existe
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userMenu = document.getElementById('user-menu');
+    
+    if (userMenuButton && userMenu) {
+      console.log('✅ Configurando menú de usuario');
+      userMenuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log('📂 Toggle menú de usuario');
+        userMenu.classList.toggle('hidden');
+      });
+      
+      // Cerrar menú al hacer clic fuera
+      document.addEventListener('click', (e) => {
+        if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+          userMenu.classList.add('hidden');
+        }
+      });
+    }
+  }, 100);
 });
 
 // Exportar funciones para uso global
