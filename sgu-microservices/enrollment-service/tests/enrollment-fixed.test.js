@@ -80,7 +80,7 @@ describe("Enrollment Service API", () => {
 
     test("should filter enrollments by student", async () => {
       const response = await request(app)
-        .get("/api/enrollments?studentId=user-123")
+        .get("/api/enrollments?studentId=STU123")
         .set("Authorization", `Bearer ${adminToken}`)
         .expect(200);
 

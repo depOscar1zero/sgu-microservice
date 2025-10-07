@@ -127,7 +127,8 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Verificar token con el servicio de autenticación
-    const authResult = await AuthServiceClient.verifyToken(token);
+    const authClient = new AuthServiceClient();
+    const authResult = await authClient.verifyToken(token);
     if (!authResult.success) {
       return res.status(401).json({
         success: false,

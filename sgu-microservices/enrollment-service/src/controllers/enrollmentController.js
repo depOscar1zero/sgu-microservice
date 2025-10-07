@@ -513,7 +513,7 @@ const getAllEnrollments = catchAsync(async (req, res) => {
   const { studentId, courseId, status } = req.query;
 
   const whereClause = {};
-  if (studentId) whereClause.userId = studentId;
+  if (studentId) whereClause.studentId = studentId;
   if (courseId) whereClause.courseId = courseId;
   if (status) whereClause.status = status;
 

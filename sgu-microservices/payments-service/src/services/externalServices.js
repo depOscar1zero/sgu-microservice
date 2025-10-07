@@ -1,5 +1,65 @@
 const axios = require('axios');
 
+class AuthServiceClient {
+  constructor() {
+    this.baseURL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+    console.log('AuthServiceClient inicializado con URL:', this.baseURL);
+  }
+
+  async verifyToken(token) {
+    try {
+      console.log('=== DEBUG: verifyToken ===');
+      console.log('Token presente:', token ? 'SÍ' : 'NO');
+
+      if (!token) {
+        console.error('ERROR: Token no proporcionado');
+        return {
+          success: false,
+          error: 'Token de autorización requerido'
+        };
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
+      };
+
+      console.log('Verificando token con Auth Service...');
+
+      const response = await axios.get(
+        `${this.baseURL}/api/users/profile`,
+        config
+      );
+
+      console.log('Token verificado exitosamente:', {
+        status: response.status,
+        userId: response.data?.data?.id || response.data?.id
+      });
+
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error) {
+      console.error('=== ERROR en verifyToken ===');
+      console.error('Error completo:', error.message);
+      
+      if (error.response) {
+        console.error('Status de respuesta:', error.response.status);
+        console.error('Data de respuesta:', error.response.data);
+      }
+
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || 'Token inválido'
+      };
+    }
+  }
+}
+
 class EnrollmentServiceClient {
   constructor() {
     this.baseURL = process.env.ENROLLMENT_SERVICE_URL || 'http://localhost:3002';
@@ -117,5 +177,6 @@ class EnrollmentServiceClient {
 }
 
 module.exports = {
+  AuthServiceClient,
   EnrollmentServiceClient
 };

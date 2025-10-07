@@ -20,7 +20,8 @@ const testUtils = {
       amount: 100.00,
       currency: "USD",
       status: "Pending",
-      paymentStatus: "Pending"
+      paymentStatus: "Pending",
+      enrollmentDate: new Date()
     };
 
     return { ...baseEnrollment, ...overrides };
@@ -44,7 +45,8 @@ const testUtils = {
       email: "student@test.com",
       role: "student",
       firstName: "Test",
-      lastName: "Student"
+      lastName: "Student",
+      studentId: "student-123"
     };
     
     return jwt.sign(payload, process.env.JWT_SECRET || "test-secret", { expiresIn: "1h" });

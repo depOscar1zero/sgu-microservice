@@ -25,7 +25,10 @@ const authenticateToken = async (req, res, next) => {
       req.user = {
         userId: decoded.userId,
         email: decoded.email,
-        role: decoded.role
+        role: decoded.role,
+        firstName: decoded.firstName,
+        lastName: decoded.lastName,
+        studentId: decoded.studentId
       };
 
       // Opcionalmente, verificar con el auth service para obtener datos actualizados
