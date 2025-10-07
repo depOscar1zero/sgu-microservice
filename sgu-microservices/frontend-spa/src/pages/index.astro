@@ -291,7 +291,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     if (!token) return;
     
     try {
-      const response = await fetch('http://localhost:3000/api/auth/profile', {
+      const response = await fetch('http://localhost:3000/api/users/profile', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

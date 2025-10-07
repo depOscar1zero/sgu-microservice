@@ -177,6 +177,42 @@ app.use('/api/auth', createProxyMiddleware({
   }
 }));
 
+// Proxy para Users Service (parte del auth-service)
+app.use('/api/users', authenticateToken, createProxyMiddleware({
+  target: services.auth.url,
+  changeOrigin: true,
+  timeout: 30000,
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`👤 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+    
+    // Si hay un body, asegurar que se envía correctamente
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    // Asegurar que los headers CORS se apliquen
+    const origin = req.headers.origin;
+    if (origin === 'http://localhost:3005' || origin === 'http://127.0.0.1:3005') {
+      proxyRes.headers['access-control-allow-origin'] = origin;
+      proxyRes.headers['access-control-allow-credentials'] = 'true';
+      proxyRes.headers['access-control-allow-methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+      proxyRes.headers['access-control-allow-headers'] = 'Content-Type, Authorization, X-Requested-With';
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('Error en proxy users:', err.message);
+    res.status(503).json({
+      success: false,
+      message: 'Servicio de usuarios temporalmente no disponible',
+      timestamp: new Date().toISOString()
+    });
+  }
+}));
+
 // Proxy para Courses Service
 app.use('/api/courses', (req, res, next) => {
   // Permitir GET sin autenticación
