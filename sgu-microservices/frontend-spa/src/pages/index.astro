@@ -310,13 +310,22 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         }
       } else {
         console.error('Error obteniendo perfil:', response.status);
+        // Si es error 429 (Too Many Requests), mostrar mensaje apropiado
+        const lastLoginElement = document.getElementById('last-login-time');
+        if (lastLoginElement) {
+          if (response.status === 429) {
+            lastLoginElement.textContent = 'Hace un momento';
+          } else {
+            lastLoginElement.textContent = formatLastLogin(new Date().toISOString());
+          }
+        }
       }
     } catch (error) {
       console.error('Error cargando información del usuario:', error);
       // Mostrar hora actual como fallback
       const lastLoginElement = document.getElementById('last-login-time');
       if (lastLoginElement) {
-        lastLoginElement.textContent = formatLastLogin(new Date().toISOString());
+        lastLoginElement.textContent = 'Hace un momento';
       }
     }
   }

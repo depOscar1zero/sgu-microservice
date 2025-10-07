@@ -5,7 +5,7 @@ const rateLimit = require('express-rate-limit');
  */
 const generalLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutos
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // máximo 100 requests por ventana
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000, // máximo 1000 requests por ventana (más permisivo)
   message: {
     success: false,
     message: 'Demasiadas peticiones desde esta IP, intenta de nuevo en 15 minutos',
@@ -13,6 +13,7 @@ const generalLimiter = rateLimit({
   },
   standardHeaders: true, // Retornar info del rate limit en headers `RateLimit-*`
   legacyHeaders: false, // Deshabilitar headers `X-RateLimit-*`
+  skip: (req) => process.env.NODE_ENV === 'development', // Saltar en desarrollo
 });
 
 /**
@@ -20,13 +21,14 @@ const generalLimiter = rateLimit({
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 20, // máximo 20 intentos de login por IP cada 15 minutos
+  max: 100, // máximo 100 intentos de login por IP cada 15 minutos (más permisivo para desarrollo)
   message: {
     success: false,
     message: 'Demasiados intentos de autenticación, intenta de nuevo en 15 minutos',
     timestamp: new Date().toISOString()
   },
   skipSuccessfulRequests: true, // No contar requests exitosos
+  skip: (req) => process.env.NODE_ENV === 'development', // Saltar en desarrollo
 });
 
 /**
