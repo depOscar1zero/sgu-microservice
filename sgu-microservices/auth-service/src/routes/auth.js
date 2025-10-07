@@ -32,8 +32,8 @@ router.post(
       .withMessage("Rol inválido"),
     body("studentId")
       .optional()
-      .isAlphanumeric()
-      .withMessage("ID de estudiante debe ser alfanumérico"),
+      .matches(/^[A-Za-z0-9\-_]+$/)
+      .withMessage("ID de estudiante debe contener solo letras, números, guiones y guiones bajos"),
   ],
   async (req, res) => {
     try {

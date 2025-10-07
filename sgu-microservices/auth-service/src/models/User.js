@@ -73,7 +73,11 @@ const User = sequelize.define(
       allowNull: true,
       unique: true,
       validate: {
-        isAlphanumeric: true,
+        isValidStudentId(value) {
+          if (value && !/^[A-Za-z0-9\-_]+$/.test(value)) {
+            throw new Error('ID de estudiante debe contener solo letras, números, guiones y guiones bajos');
+          }
+        },
       },
     },
 

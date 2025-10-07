@@ -17,7 +17,7 @@ import type {
 
 // Configuración de la API
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const AUTH_TOKEN_KEY = "sgu_auth_token";
 const REFRESH_TOKEN_KEY = "sgu_refresh_token";
 

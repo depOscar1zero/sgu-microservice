@@ -21,7 +21,7 @@ RUN npm install
 COPY . .
 
 # Exponer puerto
-EXPOSE 3000
+EXPOSE 3005
 
 # Comando para iniciar la aplicación en modo desarrollo
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3005"]

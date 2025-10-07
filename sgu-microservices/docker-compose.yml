@@ -194,7 +194,7 @@ services:
     container_name: sgu-frontend
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3005
       VITE_API_BASE_URL: http://localhost:3000
       VITE_AUTH_SERVICE_URL: http://localhost:3001
       VITE_COURSES_SERVICE_URL: http://localhost:3002
@@ -202,7 +202,7 @@ services:
       VITE_PAYMENTS_SERVICE_URL: http://localhost:3004
       VITE_NOTIFICATIONS_SERVICE_URL: http://localhost:3006
     ports:
-      - "3005:3000"
+      - "3005:3005"
     depends_on:
       - auth-service
       - courses-service

@@ -15,10 +15,23 @@ const app = express();
 
 // Middleware de seguridad
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
-}))
+
+// Configuración CORS más explícita
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (como Postman) o desde localhost:3005
+    if (!origin || origin === 'http://localhost:3005' || origin === 'http://127.0.0.1:3005') {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
 // Proxy para Payments Service (requiere autenticación)
 app.use('/api/payments', authenticateToken, createProxyMiddleware({
   target: services.payments.url,
@@ -142,6 +155,16 @@ app.use('/api/auth', createProxyMiddleware({
       proxyReq.setHeader('Content-Type', 'application/json');
       proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
       proxyReq.write(bodyData);
+    }
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    // Asegurar que los headers CORS se apliquen
+    const origin = req.headers.origin;
+    if (origin === 'http://localhost:3005' || origin === 'http://127.0.0.1:3005') {
+      proxyRes.headers['access-control-allow-origin'] = origin;
+      proxyRes.headers['access-control-allow-credentials'] = 'true';
+      proxyRes.headers['access-control-allow-methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+      proxyRes.headers['access-control-allow-headers'] = 'Content-Type, Authorization, X-Requested-With';
     }
   },
   onError: (err, req, res) => {

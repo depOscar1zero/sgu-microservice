@@ -4,27 +4,28 @@ export interface Props {
   description?: string;
 }
 
-const { title, description = "Sistema de Gestión Universitaria (SGU)" } =
+const { title, description = 'Sistema de Gestión Universitaria (SGU)' } =
   Astro.props;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang='es'>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="description" content={description} />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="generator" content={Astro.generator} />
+    <meta charset='UTF-8' />
+    <meta name='description' content={description} />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+    <meta name='generator' content={Astro.generator} />
     <title>{title} - SGU</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel='preconnect' href='https://fonts.googleapis.com' />
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
+      href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+      rel='stylesheet'
     />
   </head>
-  <body class="min-h-screen bg-gray-50 font-sans">
+  <body class='min-h-screen bg-gray-50 font-sans'>
     <slot />
+    <script src='/src/scripts/auth.js'></script>
   </body>
 </html>
