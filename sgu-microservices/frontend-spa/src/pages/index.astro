@@ -17,7 +17,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         </div>
         <div class='text-right'>
           <p class='text-sm text-gray-500'>Último acceso</p>
-          <p class='text-sm font-medium text-gray-900'>Hoy, 09:30 AM</p>
+          <p id='last-login-time' class='text-sm font-medium text-gray-900'>Cargando...</p>
         </div>
       </div>
     </div>
@@ -233,3 +233,96 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     </div>
   </div>
 </DashboardLayout>
+
+<script>
+  // Función para formatear fecha de último acceso
+  function formatLastLogin(dateString) {
+    if (!dateString) return 'Nunca';
+    
+    const lastLogin = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - lastLogin;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    // Si es hoy
+    if (diffDays === 0) {
+      if (diffMins < 1) {
+        return 'Hace un momento';
+      } else if (diffMins < 60) {
+        return `Hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`;
+      } else {
+        const hours = lastLogin.getHours();
+        const minutes = lastLogin.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        return `Hoy, ${displayHours}:${displayMinutes} ${ampm}`;
+      }
+    }
+    // Si es ayer
+    else if (diffDays === 1) {
+      const hours = lastLogin.getHours();
+      const minutes = lastLogin.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const displayMinutes = minutes.toString().padStart(2, '0');
+      return `Ayer, ${displayHours}:${displayMinutes} ${ampm}`;
+    }
+    // Si es hace más días
+    else {
+      const day = lastLogin.getDate();
+      const month = lastLogin.toLocaleString('es-ES', { month: 'short' });
+      const year = lastLogin.getFullYear();
+      const currentYear = now.getFullYear();
+      
+      if (year === currentYear) {
+        return `${day} ${month}`;
+      } else {
+        return `${day} ${month} ${year}`;
+      }
+    }
+  }
+  
+  // Obtener información del usuario desde el API
+  async function loadUserInfo() {
+    const token = localStorage.getItem('sgu_auth_token');
+    if (!token) return;
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const user = data.user || data.data;
+        
+        // Actualizar último acceso
+        if (user.lastLogin) {
+          const lastLoginElement = document.getElementById('last-login-time');
+          if (lastLoginElement) {
+            lastLoginElement.textContent = formatLastLogin(user.lastLogin);
+          }
+        }
+      } else {
+        console.error('Error obteniendo perfil:', response.status);
+      }
+    } catch (error) {
+      console.error('Error cargando información del usuario:', error);
+      // Mostrar hora actual como fallback
+      const lastLoginElement = document.getElementById('last-login-time');
+      if (lastLoginElement) {
+        lastLoginElement.textContent = formatLastLogin(new Date().toISOString());
+      }
+    }
+  }
+  
+  // Ejecutar cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', () => {
+    loadUserInfo();
+  });
+</script>
