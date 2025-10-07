@@ -47,13 +47,14 @@ function initAuth() {
   const isAuthenticatedUser = isAuthenticated();
   const currentPath = window.location.pathname;
   
-  // Si estamos en páginas que no requieren autenticación
-  if (currentPath === '/login' || currentPath === '/register') {
-    // Si ya estamos autenticados, redirigir al dashboard
-    if (isAuthenticatedUser) {
+  // Si estamos en páginas que no requieren autenticación o en logout
+  if (currentPath === '/login' || currentPath === '/register' || currentPath === '/logout') {
+    // Si ya estamos autenticados y estamos en login o register, redirigir al dashboard
+    if (isAuthenticatedUser && (currentPath === '/login' || currentPath === '/register')) {
       console.log('Usuario ya autenticado, redirigiendo al dashboard...');
       window.location.href = '/';
     }
+    // Si estamos en /logout, no hacer nada (dejar que la página maneje el logout)
     return;
   }
   
@@ -68,9 +69,19 @@ function initAuth() {
  * Maneja el logout
  */
 function logout() {
+  console.log('🚪 Ejecutando logout...');
+  
+  // Limpiar tokens
   localStorage.removeItem('sgu_auth_token');
   localStorage.removeItem('sgu_refresh_token');
-  window.location.href = '/login';
+  
+  // Limpiar cualquier otro dato de sesión
+  sessionStorage.clear();
+  
+  console.log('✅ Tokens eliminados');
+  
+  // Forzar recarga completa de la página de login
+  window.location.replace('/login');
 }
 
 /**

@@ -1,4 +1,28 @@
 ---
-// Redireccionar a login después de logout
-return Astro.redirect("/login");
+import Layout from '../layouts/Layout.astro';
 ---
+
+<Layout title='Cerrando sesión'>
+  <div class='min-h-screen flex items-center justify-center bg-gray-50'>
+    <div class='text-center'>
+      <div class='animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4'></div>
+      <h2 class='text-2xl font-bold text-gray-900 mb-2'>Cerrando sesión...</h2>
+      <p class='text-gray-600'>Por favor espera un momento</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Limpiar tokens inmediatamente
+  localStorage.removeItem('sgu_auth_token');
+  localStorage.removeItem('sgu_refresh_token');
+  sessionStorage.clear();
+  
+  console.log('🚪 Logout page: Tokens eliminados');
+  
+  // Esperar un momento para mostrar el mensaje y luego redirigir
+  setTimeout(() => {
+    console.log('↪️ Redirigiendo al login...');
+    window.location.replace('/login');
+  }, 500);
+</script>
