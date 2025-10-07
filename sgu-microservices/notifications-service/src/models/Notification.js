@@ -18,6 +18,12 @@ const notificationSchema = new mongoose.Schema(
         required: true,
         lowercase: true,
         trim: true,
+        validate: {
+          validator: function(v) {
+            return /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v);
+          },
+          message: 'Email format is invalid'
+        }
       },
       name: {
         type: String,
