@@ -8,3 +8,5 @@ process.env.SMTP_PASS = 'test-password';
 
 // Configuración de timeouts
 jest.setTimeout(30000);
+
+

@@ -1,5 +1,5 @@
-const { ValidationStrategy } = require("./ValidationStrategy");
-const { CoursesServiceClient } = require("../services/externalServices");
+const { ValidationStrategy } = require('./ValidationStrategy');
+const { CoursesServiceClient } = require('../services/externalServices');
 
 /**
  * Estrategia para validar la disponibilidad del curso
@@ -19,9 +19,8 @@ class AvailabilityValidationStrategy extends ValidationStrategy {
 
     try {
       // Verificar que el curso existe y está disponible
-      const courseResult = await CoursesServiceClient.checkCourseAvailability(
-        courseId
-      );
+      const courseResult =
+        await CoursesServiceClient.checkCourseAvailability(courseId);
 
       if (!courseResult.success) {
         return {
@@ -36,11 +35,11 @@ class AvailabilityValidationStrategy extends ValidationStrategy {
       if (!course.canEnroll) {
         return {
           isValid: false,
-          error: "El curso no está disponible para inscripción",
+          error: 'El curso no está disponible para inscripción',
           details: {
             status: course.status,
             availableSlots: course.availableSlots,
-            reason: course.reason || "Curso no disponible",
+            reason: course.reason || 'Curso no disponible',
           },
           strategy: this.getStrategyName(),
         };
@@ -57,7 +56,7 @@ class AvailabilityValidationStrategy extends ValidationStrategy {
     } catch (error) {
       return {
         isValid: false,
-        error: "Error verificando disponibilidad del curso",
+        error: 'Error verificando disponibilidad del curso',
         details: error.message,
         strategy: this.getStrategyName(),
       };

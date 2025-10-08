@@ -1,11 +1,11 @@
-const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/database");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
 /**
  * Modelo para Cursos - Versión Simplificada para SQLite
  */
 const Course = sequelize.define(
-  "Course",
+  'Course',
   {
     // Información básica del curso
     code: {
@@ -35,8 +35,8 @@ const Course = sequelize.define(
       allowNull: false,
       validate: {
         min: 1,
-        max: 10
-      }
+        max: 10,
+      },
     },
 
     // Configuración del curso
@@ -45,15 +45,15 @@ const Course = sequelize.define(
       allowNull: false,
       defaultValue: 30,
       validate: {
-        min: 1
-      }
+        min: 1,
+      },
     },
 
     enrolled: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      field: 'enrolled'
+      field: 'enrolled',
     },
 
     // Costos
@@ -73,23 +73,23 @@ const Course = sequelize.define(
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "ACTIVE",
+      defaultValue: 'ACTIVE',
     },
 
     isVisible: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-      field: 'is_visible'
+      field: 'is_visible',
     },
   },
   {
-    tableName: "courses",
+    tableName: 'courses',
     timestamps: true,
     indexes: [
-      { fields: ["code"] },
-      { fields: ["department"] },
-      { fields: ["status"] },
+      { fields: ['code'] },
+      { fields: ['department'] },
+      { fields: ['status'] },
     ],
   }
 );
@@ -97,7 +97,7 @@ const Course = sequelize.define(
 // Método para verificar disponibilidad
 Course.prototype.isAvailable = function () {
   return (
-    this.enrolled < this.capacity && this.status === "ACTIVE" && this.isVisible
+    this.enrolled < this.capacity && this.status === 'ACTIVE' && this.isVisible
   );
 };
 

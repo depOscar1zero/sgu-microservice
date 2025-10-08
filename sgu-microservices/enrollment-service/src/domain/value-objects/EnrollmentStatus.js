@@ -7,12 +7,12 @@
  * Estados de Inscripción
  */
 class EnrollmentStatus {
-  static PENDING = "Pending";
-  static CONFIRMED = "Confirmed";
-  static PAID = "Paid";
-  static CANCELLED = "Cancelled";
-  static COMPLETED = "Completed";
-  static FAILED = "Failed";
+  static PENDING = 'Pending';
+  static CONFIRMED = 'Confirmed';
+  static PAID = 'Paid';
+  static CANCELLED = 'Cancelled';
+  static COMPLETED = 'Completed';
+  static FAILED = 'Failed';
 
   /**
    * Verifica si un estado es válido
@@ -67,10 +67,10 @@ class EnrollmentStatus {
  * Estados de Pago
  */
 class PaymentStatus {
-  static PENDING = "Pending";
-  static PAID = "Paid";
-  static FAILED = "Failed";
-  static REFUNDED = "Refunded";
+  static PENDING = 'Pending';
+  static PAID = 'Paid';
+  static FAILED = 'Failed';
+  static REFUNDED = 'Refunded';
 
   /**
    * Verifica si un estado de pago es válido

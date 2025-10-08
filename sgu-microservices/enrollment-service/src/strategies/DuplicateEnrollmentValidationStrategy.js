@@ -1,5 +1,5 @@
-const { ValidationStrategy } = require("./ValidationStrategy");
-const Enrollment = require("../models/Enrollment");
+const { ValidationStrategy } = require('./ValidationStrategy');
+const Enrollment = require('../models/Enrollment');
 
 /**
  * Estrategia para validar inscripciones duplicadas
@@ -23,14 +23,14 @@ class DuplicateEnrollmentValidationStrategy extends ValidationStrategy {
         where: {
           userId,
           courseId,
-          status: ["Pending", "Confirmed", "Paid", "Completed"],
+          status: ['Pending', 'Confirmed', 'Paid', 'Completed'],
         },
       });
 
       if (existingEnrollment) {
         return {
           isValid: false,
-          error: "Ya estás inscrito en este curso",
+          error: 'Ya estás inscrito en este curso',
           details: {
             existingEnrollment: existingEnrollment.toPublicJSON(),
             currentStatus: existingEnrollment.status,
@@ -43,14 +43,14 @@ class DuplicateEnrollmentValidationStrategy extends ValidationStrategy {
       return {
         isValid: true,
         data: {
-          message: "No hay inscripción duplicada",
+          message: 'No hay inscripción duplicada',
         },
         strategy: this.getStrategyName(),
       };
     } catch (error) {
       return {
         isValid: false,
-        error: "Error verificando inscripciones duplicadas",
+        error: 'Error verificando inscripciones duplicadas',
         details: error.message,
         strategy: this.getStrategyName(),
       };

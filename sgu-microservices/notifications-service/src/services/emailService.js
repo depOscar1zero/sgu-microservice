@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 /**
  * Servicio de Email para Notifications Service
@@ -18,9 +18,9 @@ class EmailService {
   initializeTransporter() {
     try {
       const smtpConfig = {
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
+        secure: process.env.SMTP_SECURE === 'true',
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
@@ -33,10 +33,10 @@ class EmailService {
       this.transporter = nodemailer.createTransport(smtpConfig);
       this.isConfigured = true;
 
-      console.log("✅ Email Service configurado correctamente");
+      console.log('✅ Email Service configurado correctamente');
       console.log(`📧 SMTP Host: ${smtpConfig.host}:${smtpConfig.port}`);
     } catch (error) {
-      console.error("❌ Error configurando Email Service:", error.message);
+      console.error('❌ Error configurando Email Service:', error.message);
       this.isConfigured = false;
     }
   }
@@ -46,15 +46,15 @@ class EmailService {
    */
   async verifyConnection() {
     if (!this.isConfigured) {
-      throw new Error("Email Service no está configurado");
+      throw new Error('Email Service no está configurado');
     }
 
     try {
       await this.transporter.verify();
-      console.log("✅ Conexión SMTP verificada correctamente");
+      console.log('✅ Conexión SMTP verificada correctamente');
       return true;
     } catch (error) {
-      console.error("❌ Error verificando conexión SMTP:", error.message);
+      console.error('❌ Error verificando conexión SMTP:', error.message);
       return false;
     }
   }
@@ -64,7 +64,7 @@ class EmailService {
    */
   async sendEmail(emailData) {
     if (!this.isConfigured) {
-      throw new Error("Email Service no está configurado");
+      throw new Error('Email Service no está configurado');
     }
 
     const {
@@ -72,8 +72,8 @@ class EmailService {
       subject,
       text,
       html,
-      from = process.env.EMAIL_FROM || "noreply@sgu.edu",
-      fromName = process.env.EMAIL_FROM_NAME || "SGU Sistema",
+      from = process.env.EMAIL_FROM || 'noreply@sgu.edu',
+      fromName = process.env.EMAIL_FROM_NAME || 'SGU Sistema',
       attachments = [],
     } = emailData;
 
@@ -95,7 +95,7 @@ class EmailService {
         response: result.response,
       };
     } catch (error) {
-      console.error("❌ Error enviando email:", error.message);
+      console.error('❌ Error enviando email:', error.message);
       return {
         success: false,
         error: error.message,
@@ -109,7 +109,7 @@ class EmailService {
   async sendWelcomeEmail(userData) {
     const { email, name, studentId } = userData;
 
-    const subject = "¡Bienvenido al Sistema de Gestión Universitaria!";
+    const subject = '¡Bienvenido al Sistema de Gestión Universitaria!';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">¡Bienvenido a SGU!</h2>
@@ -173,7 +173,7 @@ class EmailService {
     const { email, name } = userData;
     const { amount, dueDate, description } = paymentData;
 
-    const subject = "Recordatorio de Pago Pendiente";
+    const subject = 'Recordatorio de Pago Pendiente';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #dc2626;">Recordatorio de Pago</h2>

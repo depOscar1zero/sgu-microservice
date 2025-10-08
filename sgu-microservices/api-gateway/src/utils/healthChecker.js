@@ -22,7 +22,7 @@ const checkServiceHealth = async (serviceName, serviceConfig) => {
       url: serviceConfig.url,
       responseTime: response.headers['x-response-time'] || 'N/A',
       timestamp: new Date().toISOString(),
-      details: response.data || null
+      details: response.data || null,
     };
   } catch (error) {
     return {
@@ -30,7 +30,7 @@ const checkServiceHealth = async (serviceName, serviceConfig) => {
       status: 'unhealthy',
       url: serviceConfig.url,
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 };
@@ -44,7 +44,7 @@ const checkAllServices = async () => {
   );
 
   const results = await Promise.all(healthChecks);
-  
+
   // Actualizar estado global
   results.forEach(result => {
     serviceStatus[result.name] = result;
@@ -63,21 +63,24 @@ const getServiceStatus = () => {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      memory: process.memoryUsage()
+      memory: process.memoryUsage(),
     },
     services: serviceStatus,
     summary: {
       total: Object.keys(services).length,
-      healthy: Object.values(serviceStatus).filter(s => s.status === 'healthy').length,
-      unhealthy: Object.values(serviceStatus).filter(s => s.status === 'unhealthy').length
-    }
+      healthy: Object.values(serviceStatus).filter(s => s.status === 'healthy')
+        .length,
+      unhealthy: Object.values(serviceStatus).filter(
+        s => s.status === 'unhealthy'
+      ).length,
+    },
   };
 };
 
 /**
  * Verificar si un servicio específico está disponible
  */
-const isServiceHealthy = (serviceName) => {
+const isServiceHealthy = serviceName => {
   const status = serviceStatus[serviceName];
   return status && status.status === 'healthy';
 };
@@ -87,12 +90,14 @@ const isServiceHealthy = (serviceName) => {
  */
 const startHealthMonitoring = () => {
   const interval = parseInt(process.env.HEALTH_CHECK_INTERVAL) || 30000; // 30 segundos
-  
-  console.log(`Iniciando monitoreo de servicios cada ${interval / 1000} segundos`);
-  
+
+  console.log(
+    `Iniciando monitoreo de servicios cada ${interval / 1000} segundos`
+  );
+
   // Verificación inicial
   checkAllServices();
-  
+
   // Verificaciones periódicas
   setInterval(async () => {
     console.log('Verificando salud de servicios...');
@@ -105,5 +110,5 @@ module.exports = {
   checkAllServices,
   getServiceStatus,
   isServiceHealthy,
-  startHealthMonitoring
+  startHealthMonitoring,
 };

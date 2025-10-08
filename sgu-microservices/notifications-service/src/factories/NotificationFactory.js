@@ -1,6 +1,6 @@
 /**
  * Factory Method Pattern - Notification Factory
- * 
+ *
  * Este factory se encarga de crear diferentes tipos de notificaciones
  * según el contexto y tipo especificado, siguiendo el patrón Factory Method.
  */
@@ -77,26 +77,26 @@ class NotificationFactory {
 class WelcomeNotificationFactory extends NotificationFactory {
   createNotification(data) {
     const { user, studentId } = data;
-    
+
     return new Notification({
       recipient: {
         userId: user.id,
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`
+        name: `${user.firstName} ${user.lastName}`,
       },
-      subject: "¡Bienvenido al Sistema de Gestión Universitaria!",
+      subject: '¡Bienvenido al Sistema de Gestión Universitaria!',
       message: this.generateWelcomeMessage(user, studentId),
-      type: "email",
-      channel: "email",
-      category: "welcome",
-      priority: "normal",
+      type: 'email',
+      channel: 'email',
+      category: 'welcome',
+      priority: 'normal',
       metadata: {
-        templateId: "welcome_template",
+        templateId: 'welcome_template',
         variables: {
           userName: `${user.firstName} ${user.lastName}`,
-          studentId: studentId || "Pendiente"
-        }
-      }
+          studentId: studentId || 'Pendiente',
+        },
+      },
     });
   }
 
@@ -105,7 +105,7 @@ class WelcomeNotificationFactory extends NotificationFactory {
       <h2>¡Bienvenido a SGU!</h2>
       <p>Hola <strong>${user.firstName}</strong>,</p>
       <p>Tu cuenta ha sido creada exitosamente en el Sistema de Gestión Universitaria.</p>
-      <p><strong>ID de Estudiante:</strong> ${studentId || "Pendiente"}</p>
+      <p><strong>ID de Estudiante:</strong> ${studentId || 'Pendiente'}</p>
       <p>Ahora puedes acceder al sistema y comenzar a gestionar tus cursos y pagos.</p>
       <hr style="margin: 20px 0;">
       <p style="color: #666; font-size: 12px;">
@@ -121,29 +121,29 @@ class WelcomeNotificationFactory extends NotificationFactory {
 class EnrollmentNotificationFactory extends NotificationFactory {
   createNotification(data) {
     const { user, enrollment, course } = data;
-    
+
     return new Notification({
       recipient: {
         userId: user.id,
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`
+        name: `${user.firstName} ${user.lastName}`,
       },
       subject: `Confirmación de Inscripción - ${course.code}`,
       message: this.generateEnrollmentMessage(user, enrollment, course),
-      type: "email",
-      channel: "email",
-      category: "enrollment",
-      priority: "normal",
+      type: 'email',
+      channel: 'email',
+      category: 'enrollment',
+      priority: 'normal',
       metadata: {
         enrollmentId: enrollment.id,
         courseId: course.id,
-        templateId: "enrollment_confirmation",
+        templateId: 'enrollment_confirmation',
         variables: {
           userName: `${user.firstName} ${user.lastName}`,
           courseName: course.name,
-          courseCode: course.code
-        }
-      }
+          courseCode: course.code,
+        },
+      },
     });
   }
 
@@ -156,8 +156,8 @@ class EnrollmentNotificationFactory extends NotificationFactory {
         <h3>Detalles del Curso:</h3>
         <p><strong>Curso:</strong> ${course.name}</p>
         <p><strong>Código:</strong> ${course.code}</p>
-        <p><strong>Horario:</strong> ${course.schedule || "Por definir"}</p>
-        <p><strong>Instructor:</strong> ${course.instructor || "Por asignar"}</p>
+        <p><strong>Horario:</strong> ${course.schedule || 'Por definir'}</p>
+        <p><strong>Instructor:</strong> ${course.instructor || 'Por asignar'}</p>
       </div>
       <p>¡Esperamos que tengas un excelente semestre!</p>
       <hr style="margin: 20px 0;">
@@ -174,20 +174,20 @@ class EnrollmentNotificationFactory extends NotificationFactory {
 class PaymentNotificationFactory extends NotificationFactory {
   createNotification(data) {
     const { user, payment, type = 'reminder' } = data;
-    
+
     const notificationConfig = this.getNotificationConfig(type);
-    
+
     return new Notification({
       recipient: {
         userId: user.id,
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`
+        name: `${user.firstName} ${user.lastName}`,
       },
       subject: notificationConfig.subject,
       message: this.generatePaymentMessage(user, payment, type),
-      type: "email",
-      channel: "email",
-      category: "payment",
+      type: 'email',
+      channel: 'email',
+      category: 'payment',
       priority: this.getPriorityByType(type),
       metadata: {
         paymentId: payment.id,
@@ -196,37 +196,37 @@ class PaymentNotificationFactory extends NotificationFactory {
         variables: {
           userName: `${user.firstName} ${user.lastName}`,
           amount: payment.amount,
-          dueDate: payment.dueDate
-        }
-      }
+          dueDate: payment.dueDate,
+        },
+      },
     });
   }
 
   getNotificationConfig(type) {
     const configs = {
       reminder: {
-        subject: "Recordatorio de Pago Pendiente",
-        templateId: "payment_reminder"
+        subject: 'Recordatorio de Pago Pendiente',
+        templateId: 'payment_reminder',
       },
       confirmation: {
-        subject: "Confirmación de Pago Recibido",
-        templateId: "payment_confirmation"
+        subject: 'Confirmación de Pago Recibido',
+        templateId: 'payment_confirmation',
       },
       failed: {
-        subject: "Pago Fallido - Acción Requerida",
-        templateId: "payment_failed"
-      }
+        subject: 'Pago Fallido - Acción Requerida',
+        templateId: 'payment_failed',
+      },
     };
     return configs[type] || configs.reminder;
   }
 
   getPriorityByType(type) {
     const priorities = {
-      reminder: "normal",
-      confirmation: "normal",
-      failed: "high"
+      reminder: 'normal',
+      confirmation: 'normal',
+      failed: 'high',
     };
-    return priorities[type] || "normal";
+    return priorities[type] || 'normal';
   }
 
   generatePaymentMessage(user, payment, type) {
@@ -247,7 +247,7 @@ class PaymentNotificationFactory extends NotificationFactory {
           </div>
           <p>Por favor, realiza el pago antes de la fecha de vencimiento para evitar inconvenientes.</p>
         `;
-      
+
       case 'confirmation':
         return `
           <h2 style="color: #16a34a;">Pago Confirmado</h2>
@@ -260,7 +260,7 @@ class PaymentNotificationFactory extends NotificationFactory {
           </div>
           <p>¡Gracias por tu pago puntual!</p>
         `;
-      
+
       case 'failed':
         return `
           <h2 style="color: #dc2626;">Pago Fallido</h2>
@@ -269,11 +269,11 @@ class PaymentNotificationFactory extends NotificationFactory {
           <div style="background: #fef2f2; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #dc2626;">
             <h3>Detalles del Pago:</h3>
             <p><strong>Monto:</strong> $${payment.amount}</p>
-            <p><strong>Razón del Fallo:</strong> ${payment.failureReason || "No especificada"}</p>
+            <p><strong>Razón del Fallo:</strong> ${payment.failureReason || 'No especificada'}</p>
           </div>
           <p>Por favor, contacta con soporte si el problema persiste.</p>
         `;
-      
+
       default:
         return baseMessage;
     }
@@ -286,52 +286,52 @@ class PaymentNotificationFactory extends NotificationFactory {
 class SystemNotificationFactory extends NotificationFactory {
   createNotification(data) {
     const { user, systemEvent, details } = data;
-    
+
     return new Notification({
       recipient: {
         userId: user.id,
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`
+        name: `${user.firstName} ${user.lastName}`,
       },
       subject: this.getSystemSubject(systemEvent),
       message: this.generateSystemMessage(user, systemEvent, details),
-      type: "system",
-      channel: "in_app",
-      category: "system",
+      type: 'system',
+      channel: 'in_app',
+      category: 'system',
       priority: this.getSystemPriority(systemEvent),
       metadata: {
         systemEvent,
         details,
-        templateId: `system_${systemEvent}`
-      }
+        templateId: `system_${systemEvent}`,
+      },
     });
   }
 
   getSystemSubject(event) {
     const subjects = {
-      maintenance: "Mantenimiento Programado del Sistema",
-      update: "Actualización del Sistema",
-      security: "Notificación de Seguridad",
-      outage: "Interrupción del Servicio"
+      maintenance: 'Mantenimiento Programado del Sistema',
+      update: 'Actualización del Sistema',
+      security: 'Notificación de Seguridad',
+      outage: 'Interrupción del Servicio',
     };
-    return subjects[event] || "Notificación del Sistema";
+    return subjects[event] || 'Notificación del Sistema';
   }
 
   getSystemPriority(event) {
     const priorities = {
-      maintenance: "normal",
-      update: "normal", 
-      security: "high",
-      outage: "urgent"
+      maintenance: 'normal',
+      update: 'normal',
+      security: 'high',
+      outage: 'urgent',
     };
-    return priorities[event] || "normal";
+    return priorities[event] || 'normal';
   }
 
   generateSystemMessage(user, event, details) {
     return `
       <h2>Notificación del Sistema</h2>
       <p>Hola <strong>${user.firstName}</strong>,</p>
-      <p>${details.message || "Se ha generado una notificación del sistema."}</p>
+      <p>${details.message || 'Se ha generado una notificación del sistema.'}</p>
       ${details.additionalInfo ? `<p>${details.additionalInfo}</p>` : ''}
       <p>Fecha: ${new Date().toLocaleString()}</p>
     `;
@@ -348,7 +348,7 @@ class NotificationFactoryManager {
       welcome: new WelcomeNotificationFactory(),
       enrollment: new EnrollmentNotificationFactory(),
       payment: new PaymentNotificationFactory(),
-      system: new SystemNotificationFactory()
+      system: new SystemNotificationFactory(),
     };
   }
 
@@ -360,7 +360,7 @@ class NotificationFactoryManager {
    */
   createNotification(type, data) {
     const factory = this.factories[type];
-    
+
     if (!factory) {
       throw new Error(`Factory para tipo '${type}' no encontrado`);
     }
@@ -409,5 +409,5 @@ module.exports = {
   PaymentNotificationFactory,
   SystemNotificationFactory,
   NotificationFactoryManager,
-  notificationFactoryManager
+  notificationFactoryManager,
 };

@@ -9,7 +9,7 @@ const {
   ScheduleValidationStrategy,
   PaymentValidationStrategy,
   DeadlineValidationStrategy,
-  ValidationContext
+  ValidationContext,
 } = require('../../src/strategies/ValidationStrategy');
 
 describe('ValidationStrategy Tests', () => {
@@ -21,7 +21,7 @@ describe('ValidationStrategy Tests', () => {
         requiredCourses: ['MATH-101', 'PHYS-101'],
         studentCompletedCourses: ['MATH-101', 'PHYS-101', 'CHEM-101'],
         minGPA: 2.5,
-        studentGPA: 3.2
+        studentGPA: 3.2,
       });
     });
 
@@ -33,7 +33,11 @@ describe('ValidationStrategy Tests', () => {
       expect(result.errors).toEqual([]);
       expect(result.strategy).toBe('PrerequisitesValidationStrategy');
       expect(result.details.requiredCourses).toEqual(['MATH-101', 'PHYS-101']);
-      expect(result.details.completedCourses).toEqual(['MATH-101', 'PHYS-101', 'CHEM-101']);
+      expect(result.details.completedCourses).toEqual([
+        'MATH-101',
+        'PHYS-101',
+        'CHEM-101',
+      ]);
     });
 
     test('debe fallar cuando faltan prerequisitos', () => {
@@ -41,7 +45,7 @@ describe('ValidationStrategy Tests', () => {
         requiredCourses: ['MATH-101', 'PHYS-101', 'ENG-101'],
         studentCompletedCourses: ['MATH-101', 'PHYS-101'],
         minGPA: 2.5,
-        studentGPA: 3.2
+        studentGPA: 3.2,
       });
 
       const data = { studentId: 'student-123', courseId: 'course-456' };
@@ -57,14 +61,16 @@ describe('ValidationStrategy Tests', () => {
         requiredCourses: ['MATH-101'],
         studentCompletedCourses: ['MATH-101'],
         minGPA: 3.0,
-        studentGPA: 2.5
+        studentGPA: 2.5,
       });
 
       const data = { studentId: 'student-123', courseId: 'course-456' };
       const result = strategyLowGPA.validate(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('GPA insuficiente. Requerido: 3, Actual: 2.5');
+      expect(result.errors).toContain(
+        'GPA insuficiente. Requerido: 3, Actual: 2.5'
+      );
     });
 
     test('debe tener alta prioridad', () => {
@@ -84,7 +90,7 @@ describe('ValidationStrategy Tests', () => {
       strategy = new CapacityValidationStrategy({
         maxCapacity: 30,
         currentEnrollments: 25,
-        requestedSeats: 1
+        requestedSeats: 1,
       });
     });
 
@@ -103,7 +109,9 @@ describe('ValidationStrategy Tests', () => {
       const result = strategy.validate(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('No hay suficientes cupos disponibles. Disponibles: 5, Solicitados: 10');
+      expect(result.errors).toContain(
+        'No hay suficientes cupos disponibles. Disponibles: 5, Solicitados: 10'
+      );
     });
 
     test('debe tener alta prioridad', () => {
@@ -124,17 +132,17 @@ describe('ValidationStrategy Tests', () => {
         courseSchedule: {
           timeSlots: [
             { day: 'Monday', startTime: '10:00', endTime: '12:00' },
-            { day: 'Wednesday', startTime: '10:00', endTime: '12:00' }
-          ]
+            { day: 'Wednesday', startTime: '10:00', endTime: '12:00' },
+          ],
         },
         studentSchedule: [
           {
             timeSlots: [
               { day: 'Tuesday', startTime: '09:00', endTime: '11:00' },
-              { day: 'Thursday', startTime: '14:00', endTime: '16:00' }
-            ]
-          }
-        ]
+              { day: 'Thursday', startTime: '14:00', endTime: '16:00' },
+            ],
+          },
+        ],
       });
     });
 
@@ -150,17 +158,15 @@ describe('ValidationStrategy Tests', () => {
     test('debe fallar cuando hay conflictos de horario', () => {
       const strategyWithConflict = new ScheduleValidationStrategy({
         courseSchedule: {
-          timeSlots: [
-            { day: 'Monday', startTime: '10:00', endTime: '12:00' }
-          ]
+          timeSlots: [{ day: 'Monday', startTime: '10:00', endTime: '12:00' }],
         },
         studentSchedule: [
           {
             timeSlots: [
-              { day: 'Monday', startTime: '11:00', endTime: '13:00' }
-            ]
-          }
-        ]
+              { day: 'Monday', startTime: '11:00', endTime: '13:00' },
+            ],
+          },
+        ],
       });
 
       const data = { courseId: 'course-123', studentId: 'student-456' };
@@ -187,7 +193,7 @@ describe('ValidationStrategy Tests', () => {
     beforeEach(() => {
       strategy = new PaymentValidationStrategy({
         allowEnrollmentWithPendingPayments: false,
-        studentPendingPayments: []
+        studentPendingPayments: [],
       });
     });
 
@@ -203,23 +209,25 @@ describe('ValidationStrategy Tests', () => {
       const strategyWithPending = new PaymentValidationStrategy({
         allowEnrollmentWithPendingPayments: false,
         studentPendingPayments: [
-          { id: 'payment-1', amount: 100.00, dueDate: '2024-01-15' }
-        ]
+          { id: 'payment-1', amount: 100.0, dueDate: '2024-01-15' },
+        ],
       });
 
       const data = { studentId: 'student-123' };
       const result = strategyWithPending.validate(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('No se puede inscribir con pagos pendientes');
+      expect(result.errors).toContain(
+        'No se puede inscribir con pagos pendientes'
+      );
     });
 
     test('debe permitir inscripción con pagos pendientes cuando está configurado', () => {
       const strategyAllowPending = new PaymentValidationStrategy({
         allowEnrollmentWithPendingPayments: true,
         studentPendingPayments: [
-          { id: 'payment-1', amount: 100.00, dueDate: '2024-01-15' }
-        ]
+          { id: 'payment-1', amount: 100.0, dueDate: '2024-01-15' },
+        ],
       });
 
       const data = { studentId: 'student-123' };
@@ -240,10 +248,10 @@ describe('ValidationStrategy Tests', () => {
     beforeEach(() => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 7);
-      
+
       strategy = new DeadlineValidationStrategy({
         enrollmentDeadline: futureDate,
-        currentDate: new Date()
+        currentDate: new Date(),
       });
     });
 
@@ -258,10 +266,10 @@ describe('ValidationStrategy Tests', () => {
     test('debe fallar cuando la fecha actual está después del límite', () => {
       const pastDate = new Date();
       pastDate.setDate(pastDate.getDate() - 7);
-      
+
       const strategyExpired = new DeadlineValidationStrategy({
         enrollmentDeadline: pastDate,
-        currentDate: new Date()
+        currentDate: new Date(),
       });
 
       const data = { courseId: 'course-123' };
@@ -292,12 +300,12 @@ describe('ValidationStrategy Tests', () => {
         requiredCourses: ['MATH-101'],
         studentCompletedCourses: ['MATH-101'],
         minGPA: 2.0,
-        studentGPA: 3.0
+        studentGPA: 3.0,
       });
       capacityStrategy = new CapacityValidationStrategy({
         maxCapacity: 30,
         currentEnrollments: 25,
-        requestedSeats: 1
+        requestedSeats: 1,
       });
     });
 
@@ -305,8 +313,12 @@ describe('ValidationStrategy Tests', () => {
       context.addStrategy(prerequisitesStrategy);
       context.addStrategy(capacityStrategy);
 
-      expect(context.getAvailableStrategies()).toContain('PrerequisitesValidationStrategy');
-      expect(context.getAvailableStrategies()).toContain('CapacityValidationStrategy');
+      expect(context.getAvailableStrategies()).toContain(
+        'PrerequisitesValidationStrategy'
+      );
+      expect(context.getAvailableStrategies()).toContain(
+        'CapacityValidationStrategy'
+      );
     });
 
     test('debe ordenar estrategias por prioridad', () => {
@@ -322,13 +334,22 @@ describe('ValidationStrategy Tests', () => {
       context.addStrategy(prerequisitesStrategy);
       context.addStrategy(capacityStrategy);
 
-      const data = { studentId: 'student-123', courseId: 'course-456', requestedSeats: 3 };
-      const validationContext = { hasPrerequisites: true, hasCapacityLimit: true };
+      const data = {
+        studentId: 'student-123',
+        courseId: 'course-456',
+        requestedSeats: 3,
+      };
+      const validationContext = {
+        hasPrerequisites: true,
+        hasCapacityLimit: true,
+      };
 
       const result = context.executeValidation(data, validationContext);
 
       expect(result.isValid).toBe(true);
-      expect(result.strategiesUsed).toContain('PrerequisitesValidationStrategy');
+      expect(result.strategiesUsed).toContain(
+        'PrerequisitesValidationStrategy'
+      );
       expect(result.strategiesUsed).toContain('CapacityValidationStrategy');
       expect(result.summary.totalStrategies).toBe(2);
       expect(result.summary.validStrategies).toBe(2);
@@ -338,12 +359,16 @@ describe('ValidationStrategy Tests', () => {
       const failingStrategy = new CapacityValidationStrategy({
         maxCapacity: 30,
         currentEnrollments: 25,
-        requestedSeats: 1
+        requestedSeats: 1,
       });
 
       context.addStrategy(failingStrategy);
 
-      const data = { studentId: 'student-123', courseId: 'course-456', requestedSeats: 10 };
+      const data = {
+        studentId: 'student-123',
+        courseId: 'course-456',
+        requestedSeats: 10,
+      };
       const validationContext = { hasCapacityLimit: true };
 
       const result = context.executeValidation(data, validationContext);
@@ -357,7 +382,10 @@ describe('ValidationStrategy Tests', () => {
       context.addStrategy(prerequisitesStrategy);
 
       const data = { studentId: 'student-123', courseId: 'course-456' };
-      const result = context.executeSpecificStrategy('PrerequisitesValidationStrategy', data);
+      const result = context.executeSpecificStrategy(
+        'PrerequisitesValidationStrategy',
+        data
+      );
 
       expect(result.isValid).toBe(true);
       expect(result.strategy).toBe('PrerequisitesValidationStrategy');
@@ -380,7 +408,9 @@ describe('ValidationStrategy Tests', () => {
       context.removeStrategy('PrerequisitesValidationStrategy');
 
       expect(context.getAvailableStrategies()).toHaveLength(1);
-      expect(context.getAvailableStrategies()).not.toContain('PrerequisitesValidationStrategy');
+      expect(context.getAvailableStrategies()).not.toContain(
+        'PrerequisitesValidationStrategy'
+      );
     });
 
     test('debe limpiar todas las estrategias', () => {
@@ -404,7 +434,7 @@ describe('ValidationStrategy Tests', () => {
   describe('Validaciones de Strategy Base', () => {
     test('debe lanzar error al llamar validate en clase base', () => {
       const strategy = new ValidationStrategy();
-      
+
       expect(() => {
         strategy.validate({});
       }).toThrow('validate debe ser implementado por subclases');
@@ -412,7 +442,9 @@ describe('ValidationStrategy Tests', () => {
 
     test('debe retornar nombre de estrategia correctamente', () => {
       const strategy = new PrerequisitesValidationStrategy({});
-      expect(strategy.getStrategyName()).toBe('PrerequisitesValidationStrategy');
+      expect(strategy.getStrategyName()).toBe(
+        'PrerequisitesValidationStrategy'
+      );
     });
 
     test('debe retornar prioridad por defecto', () => {

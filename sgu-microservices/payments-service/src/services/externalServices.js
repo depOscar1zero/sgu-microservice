@@ -15,16 +15,16 @@ class AuthServiceClient {
         console.error('ERROR: Token no proporcionado');
         return {
           success: false,
-          error: 'Token de autorización requerido'
+          error: 'Token de autorización requerido',
         };
       }
 
       const config = {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        timeout: 5000
+        timeout: 5000,
       };
 
       console.log('Verificando token con Auth Service...');
@@ -36,17 +36,17 @@ class AuthServiceClient {
 
       console.log('Token verificado exitosamente:', {
         status: response.status,
-        userId: response.data?.data?.id || response.data?.id
+        userId: response.data?.data?.id || response.data?.id,
       });
 
       return {
         success: true,
-        data: response.data?.data || response.data
+        data: response.data?.data || response.data,
       };
     } catch (error) {
       console.error('=== ERROR en verifyToken ===');
       console.error('Error completo:', error.message);
-      
+
       if (error.response) {
         console.error('Status de respuesta:', error.response.status);
         console.error('Data de respuesta:', error.response.data);
@@ -54,7 +54,7 @@ class AuthServiceClient {
 
       return {
         success: false,
-        error: error.response?.data?.error || error.message || 'Token inválido'
+        error: error.response?.data?.error || error.message || 'Token inválido',
       };
     }
   }
@@ -62,7 +62,8 @@ class AuthServiceClient {
 
 class EnrollmentServiceClient {
   constructor() {
-    this.baseURL = process.env.ENROLLMENT_SERVICE_URL || 'http://localhost:3002';
+    this.baseURL =
+      process.env.ENROLLMENT_SERVICE_URL || 'http://localhost:3002';
     console.log('EnrollmentServiceClient inicializado con URL:', this.baseURL);
   }
 
@@ -71,22 +72,25 @@ class EnrollmentServiceClient {
       console.log('=== DEBUG: getEnrollmentById ===');
       console.log('EnrollmentId:', enrollmentId);
       console.log('Token presente:', token ? 'SÍ' : 'NO');
-      console.log('URL completa:', `${this.baseURL}/api/enrollments/${enrollmentId}`);
+      console.log(
+        'URL completa:',
+        `${this.baseURL}/api/enrollments/${enrollmentId}`
+      );
 
       if (!token) {
         console.error('ERROR: Token no proporcionado');
         return {
           success: false,
-          error: 'Token de autorización requerido'
+          error: 'Token de autorización requerido',
         };
       }
 
       const config = {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        timeout: 5000
+        timeout: 5000,
       };
 
       console.log('Headers de la petición:', config.headers);
@@ -99,18 +103,21 @@ class EnrollmentServiceClient {
       console.log('Respuesta exitosa del Enrollment Service:', {
         status: response.status,
         enrollmentId: response.data?.id,
-        paymentStatus: response.data?.paymentStatus
+        paymentStatus: response.data?.paymentStatus,
       });
 
       return {
         success: true,
-        data: response.data
+        data: response.data,
       };
     } catch (error) {
       console.error('=== ERROR en getEnrollmentById ===');
-      console.error('URL llamada:', `${this.baseURL}/api/enrollments/${enrollmentId}`);
+      console.error(
+        'URL llamada:',
+        `${this.baseURL}/api/enrollments/${enrollmentId}`
+      );
       console.error('Error completo:', error.message);
-      
+
       if (error.response) {
         console.error('Status de respuesta:', error.response.status);
         console.error('Data de respuesta:', error.response.data);
@@ -121,7 +128,8 @@ class EnrollmentServiceClient {
 
       return {
         success: false,
-        error: error.response?.data?.error || error.message || 'Error desconocido'
+        error:
+          error.response?.data?.error || error.message || 'Error desconocido',
       };
     }
   }
@@ -133,8 +141,11 @@ class EnrollmentServiceClient {
       console.log('Token recibido:', token ? 'SÍ' : 'NO');
 
       const client = new EnrollmentServiceClient();
-      const enrollmentResult = await client.getEnrollmentById(enrollmentId, token);
-      
+      const enrollmentResult = await client.getEnrollmentById(
+        enrollmentId,
+        token
+      );
+
       if (!enrollmentResult.success) {
         console.error('Error obteniendo enrollment:', enrollmentResult.error);
         return enrollmentResult;
@@ -144,17 +155,18 @@ class EnrollmentServiceClient {
       console.log('Enrollment obtenido:', {
         id: enrollment.id,
         status: enrollment.status,
-        paymentStatus: enrollment.paymentStatus
+        paymentStatus: enrollment.paymentStatus,
       });
 
-      const requiresPayment = enrollment.paymentStatus === 'Pending' && 
-                            ['Confirmed', 'Pending'].includes(enrollment.status);
-      
+      const requiresPayment =
+        enrollment.paymentStatus === 'Pending' &&
+        ['Confirmed', 'Pending'].includes(enrollment.status);
+
       const canProcessPayment = enrollment.paymentStatus === 'Pending';
 
       console.log('Resultado del análisis:', {
         requiresPayment,
-        canProcessPayment
+        canProcessPayment,
       });
 
       return {
@@ -162,15 +174,15 @@ class EnrollmentServiceClient {
         data: {
           ...enrollment,
           requiresPayment,
-          canProcessPayment
-        }
+          canProcessPayment,
+        },
       };
     } catch (error) {
       console.error('=== ERROR en checkPaymentRequired ===');
       console.error('Error:', error.message);
       return {
         success: false,
-        error: 'Error verificando si la inscripción requiere pago'
+        error: 'Error verificando si la inscripción requiere pago',
       };
     }
   }
@@ -178,5 +190,5 @@ class EnrollmentServiceClient {
 
 module.exports = {
   AuthServiceClient,
-  EnrollmentServiceClient
+  EnrollmentServiceClient,
 };

@@ -5,25 +5,25 @@
  */
 
 class Money {
-  constructor(amount, currency = "USD") {
-    if (typeof amount !== "number") {
-      throw new Error("Amount debe ser un número");
+  constructor(amount, currency = 'USD') {
+    if (typeof amount !== 'number') {
+      throw new Error('Amount debe ser un número');
     }
 
     if (isNaN(amount)) {
-      throw new Error("Amount no puede ser NaN");
+      throw new Error('Amount no puede ser NaN');
     }
 
     if (amount < 0) {
-      throw new Error("Amount no puede ser negativo");
+      throw new Error('Amount no puede ser negativo');
     }
 
-    if (typeof currency !== "string") {
-      throw new Error("Currency debe ser una cadena de texto");
+    if (typeof currency !== 'string') {
+      throw new Error('Currency debe ser una cadena de texto');
     }
 
     if (currency.trim().length === 0) {
-      throw new Error("Currency no puede ser una cadena vacía");
+      throw new Error('Currency no puede ser una cadena vacía');
     }
 
     this._amount = Math.round(amount * 100) / 100; // Redondear a 2 decimales
@@ -53,11 +53,11 @@ class Money {
    */
   add(other) {
     if (!(other instanceof Money)) {
-      throw new Error("Solo se pueden sumar objetos Money");
+      throw new Error('Solo se pueden sumar objetos Money');
     }
 
     if (this._currency !== other._currency) {
-      throw new Error("No se pueden sumar cantidades de diferentes monedas");
+      throw new Error('No se pueden sumar cantidades de diferentes monedas');
     }
 
     return new Money(this._amount + other._amount, this._currency);
@@ -70,16 +70,16 @@ class Money {
    */
   subtract(other) {
     if (!(other instanceof Money)) {
-      throw new Error("Solo se pueden restar objetos Money");
+      throw new Error('Solo se pueden restar objetos Money');
     }
 
     if (this._currency !== other._currency) {
-      throw new Error("No se pueden restar cantidades de diferentes monedas");
+      throw new Error('No se pueden restar cantidades de diferentes monedas');
     }
 
     const result = this._amount - other._amount;
     if (result < 0) {
-      throw new Error("El resultado no puede ser negativo");
+      throw new Error('El resultado no puede ser negativo');
     }
 
     return new Money(result, this._currency);
@@ -91,12 +91,12 @@ class Money {
    * @returns {Money}
    */
   multiply(factor) {
-    if (typeof factor !== "number") {
-      throw new Error("Factor debe ser un número");
+    if (typeof factor !== 'number') {
+      throw new Error('Factor debe ser un número');
     }
 
     if (factor < 0) {
-      throw new Error("Factor no puede ser negativo");
+      throw new Error('Factor no puede ser negativo');
     }
 
     return new Money(this._amount * factor, this._currency);
@@ -121,11 +121,11 @@ class Money {
    */
   isGreaterThan(other) {
     if (!(other instanceof Money)) {
-      throw new Error("Solo se pueden comparar objetos Money");
+      throw new Error('Solo se pueden comparar objetos Money');
     }
 
     if (this._currency !== other._currency) {
-      throw new Error("No se pueden comparar cantidades de diferentes monedas");
+      throw new Error('No se pueden comparar cantidades de diferentes monedas');
     }
 
     return this._amount > other._amount;
@@ -138,11 +138,11 @@ class Money {
    */
   isLessThan(other) {
     if (!(other instanceof Money)) {
-      throw new Error("Solo se pueden comparar objetos Money");
+      throw new Error('Solo se pueden comparar objetos Money');
     }
 
     if (this._currency !== other._currency) {
-      throw new Error("No se pueden comparar cantidades de diferentes monedas");
+      throw new Error('No se pueden comparar cantidades de diferentes monedas');
     }
 
     return this._amount < other._amount;
@@ -170,7 +170,7 @@ class Money {
    * @param {string} currency - Moneda
    * @returns {Money}
    */
-  static create(amount, currency = "USD") {
+  static create(amount, currency = 'USD') {
     return new Money(amount, currency);
   }
 
@@ -179,7 +179,7 @@ class Money {
    * @param {string} currency - Moneda
    * @returns {Money}
    */
-  static zero(currency = "USD") {
+  static zero(currency = 'USD') {
     return new Money(0, currency);
   }
 
@@ -189,7 +189,7 @@ class Money {
    * @param {string} currency - Moneda a verificar
    * @returns {boolean}
    */
-  static isValid(amount, currency = "USD") {
+  static isValid(amount, currency = 'USD') {
     try {
       new Money(amount, currency);
       return true;

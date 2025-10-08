@@ -13,14 +13,14 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Token de acceso requerido',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
     // Verificar token localmente
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
+
       // Agregar información básica del usuario al request
       req.user = {
         userId: decoded.userId,
@@ -28,7 +28,7 @@ const authenticateToken = async (req, res, next) => {
         role: decoded.role,
         firstName: decoded.firstName,
         lastName: decoded.lastName,
-        studentId: decoded.studentId
+        studentId: decoded.studentId,
       };
 
       // Opcionalmente, verificar con el auth service para obtener datos actualizados
@@ -38,17 +38,17 @@ const authenticateToken = async (req, res, next) => {
           return res.status(401).json({
             success: false,
             message: 'Token inválido según el servicio de autenticación',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
-        
+
         // Actualizar información del usuario con datos frescos
         req.user = {
           ...req.user,
           firstName: authResult.data.firstName,
           lastName: authResult.data.lastName,
           studentId: authResult.data.studentId,
-          isActive: authResult.data.isActive
+          isActive: authResult.data.isActive,
         };
       }
 
@@ -59,7 +59,7 @@ const authenticateToken = async (req, res, next) => {
           success: false,
           message: 'Token expirado',
           code: 'TOKEN_EXPIRED',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
@@ -68,19 +68,18 @@ const authenticateToken = async (req, res, next) => {
           success: false,
           message: 'Token inválido',
           code: 'TOKEN_INVALID',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
       throw jwtError;
     }
-
   } catch (error) {
     console.error('Error en autenticación del enrollment service:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno de autenticación',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 };
@@ -93,7 +92,7 @@ const requireStudent = (req, res, next) => {
     return res.status(401).json({
       success: false,
       message: 'Autenticación requerida',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -101,7 +100,7 @@ const requireStudent = (req, res, next) => {
     return res.status(403).json({
       success: false,
       message: 'Solo los estudiantes pueden realizar esta acción',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -116,7 +115,7 @@ const requireAdmin = (req, res, next) => {
     return res.status(401).json({
       success: false,
       message: 'Autenticación requerida',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -124,7 +123,7 @@ const requireAdmin = (req, res, next) => {
     return res.status(403).json({
       success: false,
       message: 'Se requieren permisos de administrador',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -139,7 +138,7 @@ const requireStudentOrAdmin = (req, res, next) => {
     return res.status(401).json({
       success: false,
       message: 'Autenticación requerida',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -147,7 +146,7 @@ const requireStudentOrAdmin = (req, res, next) => {
     return res.status(403).json({
       success: false,
       message: 'Se requieren permisos de estudiante o administrador',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -158,5 +157,5 @@ module.exports = {
   authenticateToken,
   requireStudent,
   requireAdmin,
-  requireStudentOrAdmin
+  requireStudentOrAdmin,
 };

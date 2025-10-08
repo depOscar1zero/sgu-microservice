@@ -1,9 +1,9 @@
-const request = require("supertest");
-const app = require("../src/app");
-const { Enrollment } = require("../src/models");
-const testUtils = require("./utils");
+const request = require('supertest');
+const app = require('../src/app');
+const { Enrollment } = require('../src/models');
+const testUtils = require('./utils');
 
-describe("Enrollment Service API - Basic Tests", () => {
+describe('Enrollment Service API - Basic Tests', () => {
   let authToken;
 
   beforeAll(async () => {
@@ -13,57 +13,59 @@ describe("Enrollment Service API - Basic Tests", () => {
 
   beforeEach(async () => {
     // Sincronizar base de datos y limpiar antes de cada prueba
-    const { sequelize } = require("../src/config/database");
+    const { sequelize } = require('../src/config/database');
     await sequelize.sync({ force: true });
   });
 
-  describe("Health Check", () => {
-    test("GET /health should return service status", async () => {
-      const response = await request(app).get("/health").expect(200);
+  describe('Health Check', () => {
+    test('GET /health should return service status', async () => {
+      const response = await request(app).get('/health').expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.service).toBe("Enrollment Service");
-      expect(response.body.status).toBe("healthy");
+      expect(response.body.service).toBe('Enrollment Service');
+      expect(response.body.status).toBe('healthy');
     });
   });
 
-  describe("GET /api/enrollments/my", () => {
+  describe('GET /api/enrollments/my', () => {
     beforeEach(async () => {
       // Crear inscripciones de prueba
       await testUtils.createTestEnrollment(Enrollment);
       await testUtils.createTestEnrollment(Enrollment, {
-        userId: "user-123", // Mismo usuario para que aparezcan en "mis inscripciones"
-        studentId: "student-456",
-        courseId: "course-456",
-        status: "Confirmed",
+        userId: 'user-123', // Mismo usuario para que aparezcan en "mis inscripciones"
+        studentId: 'student-456',
+        courseId: 'course-456',
+        status: 'Confirmed',
       });
     });
 
-    test("should return my enrollments", async () => {
+    test('should return my enrollments', async () => {
       const response = await request(app)
-        .get("/api/enrollments/my")
-        .set("Authorization", `Bearer ${authToken}`)
+        .get('/api/enrollments/my')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.enrollments).toHaveLength(2);
     });
 
-    test("should return 401 without token", async () => {
-      const response = await request(app).get("/api/enrollments/my").expect(401);
+    test('should return 401 without token', async () => {
+      const response = await request(app)
+        .get('/api/enrollments/my')
+        .expect(401);
 
       expect(response.body.success).toBe(false);
     });
   });
 
-  describe("POST /api/enrollments", () => {
-    test("should return 401 without token", async () => {
+  describe('POST /api/enrollments', () => {
+    test('should return 401 without token', async () => {
       const enrollmentData = {
-        courseId: "course-123"
+        courseId: 'course-123',
       };
 
       const response = await request(app)
-        .post("/api/enrollments")
+        .post('/api/enrollments')
         .send(enrollmentData)
         .expect(401);
 
@@ -71,11 +73,11 @@ describe("Enrollment Service API - Basic Tests", () => {
     });
   });
 
-  describe("GET /api/enrollments/stats", () => {
-    test("should return 401 without admin token", async () => {
+  describe('GET /api/enrollments/stats', () => {
+    test('should return 401 without admin token', async () => {
       const response = await request(app)
-        .get("/api/enrollments/stats")
-        .set("Authorization", `Bearer ${authToken}`)
+        .get('/api/enrollments/stats')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(403);
 
       expect(response.body.success).toBe(false);
@@ -83,14 +85,14 @@ describe("Enrollment Service API - Basic Tests", () => {
   });
 });
 
-describe("Enrollment Model", () => {
+describe('Enrollment Model', () => {
   beforeEach(async () => {
     // Sincronizar base de datos y limpiar antes de cada prueba
-    const { sequelize } = require("../src/config/database");
+    const { sequelize } = require('../src/config/database');
     await sequelize.sync({ force: true });
   });
 
-  test("should create enrollment with valid data", async () => {
+  test('should create enrollment with valid data', async () => {
     const enrollmentData = testUtils.generateEnrollment();
     const enrollment = await Enrollment.create(enrollmentData);
 
@@ -100,18 +102,18 @@ describe("Enrollment Model", () => {
     expect(enrollment.status).toBe(enrollmentData.status);
   });
 
-  test("should validate status enum", async () => {
+  test('should validate status enum', async () => {
     const enrollmentData = testUtils.generateEnrollment({
-      status: "invalid-status",
+      status: 'invalid-status',
     });
 
     // SQLite no valida enums estrictamente, pero Sequelize debería validar
     // En este caso, simplemente verificamos que se crea con el valor proporcionado
     const enrollment = await Enrollment.create(enrollmentData);
-    expect(enrollment.status).toBe("invalid-status");
+    expect(enrollment.status).toBe('invalid-status');
   });
 
-  test("should set default enrollment date", async () => {
+  test('should set default enrollment date', async () => {
     const enrollmentData = testUtils.generateEnrollment();
     delete enrollmentData.enrollmentDate;
 

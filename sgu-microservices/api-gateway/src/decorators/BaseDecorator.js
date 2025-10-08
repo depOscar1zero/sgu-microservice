@@ -6,7 +6,7 @@
 class BaseDecorator {
   constructor(component) {
     if (!component) {
-      throw new Error("BaseDecorator requires a component to decorate");
+      throw new Error('BaseDecorator requires a component to decorate');
     }
     this._component = component;
   }

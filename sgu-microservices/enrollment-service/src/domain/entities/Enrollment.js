@@ -7,11 +7,11 @@
 const {
   EnrollmentStatus,
   PaymentStatus,
-} = require("../value-objects/EnrollmentStatus");
-const { StudentId } = require("../value-objects/StudentId");
-const { CourseId } = require("../value-objects/CourseId");
-const { AcademicPeriod } = require("../value-objects/AcademicPeriod");
-const { Money } = require("../value-objects/Money");
+} = require('../value-objects/EnrollmentStatus');
+const { StudentId } = require('../value-objects/StudentId');
+const { CourseId } = require('../value-objects/CourseId');
+const { AcademicPeriod } = require('../value-objects/AcademicPeriod');
+const { Money } = require('../value-objects/Money');
 
 class Enrollment {
   constructor({
@@ -25,7 +25,7 @@ class Enrollment {
     courseCredits,
     academicPeriod,
     amount,
-    currency = "USD",
+    currency = 'USD',
     status = EnrollmentStatus.PENDING,
     paymentStatus = PaymentStatus.PENDING,
     enrollmentDate = new Date(),
@@ -135,7 +135,7 @@ class Enrollment {
    */
   confirm(confirmationDate = new Date()) {
     if (this._status !== EnrollmentStatus.PENDING) {
-      throw new Error("Solo se pueden confirmar inscripciones pendientes");
+      throw new Error('Solo se pueden confirmar inscripciones pendientes');
     }
 
     this._status = EnrollmentStatus.CONFIRMED;
@@ -149,7 +149,7 @@ class Enrollment {
    */
   markAsPaid(paymentId, paymentDate = new Date()) {
     if (this._status !== EnrollmentStatus.CONFIRMED) {
-      throw new Error("Solo se pueden pagar inscripciones confirmadas");
+      throw new Error('Solo se pueden pagar inscripciones confirmadas');
     }
 
     this._status = EnrollmentStatus.PAID;
@@ -166,7 +166,7 @@ class Enrollment {
    */
   cancel(reason, cancelledBy = null, cancellationDate = new Date()) {
     if (!this.canBeCancelled()) {
-      throw new Error("Esta inscripción no puede ser cancelada");
+      throw new Error('Esta inscripción no puede ser cancelada');
     }
 
     this._status = EnrollmentStatus.CANCELLED;
@@ -182,7 +182,7 @@ class Enrollment {
    */
   complete(grade = null, attendancePercentage = null) {
     if (this._status !== EnrollmentStatus.PAID) {
-      throw new Error("Solo se pueden completar inscripciones pagadas");
+      throw new Error('Solo se pueden completar inscripciones pagadas');
     }
 
     this._status = EnrollmentStatus.COMPLETED;

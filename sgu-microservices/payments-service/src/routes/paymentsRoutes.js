@@ -1,5 +1,5 @@
-const express = require("express");
-const { body, query, param } = require("express-validator");
+const express = require('express');
+const { body, query, param } = require('express-validator');
 const router = express.Router();
 
 const {
@@ -11,7 +11,7 @@ const {
   getPaymentStats,
   createPaymentIntent,
   authenticateToken,
-} = require("../controllers/paymentsController");
+} = require('../controllers/paymentsController');
 
 // Middleware de autenticación para todas las rutas
 router.use(authenticateToken);
@@ -21,19 +21,19 @@ router.use(authenticateToken);
  * Crear un nuevo pago
  */
 router.post(
-  "/",
+  '/',
   [
-    body("enrollmentId").isUUID().withMessage("ID de inscripción inválido"),
-    body("amount")
+    body('enrollmentId').isUUID().withMessage('ID de inscripción inválido'),
+    body('amount')
       .isFloat({ min: 0.01 })
-      .withMessage("Monto debe ser mayor a 0"),
-    body("paymentMethod")
-      .isIn(["credit_card", "debit_card", "bank_transfer", "cash", "stripe"])
-      .withMessage("Método de pago inválido"),
-    body("paymentMethodDetails")
+      .withMessage('Monto debe ser mayor a 0'),
+    body('paymentMethod')
+      .isIn(['credit_card', 'debit_card', 'bank_transfer', 'cash', 'stripe'])
+      .withMessage('Método de pago inválido'),
+    body('paymentMethodDetails')
       .optional()
       .isObject()
-      .withMessage("Detalles del método de pago deben ser un objeto"),
+      .withMessage('Detalles del método de pago deben ser un objeto'),
   ],
   createPayment
 );
@@ -43,13 +43,13 @@ router.post(
  * Crear Payment Intent para Stripe
  */
 router.post(
-  "/intent",
+  '/intent',
   [
-    body("enrollmentId").isUUID().withMessage("ID de inscripción inválido"),
-    body("amount")
+    body('enrollmentId').isUUID().withMessage('ID de inscripción inválido'),
+    body('amount')
       .optional()
       .isFloat({ min: 0.01 })
-      .withMessage("Monto debe ser mayor a 0"),
+      .withMessage('Monto debe ser mayor a 0'),
   ],
   createPaymentIntent
 );
@@ -59,27 +59,27 @@ router.post(
  * Obtener pagos del usuario autenticado
  */
 router.get(
-  "/",
+  '/',
   [
-    query("status")
+    query('status')
       .optional()
       .isIn([
-        "pending",
-        "processing",
-        "completed",
-        "failed",
-        "cancelled",
-        "refunded",
+        'pending',
+        'processing',
+        'completed',
+        'failed',
+        'cancelled',
+        'refunded',
       ])
-      .withMessage("Estado de pago inválido"),
-    query("limit")
+      .withMessage('Estado de pago inválido'),
+    query('limit')
       .optional()
       .isInt({ min: 1, max: 100 })
-      .withMessage("Límite debe ser entre 1 y 100"),
-    query("offset")
+      .withMessage('Límite debe ser entre 1 y 100'),
+    query('offset')
       .optional()
       .isInt({ min: 0 })
-      .withMessage("Offset debe ser mayor o igual a 0"),
+      .withMessage('Offset debe ser mayor o igual a 0'),
   ],
   getUserPayments
 );
@@ -89,16 +89,16 @@ router.get(
  * Obtener estadísticas de pagos (solo admins)
  */
 router.get(
-  "/stats",
+  '/stats',
   [
-    query("startDate")
+    query('startDate')
       .optional()
       .isISO8601()
-      .withMessage("Fecha de inicio inválida"),
-    query("endDate")
+      .withMessage('Fecha de inicio inválida'),
+    query('endDate')
       .optional()
       .isISO8601()
-      .withMessage("Fecha de fin inválida"),
+      .withMessage('Fecha de fin inválida'),
   ],
   getPaymentStats
 );
@@ -108,8 +108,8 @@ router.get(
  * Obtener pago por ID
  */
 router.get(
-  "/:id",
-  [param("id").isUUID().withMessage("ID de pago inválido")],
+  '/:id',
+  [param('id').isUUID().withMessage('ID de pago inválido')],
   getPaymentById
 );
 
@@ -118,8 +118,8 @@ router.get(
  * Obtener pagos por inscripción
  */
 router.get(
-  "/enrollment/:enrollmentId",
-  [param("enrollmentId").isUUID().withMessage("ID de inscripción inválido")],
+  '/enrollment/:enrollmentId',
+  [param('enrollmentId').isUUID().withMessage('ID de inscripción inválido')],
   getPaymentsByEnrollment
 );
 
@@ -128,18 +128,18 @@ router.get(
  * Procesar reembolso de un pago
  */
 router.post(
-  "/:id/refund",
+  '/:id/refund',
   [
-    param("id").isUUID().withMessage("ID de pago inválido"),
-    body("amount")
+    param('id').isUUID().withMessage('ID de pago inválido'),
+    body('amount')
       .optional()
       .isFloat({ min: 0.01 })
-      .withMessage("Monto de reembolso debe ser mayor a 0"),
-    body("reason")
+      .withMessage('Monto de reembolso debe ser mayor a 0'),
+    body('reason')
       .optional()
       .isString()
       .isLength({ min: 1, max: 500 })
-      .withMessage("Razón del reembolso debe tener entre 1 y 500 caracteres"),
+      .withMessage('Razón del reembolso debe tener entre 1 y 500 caracteres'),
   ],
   processRefund
 );
@@ -148,12 +148,12 @@ router.post(
  * GET /api/payments/health
  * Health check del servicio
  */
-router.get("/health", (req, res) => {
+router.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Payments Service is healthy",
+    message: 'Payments Service is healthy',
     timestamp: new Date().toISOString(),
-    version: "1.0.0",
+    version: '1.0.0',
   });
 });
 

@@ -1,5 +1,5 @@
-const { ValidationStrategy } = require("./ValidationStrategy");
-const { CoursesServiceClient } = require("../services/externalServices");
+const { ValidationStrategy } = require('./ValidationStrategy');
+const { CoursesServiceClient } = require('../services/externalServices');
 
 /**
  * Estrategia para validar prerrequisitos del curso
@@ -28,7 +28,7 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
       if (!prerequisitesResult.success) {
         return {
           isValid: false,
-          error: "Error verificando prerrequisitos",
+          error: 'Error verificando prerrequisitos',
           details: prerequisitesResult.error,
           strategy: this.getStrategyName(),
         };
@@ -37,7 +37,7 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
       if (!prerequisitesResult.data.canEnroll) {
         return {
           isValid: false,
-          error: "No cumples con los prerrequisitos para este curso",
+          error: 'No cumples con los prerrequisitos para este curso',
           details: {
             missingPrerequisites: prerequisitesResult.data.missingPrerequisites,
             requiredPrerequisites:
@@ -59,7 +59,7 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
     } catch (error) {
       return {
         isValid: false,
-        error: "Error verificando prerrequisitos",
+        error: 'Error verificando prerrequisitos',
         details: error.message,
         strategy: this.getStrategyName(),
       };

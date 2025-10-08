@@ -1,6 +1,6 @@
 /**
  * Servicio de Validación de Inscripciones
- * 
+ *
  * Integra el patrón Strategy con el sistema existente para proporcionar
  * validación flexible y extensible de inscripciones.
  */
@@ -11,7 +11,7 @@ const {
   CapacityValidationStrategy,
   ScheduleValidationStrategy,
   PaymentValidationStrategy,
-  DeadlineValidationStrategy
+  DeadlineValidationStrategy,
 } = require('../strategies/ValidationStrategy');
 
 /**
@@ -40,31 +40,43 @@ class EnrollmentValidationService {
     this.validationContext.clearStrategies();
 
     // Agregar estrategia de prerequisitos si es necesario
-    if (courseConfig && courseConfig.requiredCourses && courseConfig.requiredCourses.length > 0) {
+    if (
+      courseConfig &&
+      courseConfig.requiredCourses &&
+      courseConfig.requiredCourses.length > 0
+    ) {
       const prerequisitesStrategy = new PrerequisitesValidationStrategy({
         requiredCourses: courseConfig.requiredCourses,
         studentCompletedCourses: courseConfig.studentCompletedCourses || [],
         minGPA: courseConfig.minGPA || 2.0,
-        studentGPA: courseConfig.studentGPA || 0
+        studentGPA: courseConfig.studentGPA || 0,
       });
       this.validationContext.addStrategy(prerequisitesStrategy);
     }
 
     // Agregar estrategia de capacidad si es necesario
-    if (courseConfig && courseConfig.maxCapacity && courseConfig.maxCapacity > 0) {
+    if (
+      courseConfig &&
+      courseConfig.maxCapacity &&
+      courseConfig.maxCapacity > 0
+    ) {
       const capacityStrategy = new CapacityValidationStrategy({
         maxCapacity: courseConfig.maxCapacity,
         currentEnrollments: courseConfig.currentEnrollments || 0,
-        requestedSeats: courseConfig.requestedSeats || 1
+        requestedSeats: courseConfig.requestedSeats || 1,
       });
       this.validationContext.addStrategy(capacityStrategy);
     }
 
     // Agregar estrategia de horarios si es necesario
-    if (courseConfig && courseConfig.courseSchedule && courseConfig.courseSchedule.timeSlots) {
+    if (
+      courseConfig &&
+      courseConfig.courseSchedule &&
+      courseConfig.courseSchedule.timeSlots
+    ) {
       const scheduleStrategy = new ScheduleValidationStrategy({
         courseSchedule: courseConfig.courseSchedule,
-        studentSchedule: courseConfig.studentSchedule || []
+        studentSchedule: courseConfig.studentSchedule || [],
       });
       this.validationContext.addStrategy(scheduleStrategy);
     }
@@ -72,8 +84,9 @@ class EnrollmentValidationService {
     // Agregar estrategia de pagos si es necesario
     if (courseConfig && courseConfig.studentPendingPayments !== undefined) {
       const paymentStrategy = new PaymentValidationStrategy({
-        allowEnrollmentWithPendingPayments: courseConfig.allowEnrollmentWithPendingPayments || false,
-        studentPendingPayments: courseConfig.studentPendingPayments || []
+        allowEnrollmentWithPendingPayments:
+          courseConfig.allowEnrollmentWithPendingPayments || false,
+        studentPendingPayments: courseConfig.studentPendingPayments || [],
       });
       this.validationContext.addStrategy(paymentStrategy);
     }
@@ -82,7 +95,7 @@ class EnrollmentValidationService {
     if (courseConfig.enrollmentDeadline) {
       const deadlineStrategy = new DeadlineValidationStrategy({
         enrollmentDeadline: courseConfig.enrollmentDeadline,
-        currentDate: courseConfig.currentDate || new Date()
+        currentDate: courseConfig.currentDate || new Date(),
       });
       this.validationContext.addStrategy(deadlineStrategy);
     }
@@ -101,15 +114,22 @@ class EnrollmentValidationService {
 
       // Crear contexto de validación
       const validationContext = {
-        hasPrerequisites: courseConfig.requiredCourses && courseConfig.requiredCourses.length > 0,
-        hasCapacityLimit: courseConfig.maxCapacity && courseConfig.maxCapacity > 0,
-        hasSchedule: courseConfig.courseSchedule && courseConfig.courseSchedule.timeSlots,
+        hasPrerequisites:
+          courseConfig.requiredCourses &&
+          courseConfig.requiredCourses.length > 0,
+        hasCapacityLimit:
+          courseConfig.maxCapacity && courseConfig.maxCapacity > 0,
+        hasSchedule:
+          courseConfig.courseSchedule && courseConfig.courseSchedule.timeSlots,
         hasPaymentValidation: courseConfig.studentPendingPayments !== undefined,
-        hasDeadline: !!courseConfig.enrollmentDeadline
+        hasDeadline: !!courseConfig.enrollmentDeadline,
       };
 
       // Ejecutar validación
-      const result = this.validationContext.executeValidation(enrollmentData, validationContext);
+      const result = this.validationContext.executeValidation(
+        enrollmentData,
+        validationContext
+      );
 
       // Agregar metadatos adicionales
       result.enrollmentData = enrollmentData;
@@ -128,12 +148,12 @@ class EnrollmentValidationService {
         summary: {
           totalStrategies: 0,
           validStrategies: 0,
-          invalidStrategies: 0
+          invalidStrategies: 0,
         },
         enrollmentData,
         courseConfig,
         timestamp: new Date(),
-        validationId: this.generateValidationId()
+        validationId: this.generateValidationId(),
       };
     }
   }
@@ -145,7 +165,11 @@ class EnrollmentValidationService {
    * @param {Object} strategyConfig - Configuración de la estrategia
    * @returns {Object} - Resultado de la validación
    */
-  async validateWithSpecificStrategy(strategyName, enrollmentData, strategyConfig) {
+  async validateWithSpecificStrategy(
+    strategyName,
+    enrollmentData,
+    strategyConfig
+  ) {
     try {
       // Crear estrategia específica
       let strategy;
@@ -171,16 +195,19 @@ class EnrollmentValidationService {
 
       // Ejecutar validación
       const result = strategy.validate(enrollmentData);
-      
+
       return {
         ...result,
         enrollmentData,
         strategyConfig,
         timestamp: new Date(),
-        validationId: this.generateValidationId()
+        validationId: this.generateValidationId(),
       };
     } catch (error) {
-      console.error(`Error en validación con estrategia ${strategyName}:`, error);
+      console.error(
+        `Error en validación con estrategia ${strategyName}:`,
+        error
+      );
       return {
         isValid: false,
         errors: [`Error en estrategia ${strategyName}: ${error.message}`],
@@ -188,7 +215,7 @@ class EnrollmentValidationService {
         enrollmentData,
         strategyConfig,
         timestamp: new Date(),
-        validationId: this.generateValidationId()
+        validationId: this.generateValidationId(),
       };
     }
   }
@@ -202,7 +229,7 @@ class EnrollmentValidationService {
       availableStrategies: this.validationContext.getAvailableStrategies(),
       totalStrategies: this.validationContext.strategies.length,
       serviceStatus: 'active',
-      lastValidation: new Date()
+      lastValidation: new Date(),
     };
   }
 
@@ -225,7 +252,7 @@ class EnrollmentValidationService {
       requiredCourses: courseData.requiredCourses || [],
       studentCompletedCourses: studentData.completedCourses || [],
       minGPA: courseData.minGPA || 2.0,
-      studentGPA: studentData.gpa || 0
+      studentGPA: studentData.gpa || 0,
     };
 
     return await this.validateWithSpecificStrategy(
@@ -245,7 +272,7 @@ class EnrollmentValidationService {
     const strategyConfig = {
       maxCapacity: courseData.maxCapacity || 30,
       currentEnrollments: courseData.currentEnrollments || 0,
-      requestedSeats
+      requestedSeats,
     };
 
     return await this.validateWithSpecificStrategy(
@@ -264,7 +291,7 @@ class EnrollmentValidationService {
   async validateSchedule(courseData, studentData) {
     const strategyConfig = {
       courseSchedule: courseData.schedule || {},
-      studentSchedule: studentData.currentEnrollments || []
+      studentSchedule: studentData.currentEnrollments || [],
     };
 
     return await this.validateWithSpecificStrategy(
@@ -280,5 +307,5 @@ const enrollmentValidationService = new EnrollmentValidationService();
 
 module.exports = {
   EnrollmentValidationService,
-  enrollmentValidationService
+  enrollmentValidationService,
 };

@@ -4,7 +4,7 @@ const { Op } = require('sequelize');
 /**
  * Wrapper para manejo de errores async
  */
-const catchAsync = (fn) => {
+const catchAsync = fn => {
   return (req, res, next) => {
     fn(req, res, next).catch(next);
   };
@@ -19,7 +19,7 @@ const getAllCourses = catchAsync(async (req, res) => {
     limit = 20,
     department,
     status = 'ACTIVE',
-    search
+    search,
   } = req.query;
 
   // Construcción de filtros
@@ -32,7 +32,7 @@ const getAllCourses = catchAsync(async (req, res) => {
   if (search) {
     where[Op.or] = [
       { name: { [Op.like]: `%${search}%` } },
-      { description: { [Op.like]: `%${search}%` } }
+      { description: { [Op.like]: `%${search}%` } },
     ];
   }
 
@@ -45,7 +45,7 @@ const getAllCourses = catchAsync(async (req, res) => {
     where,
     limit: limitNum,
     offset,
-    order: [['createdAt', 'DESC']]
+    order: [['createdAt', 'DESC']],
   });
 
   const totalPages = Math.ceil(count / limitNum);
@@ -59,10 +59,10 @@ const getAllCourses = catchAsync(async (req, res) => {
         totalPages,
         totalResults: count,
         hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      }
+        hasPrevPage: page > 1,
+      },
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -76,14 +76,14 @@ const getCourseById = catchAsync(async (req, res) => {
     return res.status(404).json({
       success: false,
       message: 'Curso no encontrado',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   res.status(200).json({
     success: true,
     data: course,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -91,25 +91,25 @@ const getCourseById = catchAsync(async (req, res) => {
  * Obtener un curso por código
  */
 const getCourseByCode = catchAsync(async (req, res) => {
-  const course = await Course.findOne({ 
+  const course = await Course.findOne({
     where: {
       code: req.params.code.toUpperCase(),
-      isVisible: true 
-    }
+      isVisible: true,
+    },
   });
 
   if (!course) {
     return res.status(404).json({
       success: false,
       message: 'Curso no encontrado',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   res.status(200).json({
     success: true,
     data: course,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -122,17 +122,19 @@ const createCourse = catchAsync(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: 'El código del curso es requerido',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   // Verificar si ya existe un curso con el mismo código
-  const existingCourse = await Course.findOne({ where: { code: req.body.code } });
+  const existingCourse = await Course.findOne({
+    where: { code: req.body.code },
+  });
   if (existingCourse) {
     return res.status(409).json({
       success: false,
       message: 'Ya existe un curso con este código',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -143,7 +145,7 @@ const createCourse = catchAsync(async (req, res) => {
     success: true,
     message: 'Curso creado exitosamente',
     data: course,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -157,24 +159,24 @@ const updateCourse = catchAsync(async (req, res) => {
     return res.status(404).json({
       success: false,
       message: 'Curso no encontrado',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   // Verificar si se está cambiando el código y ya existe otro curso con ese código
   if (req.body.code && req.body.code !== course.code) {
-    const existingCourse = await Course.findOne({ 
+    const existingCourse = await Course.findOne({
       where: {
         code: req.body.code,
-        id: { [Op.ne]: req.params.id }
-      }
+        id: { [Op.ne]: req.params.id },
+      },
     });
-    
+
     if (existingCourse) {
       return res.status(409).json({
         success: false,
         message: 'Ya existe otro curso con este código',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -189,7 +191,7 @@ const updateCourse = catchAsync(async (req, res) => {
     success: true,
     message: 'Curso actualizado exitosamente',
     data: course,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -203,20 +205,20 @@ const deleteCourse = catchAsync(async (req, res) => {
     return res.status(404).json({
       success: false,
       message: 'Curso no encontrado',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   // Soft delete - solo marcamos como no visible
   await course.update({
     isVisible: false,
-    status: 'INACTIVE'
+    status: 'INACTIVE',
   });
 
   res.status(200).json({
     success: true,
     message: 'Curso eliminado exitosamente',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -231,7 +233,7 @@ const reserveSlots = catchAsync(async (req, res) => {
     return res.status(404).json({
       success: false,
       message: 'Curso no encontrado',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -239,7 +241,7 @@ const reserveSlots = catchAsync(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: 'No se pueden reservar cupos en un curso inactivo',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -249,32 +251,32 @@ const reserveSlots = catchAsync(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: 'No hay suficientes cupos disponibles',
-      data: { 
+      data: {
         requested: quantity,
-        available: availableSlots 
+        available: availableSlots,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   await course.update({
-    enrolled: course.enrolled + quantity
+    enrolled: course.enrolled + quantity,
   });
 
   res.status(200).json({
     success: true,
     message: `${quantity} cupo(s) reservado(s) exitosamente`,
-    data: { 
+    data: {
       course: {
         id: course.id,
         code: course.code,
         name: course.name,
         availableSlots: course.getAvailableSlots(),
         capacity: course.capacity,
-        status: course.status
-      }
+        status: course.status,
+      },
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -289,29 +291,29 @@ const releaseSlots = catchAsync(async (req, res) => {
     return res.status(404).json({
       success: false,
       message: 'Curso no encontrado',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   const newEnrolled = Math.max(0, course.enrolled - quantity);
   await course.update({
-    enrolled: newEnrolled
+    enrolled: newEnrolled,
   });
 
   res.status(200).json({
     success: true,
     message: `${quantity} cupo(s) liberado(s) exitosamente`,
-    data: { 
+    data: {
       course: {
         id: course.id,
         code: course.code,
         name: course.name,
         availableSlots: course.getAvailableSlots(),
         capacity: course.capacity,
-        status: course.status
-      }
+        status: course.status,
+      },
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -321,23 +323,31 @@ const releaseSlots = catchAsync(async (req, res) => {
 const getCourseStats = catchAsync(async (req, res) => {
   // Obtener estadísticas generales usando Sequelize
   const totalCourses = await Course.count({ where: { isVisible: true } });
-  const activeCourses = await Course.count({ 
-    where: { 
-      isVisible: true, 
-      status: 'ACTIVE' 
-    } 
-  });
-  
-  const courses = await Course.findAll({
-    where: { isVisible: true },
-    attributes: ['capacity', 'enrolled', 'price', 'department']
+  const activeCourses = await Course.count({
+    where: {
+      isVisible: true,
+      status: 'ACTIVE',
+    },
   });
 
-  const totalCapacity = courses.reduce((sum, course) => sum + course.capacity, 0);
-  const totalEnrolled = courses.reduce((sum, course) => sum + course.enrolled, 0);
-  const avgPrice = courses.length > 0 
-    ? courses.reduce((sum, course) => sum + parseFloat(course.price), 0) / courses.length 
-    : 0;
+  const courses = await Course.findAll({
+    where: { isVisible: true },
+    attributes: ['capacity', 'enrolled', 'price', 'department'],
+  });
+
+  const totalCapacity = courses.reduce(
+    (sum, course) => sum + course.capacity,
+    0
+  );
+  const totalEnrolled = courses.reduce(
+    (sum, course) => sum + course.enrolled,
+    0
+  );
+  const avgPrice =
+    courses.length > 0
+      ? courses.reduce((sum, course) => sum + parseFloat(course.price), 0) /
+        courses.length
+      : 0;
 
   // Estadísticas por departamento
   const departmentStats = {};
@@ -346,7 +356,7 @@ const getCourseStats = catchAsync(async (req, res) => {
       departmentStats[course.department] = {
         count: 0,
         totalPrice: 0,
-        courses: []
+        courses: [],
       };
     }
     departmentStats[course.department].count++;
@@ -355,11 +365,13 @@ const getCourseStats = catchAsync(async (req, res) => {
   });
 
   // Calcular promedios por departamento
-  const departmentStatsArray = Object.keys(departmentStats).map(dept => ({
-    department: dept,
-    count: departmentStats[dept].count,
-    avgPrice: departmentStats[dept].totalPrice / departmentStats[dept].count
-  })).sort((a, b) => b.count - a.count);
+  const departmentStatsArray = Object.keys(departmentStats)
+    .map(dept => ({
+      department: dept,
+      count: departmentStats[dept].count,
+      avgPrice: departmentStats[dept].totalPrice / departmentStats[dept].count,
+    }))
+    .sort((a, b) => b.count - a.count);
 
   res.status(200).json({
     success: true,
@@ -370,9 +382,9 @@ const getCourseStats = catchAsync(async (req, res) => {
       totalCapacity,
       totalEnrolled,
       avgPrice: Math.round(avgPrice * 100) / 100,
-      byDepartment: departmentStatsArray
+      byDepartment: departmentStatsArray,
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -385,5 +397,5 @@ module.exports = {
   deleteCourse,
   reserveSlots,
   releaseSlots,
-  getCourseStats
+  getCourseStats,
 };

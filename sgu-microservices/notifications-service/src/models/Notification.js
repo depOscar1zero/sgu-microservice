@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 /**
  * Modelo de Notificación para MongoDB
@@ -19,11 +19,11 @@ const notificationSchema = new mongoose.Schema(
         lowercase: true,
         trim: true,
         validate: {
-          validator: function(v) {
+          validator: function (v) {
             return /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v);
           },
-          message: 'Email format is invalid'
-        }
+          message: 'Email format is invalid',
+        },
       },
       name: {
         type: String,
@@ -47,46 +47,46 @@ const notificationSchema = new mongoose.Schema(
     // Tipo y canal de notificación
     type: {
       type: String,
-      enum: ["email", "sms", "push", "system"],
+      enum: ['email', 'sms', 'push', 'system'],
       required: true,
-      default: "email",
+      default: 'email',
     },
 
     channel: {
       type: String,
-      enum: ["email", "sms", "push", "in_app"],
+      enum: ['email', 'sms', 'push', 'in_app'],
       required: true,
-      default: "email",
+      default: 'email',
     },
 
     // Estado de la notificación
     status: {
       type: String,
-      enum: ["pending", "sent", "delivered", "failed", "cancelled"],
+      enum: ['pending', 'sent', 'delivered', 'failed', 'cancelled'],
       required: true,
-      default: "pending",
+      default: 'pending',
     },
 
     // Prioridad
     priority: {
       type: String,
-      enum: ["low", "normal", "high", "urgent"],
+      enum: ['low', 'normal', 'high', 'urgent'],
       required: true,
-      default: "normal",
+      default: 'normal',
     },
 
     // Categoría de la notificación
     category: {
       type: String,
       enum: [
-        "enrollment",
-        "payment",
-        "course",
-        "system",
-        "reminder",
-        "alert",
-        "welcome",
-        "password_reset",
+        'enrollment',
+        'payment',
+        'course',
+        'system',
+        'reminder',
+        'alert',
+        'welcome',
+        'password_reset',
       ],
       required: true,
     },
@@ -127,19 +127,19 @@ const notificationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "notifications",
+    collection: 'notifications',
   }
 );
 
 // Índices para optimizar consultas
-notificationSchema.index({ "recipient.userId": 1, createdAt: -1 });
+notificationSchema.index({ 'recipient.userId': 1, createdAt: -1 });
 notificationSchema.index({ status: 1, createdAt: -1 });
 notificationSchema.index({ category: 1, status: 1 });
-notificationSchema.index({ "delivery.sentAt": -1 });
+notificationSchema.index({ 'delivery.sentAt': -1 });
 
 // Métodos del modelo
 notificationSchema.methods.markAsSent = function (provider = null) {
-  this.status = "sent";
+  this.status = 'sent';
   this.delivery.sentAt = new Date();
   if (provider) {
     this.delivery.provider = provider;
@@ -148,13 +148,13 @@ notificationSchema.methods.markAsSent = function (provider = null) {
 };
 
 notificationSchema.methods.markAsDelivered = function () {
-  this.status = "delivered";
+  this.status = 'delivered';
   this.delivery.deliveredAt = new Date();
   return this.save();
 };
 
 notificationSchema.methods.markAsFailed = function (errorMessage) {
-  this.status = "failed";
+  this.status = 'failed';
   this.delivery.failedAt = new Date();
   this.delivery.errorMessage = errorMessage;
   this.delivery.retryCount += 1;
@@ -168,24 +168,24 @@ notificationSchema.methods.incrementRetry = function () {
 
 // Métodos estáticos
 notificationSchema.statics.findByUser = function (userId, limit = 50) {
-  return this.find({ "recipient.userId": userId })
+  return this.find({ 'recipient.userId': userId })
     .sort({ createdAt: -1 })
     .limit(limit);
 };
 
 notificationSchema.statics.findPending = function () {
-  return this.find({ status: "pending" }).sort({ priority: -1, createdAt: 1 });
+  return this.find({ status: 'pending' }).sort({ priority: -1, createdAt: 1 });
 };
 
 notificationSchema.statics.findFailed = function () {
   return this.find({
-    status: "failed",
-    "delivery.retryCount": { $lt: 3 },
+    status: 'failed',
+    'delivery.retryCount': { $lt: 3 },
   }).sort({ createdAt: 1 });
 };
 
 // Virtual para obtener el tiempo de entrega
-notificationSchema.virtual("deliveryTime").get(function () {
+notificationSchema.virtual('deliveryTime').get(function () {
   if (this.delivery.sentAt && this.delivery.deliveredAt) {
     return this.delivery.deliveredAt - this.delivery.sentAt;
   }
@@ -193,8 +193,8 @@ notificationSchema.virtual("deliveryTime").get(function () {
 });
 
 // Virtual para verificar si puede reintentar
-notificationSchema.virtual("canRetry").get(function () {
-  return this.status === "failed" && this.delivery.retryCount < 3;
+notificationSchema.virtual('canRetry').get(function () {
+  return this.status === 'failed' && this.delivery.retryCount < 3;
 });
 
-module.exports = mongoose.model("Notification", notificationSchema);
+module.exports = mongoose.model('Notification', notificationSchema);

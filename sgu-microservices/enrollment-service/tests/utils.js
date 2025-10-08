@@ -8,20 +8,20 @@ const testUtils = {
    */
   generateEnrollment: (overrides = {}) => {
     const baseEnrollment = {
-      userId: "user-123",
-      courseId: "course-123",
-      studentEmail: "student@test.com",
-      studentName: "Test Student",
-      studentId: "STU123",
-      courseCode: "CS101",
-      courseName: "Computer Science 101",
+      userId: 'user-123',
+      courseId: 'course-123',
+      studentEmail: 'student@test.com',
+      studentName: 'Test Student',
+      studentId: 'STU123',
+      courseCode: 'CS101',
+      courseName: 'Computer Science 101',
       courseCredits: 3,
-      courseSemester: "Primavera 2024",
-      amount: 100.00,
-      currency: "USD",
-      status: "Pending",
-      paymentStatus: "Pending",
-      enrollmentDate: new Date()
+      courseSemester: 'Primavera 2024',
+      amount: 100.0,
+      currency: 'USD',
+      status: 'Pending',
+      paymentStatus: 'Pending',
+      enrollmentDate: new Date(),
     };
 
     return { ...baseEnrollment, ...overrides };
@@ -41,15 +41,17 @@ const testUtils = {
   generateAuthToken: () => {
     const jwt = require('jsonwebtoken');
     const payload = {
-      userId: "user-123",
-      email: "student@test.com",
-      role: "student",
-      firstName: "Test",
-      lastName: "Student",
-      studentId: "student-123"
+      userId: 'user-123',
+      email: 'student@test.com',
+      role: 'student',
+      firstName: 'Test',
+      lastName: 'Student',
+      studentId: 'student-123',
     };
-    
-    return jwt.sign(payload, process.env.JWT_SECRET || "test-secret", { expiresIn: "1h" });
+
+    return jwt.sign(payload, process.env.JWT_SECRET || 'test-secret', {
+      expiresIn: '1h',
+    });
   },
 
   /**
@@ -58,20 +60,22 @@ const testUtils = {
   generateAdminToken: () => {
     const jwt = require('jsonwebtoken');
     const payload = {
-      userId: "admin-123",
-      email: "admin@test.com",
-      role: "admin",
-      firstName: "Admin",
-      lastName: "User"
+      userId: 'admin-123',
+      email: 'admin@test.com',
+      role: 'admin',
+      firstName: 'Admin',
+      lastName: 'User',
     };
-    
-    return jwt.sign(payload, process.env.JWT_SECRET || "test-secret", { expiresIn: "1h" });
+
+    return jwt.sign(payload, process.env.JWT_SECRET || 'test-secret', {
+      expiresIn: '1h',
+    });
   },
 
   /**
    * Limpiar base de datos de pruebas
    */
-  cleanDatabase: async (EnrollmentModel) => {
+  cleanDatabase: async EnrollmentModel => {
     await EnrollmentModel.destroy({ where: {} });
   },
 
@@ -85,12 +89,12 @@ const testUtils = {
         userId: `user-${i + 1}`,
         courseId: `course-${i + 1}`,
         studentEmail: `student${i + 1}@test.com`,
-        studentName: `Test Student ${i + 1}`
+        studentName: `Test Student ${i + 1}`,
       });
       enrollments.push(enrollment);
     }
     return enrollments;
-  }
+  },
 };
 
 module.exports = testUtils;

@@ -1,8 +1,10 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
-const COURSES_SERVICE_URL = process.env.COURSES_SERVICE_URL || 'http://localhost:3002';
+const AUTH_SERVICE_URL =
+  process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+const COURSES_SERVICE_URL =
+  process.env.COURSES_SERVICE_URL || 'http://localhost:3002';
 const SERVICE_TIMEOUT = parseInt(process.env.SERVICE_TIMEOUT) || 5000;
 
 /**
@@ -16,20 +18,21 @@ class AuthServiceClient {
     try {
       const response = await axios.get(`${AUTH_SERVICE_URL}/api/auth/profile`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        timeout: SERVICE_TIMEOUT
+        timeout: SERVICE_TIMEOUT,
       });
 
       return {
         success: true,
-        data: response.data.data.user
+        data: response.data.data.user,
       };
     } catch (error) {
       console.error('Error verificando token:', error.message);
       return {
         success: false,
-        error: error.response?.data?.message || 'Error verificando autenticación'
+        error:
+          error.response?.data?.message || 'Error verificando autenticación',
       };
     }
   }
@@ -39,22 +42,27 @@ class AuthServiceClient {
    */
   static async getUserById(userId, token) {
     try {
-      const response = await axios.get(`${AUTH_SERVICE_URL}/api/auth/users/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        timeout: SERVICE_TIMEOUT
-      });
+      const response = await axios.get(
+        `${AUTH_SERVICE_URL}/api/auth/users/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: SERVICE_TIMEOUT,
+        }
+      );
 
       return {
         success: true,
-        data: response.data.data.user
+        data: response.data.data.user,
       };
     } catch (error) {
       console.error('Error obteniendo usuario:', error.message);
       return {
         success: false,
-        error: error.response?.data?.message || 'Error obteniendo información del usuario'
+        error:
+          error.response?.data?.message ||
+          'Error obteniendo información del usuario',
       };
     }
   }
@@ -69,19 +77,24 @@ class CoursesServiceClient {
    */
   static async getCourseById(courseId) {
     try {
-      const response = await axios.get(`${COURSES_SERVICE_URL}/api/courses/${courseId}`, {
-        timeout: SERVICE_TIMEOUT
-      });
+      const response = await axios.get(
+        `${COURSES_SERVICE_URL}/api/courses/${courseId}`,
+        {
+          timeout: SERVICE_TIMEOUT,
+        }
+      );
 
       return {
         success: true,
-        data: response.data.data
+        data: response.data.data,
       };
     } catch (error) {
       console.error('Error obteniendo curso:', error.message);
       return {
         success: false,
-        error: error.response?.data?.message || 'Error obteniendo información del curso'
+        error:
+          error.response?.data?.message ||
+          'Error obteniendo información del curso',
       };
     }
   }
@@ -99,13 +112,14 @@ class CoursesServiceClient {
 
       return {
         success: true,
-        data: response.data.data
+        data: response.data.data,
       };
     } catch (error) {
       console.error('Error reservando cupos:', error.message);
       return {
         success: false,
-        error: error.response?.data?.message || 'Error reservando cupos en el curso'
+        error:
+          error.response?.data?.message || 'Error reservando cupos en el curso',
       };
     }
   }
@@ -123,13 +137,14 @@ class CoursesServiceClient {
 
       return {
         success: true,
-        data: response.data.data
+        data: response.data.data,
       };
     } catch (error) {
       console.error('Error liberando cupos:', error.message);
       return {
         success: false,
-        error: error.response?.data?.message || 'Error liberando cupos del curso'
+        error:
+          error.response?.data?.message || 'Error liberando cupos del curso',
       };
     }
   }
@@ -140,26 +155,26 @@ class CoursesServiceClient {
   static async checkCourseAvailability(courseId) {
     try {
       const courseResult = await this.getCourseById(courseId);
-      
+
       if (!courseResult.success) {
         return courseResult;
       }
 
       const course = courseResult.data;
-      
+
       return {
         success: true,
         data: {
           ...course,
           isAvailable: course.status === 'ACTIVE' && course.availableSlots > 0,
-          canEnroll: course.status === 'ACTIVE' && course.availableSlots > 0
-        }
+          canEnroll: course.status === 'ACTIVE' && course.availableSlots > 0,
+        },
       };
     } catch (error) {
       console.error('Error verificando disponibilidad:', error.message);
       return {
         success: false,
-        error: 'Error verificando disponibilidad del curso'
+        error: 'Error verificando disponibilidad del curso',
       };
     }
   }
@@ -170,21 +185,21 @@ class CoursesServiceClient {
   static async checkPrerequisites(courseId, userId, token) {
     try {
       const courseResult = await this.getCourseById(courseId);
-      
+
       if (!courseResult.success) {
         return courseResult;
       }
 
       const course = courseResult.data;
-      
+
       // Si no hay prerrequisitos, el estudiante puede inscribirse
       if (!course.prerequisites || course.prerequisites.length === 0) {
         return {
           success: true,
           data: {
             canEnroll: true,
-            missingPrerequisites: []
-          }
+            missingPrerequisites: [],
+          },
         };
       }
 
@@ -195,14 +210,14 @@ class CoursesServiceClient {
         data: {
           canEnroll: true,
           missingPrerequisites: [],
-          completedPrerequisites: course.prerequisites
-        }
+          completedPrerequisites: course.prerequisites,
+        },
       };
     } catch (error) {
       console.error('Error verificando prerrequisitos:', error.message);
       return {
         success: false,
-        error: 'Error verificando prerrequisitos del curso'
+        error: 'Error verificando prerrequisitos del curso',
       };
     }
   }
@@ -215,20 +230,20 @@ const handleServiceError = (error, serviceName) => {
   if (error.code === 'ECONNREFUSED') {
     return `${serviceName} no está disponible`;
   }
-  
+
   if (error.code === 'ENOTFOUND') {
     return `No se puede conectar con ${serviceName}`;
   }
-  
+
   if (error.message.includes('timeout')) {
     return `Tiempo de espera agotado para ${serviceName}`;
   }
-  
+
   return error.response?.data?.message || `Error en ${serviceName}`;
 };
 
 module.exports = {
   AuthServiceClient,
   CoursesServiceClient,
-  handleServiceError
+  handleServiceError,
 };

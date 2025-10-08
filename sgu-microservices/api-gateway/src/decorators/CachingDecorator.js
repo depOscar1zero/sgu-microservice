@@ -3,7 +3,7 @@
  * Implementa cache en memoria para responses
  */
 
-const BaseDecorator = require("./BaseDecorator");
+const BaseDecorator = require('./BaseDecorator');
 
 class CachingDecorator extends BaseDecorator {
   constructor(component, options = {}) {
@@ -58,7 +58,7 @@ class CachingDecorator extends BaseDecorator {
 
     // Interceptar la respuesta para cachear
     const originalSend = res.send;
-    res.send = (data) => {
+    res.send = data => {
       // Solo cachear si es exitoso
       if (res.statusCode >= 200 && res.statusCode < 300) {
         this._setCache(cacheKey, {
@@ -125,8 +125,8 @@ class CachingDecorator extends BaseDecorator {
   _defaultCacheKeyGenerator(req) {
     const method = req.method;
     const url = req.url;
-    const query = req.query ? JSON.stringify(req.query) : "";
-    const user = req.user ? req.user.id : "anonymous";
+    const query = req.query ? JSON.stringify(req.query) : '';
+    const user = req.user ? req.user.id : 'anonymous';
 
     return `${method}:${url}:${query}:${user}`;
   }
@@ -138,7 +138,7 @@ class CachingDecorator extends BaseDecorator {
    */
   _defaultShouldCache(req) {
     // Solo cachear GET requests
-    return req.method === "GET";
+    return req.method === 'GET';
   }
 
   /**
@@ -151,8 +151,8 @@ class CachingDecorator extends BaseDecorator {
         ? (
             (this._cacheStats.hits / this._cacheStats.totalRequests) *
             100
-          ).toFixed(2) + "%"
-        : "0%";
+          ).toFixed(2) + '%'
+        : '0%';
 
     return {
       size: this._cache.size,

@@ -7,15 +7,15 @@
 class StudentId {
   constructor(value) {
     if (!value) {
-      throw new Error("StudentId no puede ser nulo o vacío");
+      throw new Error('StudentId no puede ser nulo o vacío');
     }
 
-    if (typeof value !== "string") {
-      throw new Error("StudentId debe ser una cadena de texto");
+    if (typeof value !== 'string') {
+      throw new Error('StudentId debe ser una cadena de texto');
     }
 
     if (value.trim().length === 0) {
-      throw new Error("StudentId no puede ser una cadena vacía");
+      throw new Error('StudentId no puede ser una cadena vacía');
     }
 
     this._value = value.trim();

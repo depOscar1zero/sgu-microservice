@@ -1,16 +1,16 @@
-const winston = require("winston");
+const winston = require('winston');
 
 // Configuración del logger
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || "info",
+  level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(
     winston.format.timestamp({
-      format: "YYYY-MM-DD HH:mm:ss",
+      format: 'YYYY-MM-DD HH:mm:ss',
     }),
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: "auth-service" },
+  defaultMeta: { service: 'auth-service' },
   transports: [
     // Console transport
     new winston.transports.Console({
@@ -22,15 +22,15 @@ const logger = winston.createLogger({
 
     // File transport para errores
     new winston.transports.File({
-      filename: "logs/error.log",
-      level: "error",
+      filename: 'logs/error.log',
+      level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
 
     // File transport para todos los logs
     new winston.transports.File({
-      filename: "logs/combined.log",
+      filename: 'logs/combined.log',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
@@ -38,7 +38,7 @@ const logger = winston.createLogger({
 });
 
 // Si no estamos en producción, también log a la consola
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   logger.add(
     new winston.transports.Console({
       format: winston.format.combine(

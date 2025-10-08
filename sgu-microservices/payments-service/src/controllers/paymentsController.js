@@ -1,17 +1,17 @@
-const Payment = require("../models/Payment");
-const StripeService = require("../services/stripeService");
+const Payment = require('../models/Payment');
+const StripeService = require('../services/stripeService');
 const {
   AuthServiceClient,
   EnrollmentServiceClient,
   NotificationHelper,
-} = require("../services/externalServices");
-const { validationResult } = require("express-validator");
-const axios = require("axios");
+} = require('../services/externalServices');
+const { validationResult } = require('express-validator');
+const axios = require('axios');
 
 /**
  * Wrapper para manejo de errores async
  */
-const catchAsync = (fn) => {
+const catchAsync = fn => {
   return (req, res, next) => {
     fn(req, res, next).catch(next);
   };
@@ -23,16 +23,16 @@ const catchAsync = (fn) => {
 const sendPaymentNotification = async (
   user,
   payment,
-  type = "confirmation"
+  type = 'confirmation'
 ) => {
   try {
     const notificationsUrl =
-      process.env.NOTIFICATIONS_SERVICE_URL || "http://localhost:3005";
+      process.env.NOTIFICATIONS_SERVICE_URL || 'http://localhost:3005';
 
     let subject, message, priority, category;
 
-    if (type === "confirmation") {
-      subject = "Confirmación de Pago Exitoso";
+    if (type === 'confirmation') {
+      subject = 'Confirmación de Pago Exitoso';
       message = `
         <h2>¡Pago Confirmado!</h2>
         <p>Hola <strong>${user.firstName}</strong>,</p>
@@ -52,10 +52,10 @@ const sendPaymentNotification = async (
           Este es un email automático del Sistema de Gestión Universitaria.
         </p>
       `;
-      priority = "normal";
-      category = "payment";
-    } else if (type === "reminder") {
-      subject = "Recordatorio de Pago Pendiente";
+      priority = 'normal';
+      category = 'payment';
+    } else if (type === 'reminder') {
+      subject = 'Recordatorio de Pago Pendiente';
       message = `
         <h2>Recordatorio de Pago</h2>
         <p>Hola <strong>${user.firstName}</strong>,</p>
@@ -74,8 +74,8 @@ const sendPaymentNotification = async (
           Este es un email automático del Sistema de Gestión Universitaria.
         </p>
       `;
-      priority = "urgent";
-      category = "payment";
+      priority = 'urgent';
+      category = 'payment';
     }
 
     const notificationData = {
@@ -86,8 +86,8 @@ const sendPaymentNotification = async (
       },
       subject,
       message,
-      type: "email",
-      channel: "email",
+      type: 'email',
+      channel: 'email',
       priority,
       category,
       metadata: {
@@ -106,7 +106,7 @@ const sendPaymentNotification = async (
     );
     console.log(`✅ Notificación de pago enviada a ${user.email}`);
   } catch (error) {
-    console.error("❌ Error enviando notificación de pago:", error.message);
+    console.error('❌ Error enviando notificación de pago:', error.message);
     // No lanzar error para no interrumpir el proceso de pago
   }
 };
@@ -116,13 +116,13 @@ const sendPaymentNotification = async (
  */
 const authenticateToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: "Token de acceso requerido",
+        error: 'Token de acceso requerido',
       });
     }
 
@@ -140,10 +140,10 @@ const authenticateToken = async (req, res, next) => {
     req.token = token;
     next();
   } catch (error) {
-    console.error("Error en autenticación:", error);
+    console.error('Error en autenticación:', error);
     res.status(401).json({
       success: false,
-      error: "Error verificando autenticación",
+      error: 'Error verificando autenticación',
     });
   }
 };
@@ -161,7 +161,7 @@ const createPayment = catchAsync(async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      error: "Datos de entrada inválidos",
+      error: 'Datos de entrada inválidos',
       details: errors.array(),
     });
   }
@@ -182,7 +182,7 @@ const createPayment = catchAsync(async (req, res) => {
   if (!enrollment.requiresPayment) {
     return res.status(400).json({
       success: false,
-      error: "La inscripción no requiere pago o ya ha sido pagada",
+      error: 'La inscripción no requiere pago o ya ha sido pagada',
     });
   }
 
@@ -190,7 +190,7 @@ const createPayment = catchAsync(async (req, res) => {
     return res.status(400).json({
       success: false,
       error:
-        "No se puede procesar el pago para esta inscripción en su estado actual",
+        'No se puede procesar el pago para esta inscripción en su estado actual',
     });
   }
 
@@ -198,7 +198,7 @@ const createPayment = catchAsync(async (req, res) => {
   if (parseFloat(amount) !== parseFloat(enrollment.amount)) {
     return res.status(400).json({
       success: false,
-      error: "El monto del pago no coincide con el monto de la inscripción",
+      error: 'El monto del pago no coincide con el monto de la inscripción',
       expected: enrollment.amount,
       received: amount,
     });
@@ -210,11 +210,11 @@ const createPayment = catchAsync(async (req, res) => {
       enrollmentId,
       userId,
       amount,
-      currency: enrollment.currency || "USD",
+      currency: enrollment.currency || 'USD',
       paymentMethod,
       paymentMethodDetails,
       clientIp: req.ip,
-      userAgent: req.get("User-Agent"),
+      userAgent: req.get('User-Agent'),
       metadata: {
         enrollmentCode: enrollment.courseCode,
         courseName: enrollment.courseName,
@@ -225,11 +225,11 @@ const createPayment = catchAsync(async (req, res) => {
 
     // Procesar el pago según el método
     let paymentResult;
-    if (paymentMethod === "stripe") {
+    if (paymentMethod === 'stripe') {
       paymentResult = await processStripePayment(payment, paymentMethodDetails);
     } else {
       // Para otros métodos, simular procesamiento exitoso
-      paymentResult = { success: true, data: { status: "completed" } };
+      paymentResult = { success: true, data: { status: 'completed' } };
     }
 
     if (paymentResult.success) {
@@ -241,7 +241,7 @@ const createPayment = catchAsync(async (req, res) => {
         enrollmentId,
         {
           paymentId: payment.id,
-          paymentStatus: "Paid",
+          paymentStatus: 'Paid',
           paymentMethod: paymentMethod,
           paidAt: new Date(),
         },
@@ -258,13 +258,13 @@ const createPayment = catchAsync(async (req, res) => {
 
       res.status(201).json({
         success: true,
-        message: "Pago procesado exitosamente",
+        message: 'Pago procesado exitosamente',
         data: {
           payment: payment.toPublicJSON(),
           enrollment: {
             id: enrollment.id,
-            status: "Paid",
-            paymentStatus: "Paid",
+            status: 'Paid',
+            paymentStatus: 'Paid',
           },
         },
         timestamp: new Date().toISOString(),
@@ -295,10 +295,10 @@ const createPayment = catchAsync(async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Error procesando pago:", error);
+    console.error('Error procesando pago:', error);
     res.status(500).json({
       success: false,
-      error: "Error interno procesando el pago",
+      error: 'Error interno procesando el pago',
       timestamp: new Date().toISOString(),
     });
   }
@@ -351,7 +351,7 @@ const processStripePayment = async (payment, paymentMethodDetails) => {
         paymentIntentId: paymentIntent.id,
         chargeId: charge.id,
         paymentMethodDetails: {
-          type: charge.payment_method_details?.card?.brand || "card",
+          type: charge.payment_method_details?.card?.brand || 'card',
           last4: charge.payment_method_details?.card?.last4,
           expMonth: charge.payment_method_details?.card?.exp_month,
           expYear: charge.payment_method_details?.card?.exp_year,
@@ -365,10 +365,10 @@ const processStripePayment = async (payment, paymentMethodDetails) => {
       },
     };
   } catch (error) {
-    console.error("Error procesando pago con Stripe:", error);
+    console.error('Error procesando pago con Stripe:', error);
     return {
       success: false,
-      error: "Error procesando pago con Stripe",
+      error: 'Error procesando pago con Stripe',
     };
   }
 };
@@ -385,16 +385,16 @@ const getPaymentById = catchAsync(async (req, res) => {
   if (!payment) {
     return res.status(404).json({
       success: false,
-      message: "Pago no encontrado",
+      message: 'Pago no encontrado',
       timestamp: new Date().toISOString(),
     });
   }
 
   // Verificar permisos: solo el propietario o un admin puede ver el pago
-  if (payment.userId !== userId && userRole !== "admin") {
+  if (payment.userId !== userId && userRole !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: "No tienes permisos para ver este pago",
+      message: 'No tienes permisos para ver este pago',
       timestamp: new Date().toISOString(),
     });
   }
@@ -417,7 +417,7 @@ const getPaymentsByEnrollment = catchAsync(async (req, res) => {
   const userRole = req.user.role;
 
   // Verificar que la inscripción pertenece al usuario (o es admin)
-  if (userRole !== "admin") {
+  if (userRole !== 'admin') {
     const enrollmentCheck = await EnrollmentServiceClient.getEnrollmentById(
       enrollmentId,
       req.token
@@ -425,7 +425,7 @@ const getPaymentsByEnrollment = catchAsync(async (req, res) => {
     if (!enrollmentCheck.success || enrollmentCheck.data.userId !== userId) {
       return res.status(403).json({
         success: false,
-        message: "No tienes permisos para ver los pagos de esta inscripción",
+        message: 'No tienes permisos para ver los pagos de esta inscripción',
         timestamp: new Date().toISOString(),
       });
     }
@@ -436,7 +436,7 @@ const getPaymentsByEnrollment = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      payments: payments.map((p) => p.toPublicJSON()),
+      payments: payments.map(p => p.toPublicJSON()),
       total: payments.length,
     },
     timestamp: new Date().toISOString(),
@@ -459,7 +459,7 @@ const getUserPayments = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      payments: result.rows.map((p) => p.toPublicJSON()),
+      payments: result.rows.map(p => p.toPublicJSON()),
       pagination: {
         total: result.count,
         limit: parseInt(limit),
@@ -484,16 +484,16 @@ const processRefund = catchAsync(async (req, res) => {
   if (!payment) {
     return res.status(404).json({
       success: false,
-      message: "Pago no encontrado",
+      message: 'Pago no encontrado',
       timestamp: new Date().toISOString(),
     });
   }
 
   // Verificar permisos
-  if (payment.userId !== userId && userRole !== "admin") {
+  if (payment.userId !== userId && userRole !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: "No tienes permisos para procesar reembolsos de este pago",
+      message: 'No tienes permisos para procesar reembolsos de este pago',
       timestamp: new Date().toISOString(),
     });
   }
@@ -501,7 +501,7 @@ const processRefund = catchAsync(async (req, res) => {
   if (!payment.canBeRefunded()) {
     return res.status(400).json({
       success: false,
-      message: "Este pago no puede ser reembolsado",
+      message: 'Este pago no puede ser reembolsado',
       currentStatus: payment.status,
       timestamp: new Date().toISOString(),
     });
@@ -529,11 +529,11 @@ const processRefund = catchAsync(async (req, res) => {
     await payment.processRefund(amount, reason);
 
     // Actualizar estado de la inscripción si es necesario
-    if (userRole === "admin") {
+    if (userRole === 'admin') {
       await EnrollmentServiceClient.updatePaymentStatus(
         payment.enrollmentId,
         {
-          paymentStatus: "Refunded",
+          paymentStatus: 'Refunded',
           refundedAt: new Date(),
           refundReason: reason,
         },
@@ -543,17 +543,17 @@ const processRefund = catchAsync(async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Reembolso procesado exitosamente",
+      message: 'Reembolso procesado exitosamente',
       data: {
         payment: payment.toPublicJSON(),
       },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error procesando reembolso:", error);
+    console.error('Error procesando reembolso:', error);
     res.status(500).json({
       success: false,
-      error: "Error interno procesando el reembolso",
+      error: 'Error interno procesando el reembolso',
       timestamp: new Date().toISOString(),
     });
   }
@@ -568,10 +568,10 @@ const getPaymentStats = catchAsync(async (req, res) => {
   const { startDate, endDate } = req.query;
 
   // Solo admins pueden ver estadísticas globales
-  if (userRole !== "admin") {
+  if (userRole !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: "No tienes permisos para ver estadísticas de pagos",
+      message: 'No tienes permisos para ver estadísticas de pagos',
       timestamp: new Date().toISOString(),
     });
   }
@@ -579,7 +579,7 @@ const getPaymentStats = catchAsync(async (req, res) => {
   const stats = await Payment.getStats({
     startDate: startDate ? new Date(startDate) : null,
     endDate: endDate ? new Date(endDate) : null,
-    userId: userRole === "admin" ? null : userId,
+    userId: userRole === 'admin' ? null : userId,
   });
 
   res.status(200).json({
@@ -614,14 +614,14 @@ const createPaymentIntent = catchAsync(async (req, res) => {
   if (!enrollment.requiresPayment) {
     return res.status(400).json({
       success: false,
-      error: "La inscripción no requiere pago",
+      error: 'La inscripción no requiere pago',
     });
   }
 
   // Crear Payment Intent
   const paymentIntentResult = await StripeService.createPaymentIntent(
     amount || enrollment.amount,
-    enrollment.currency || "USD",
+    enrollment.currency || 'USD',
     {
       enrollmentId,
       userId,

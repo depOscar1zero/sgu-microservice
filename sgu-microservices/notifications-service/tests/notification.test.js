@@ -44,13 +44,13 @@ describe('Notifications Service API', () => {
         recipient: {
           userId: 'user-123',
           email: 'test@example.com',
-          name: 'Test User'
+          name: 'Test User',
         },
         subject: 'Test Notification',
         message: 'This is a test message',
         type: 'email',
         channel: 'email',
-        category: 'system'
+        category: 'system',
       };
 
       const response = await request(app)
@@ -70,9 +70,9 @@ describe('Notifications Service API', () => {
       const incompleteData = {
         recipient: {
           userId: 'user-123',
-          email: 'test@example.com'
+          email: 'test@example.com',
         },
-        subject: 'Test Notification'
+        subject: 'Test Notification',
         // Missing message and category
       };
 
@@ -88,19 +88,22 @@ describe('Notifications Service API', () => {
     test('POST /api/notifications should handle email sending for email type', async () => {
       // Mock email service
       const mockSendEmail = jest.spyOn(emailService, 'sendEmail');
-      mockSendEmail.mockResolvedValue({ success: true, messageId: 'test-message-id' });
+      mockSendEmail.mockResolvedValue({
+        success: true,
+        messageId: 'test-message-id',
+      });
 
       const notificationData = {
         recipient: {
           userId: 'user-123',
           email: 'test@example.com',
-          name: 'Test User'
+          name: 'Test User',
         },
         subject: 'Test Email',
         message: '<p>Test HTML message</p>',
         type: 'email',
         channel: 'email',
-        category: 'system'
+        category: 'system',
       };
 
       const response = await request(app)
@@ -113,7 +116,7 @@ describe('Notifications Service API', () => {
         to: 'test@example.com',
         subject: 'Test Email',
         html: '<p>Test HTML message</p>',
-        text: 'Test HTML message'
+        text: 'Test HTML message',
       });
 
       mockSendEmail.mockRestore();
@@ -125,21 +128,29 @@ describe('Notifications Service API', () => {
       // Crear notificaciones de prueba
       const notifications = [
         {
-          recipient: { userId: 'user-123', email: 'test@example.com', name: 'Test User' },
+          recipient: {
+            userId: 'user-123',
+            email: 'test@example.com',
+            name: 'Test User',
+          },
           subject: 'Notification 1',
           message: 'Message 1',
           category: 'system',
           type: 'email',
-          channel: 'email'
+          channel: 'email',
         },
         {
-          recipient: { userId: 'user-123', email: 'test@example.com', name: 'Test User' },
+          recipient: {
+            userId: 'user-123',
+            email: 'test@example.com',
+            name: 'Test User',
+          },
           subject: 'Notification 2',
           message: 'Message 2',
           category: 'enrollment',
           type: 'email',
-          channel: 'email'
-        }
+          channel: 'email',
+        },
       ];
 
       await Notification.insertMany(notifications);
@@ -170,32 +181,44 @@ describe('Notifications Service API', () => {
       // Crear notificaciones con diferentes estados
       const notifications = [
         {
-          recipient: { userId: 'user-1', email: 'test1@example.com', name: 'User 1' },
+          recipient: {
+            userId: 'user-1',
+            email: 'test1@example.com',
+            name: 'User 1',
+          },
           subject: 'Pending 1',
           message: 'Message 1',
           category: 'system',
           type: 'email',
           channel: 'email',
-          status: 'pending'
+          status: 'pending',
         },
         {
-          recipient: { userId: 'user-2', email: 'test2@example.com', name: 'User 2' },
+          recipient: {
+            userId: 'user-2',
+            email: 'test2@example.com',
+            name: 'User 2',
+          },
           subject: 'Sent 1',
           message: 'Message 2',
           category: 'system',
           type: 'email',
           channel: 'email',
-          status: 'sent'
+          status: 'sent',
         },
         {
-          recipient: { userId: 'user-3', email: 'test3@example.com', name: 'User 3' },
+          recipient: {
+            userId: 'user-3',
+            email: 'test3@example.com',
+            name: 'User 3',
+          },
           subject: 'Pending 2',
           message: 'Message 3',
           category: 'enrollment',
           type: 'email',
           channel: 'email',
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       ];
 
       await Notification.insertMany(notifications);
@@ -215,20 +238,27 @@ describe('Notifications Service API', () => {
     test('POST /api/notifications/:id/retry should retry a failed notification', async () => {
       // Crear notificación fallida
       const notification = new Notification({
-        recipient: { userId: 'user-123', email: 'test@example.com', name: 'Test User' },
+        recipient: {
+          userId: 'user-123',
+          email: 'test@example.com',
+          name: 'Test User',
+        },
         subject: 'Failed Notification',
         message: 'Test message',
         category: 'system',
         type: 'email',
         channel: 'email',
         status: 'failed',
-        'delivery.retryCount': 1
+        'delivery.retryCount': 1,
       });
       await notification.save();
 
       // Mock email service
       const mockSendEmail = jest.spyOn(emailService, 'sendEmail');
-      mockSendEmail.mockResolvedValue({ success: true, messageId: 'retry-message-id' });
+      mockSendEmail.mockResolvedValue({
+        success: true,
+        messageId: 'retry-message-id',
+      });
 
       const response = await request(app)
         .post(`/api/notifications/${notification._id}/retry`)
@@ -243,7 +273,7 @@ describe('Notifications Service API', () => {
 
     test('POST /api/notifications/:id/retry should return 404 for non-existent notification', async () => {
       const fakeId = new mongoose.Types.ObjectId();
-      
+
       const response = await request(app)
         .post(`/api/notifications/${fakeId}/retry`)
         .expect(404);
@@ -255,13 +285,17 @@ describe('Notifications Service API', () => {
     test('POST /api/notifications/:id/retry should return 400 for notification that cannot be retried', async () => {
       // Crear notificación que no puede ser reintentada
       const notification = new Notification({
-        recipient: { userId: 'user-123', email: 'test@example.com', name: 'Test User' },
+        recipient: {
+          userId: 'user-123',
+          email: 'test@example.com',
+          name: 'Test User',
+        },
         subject: 'Sent Notification',
         message: 'Test message',
         category: 'system',
         type: 'email',
         channel: 'email',
-        status: 'sent'
+        status: 'sent',
       });
       await notification.save();
 
@@ -270,7 +304,9 @@ describe('Notifications Service API', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('La notificación no puede ser reintentada');
+      expect(response.body.message).toBe(
+        'La notificación no puede ser reintentada'
+      );
     });
   });
 
@@ -278,10 +314,58 @@ describe('Notifications Service API', () => {
     test('GET /api/notifications/stats should return notification statistics', async () => {
       // Crear notificaciones con diferentes estados
       const notifications = [
-        { recipient: { userId: 'user-1', email: 'test1@example.com', name: 'User 1' }, subject: 'Test 1', message: 'Message 1', category: 'system', type: 'email', channel: 'email', status: 'pending' },
-        { recipient: { userId: 'user-2', email: 'test2@example.com', name: 'User 2' }, subject: 'Test 2', message: 'Message 2', category: 'system', type: 'email', channel: 'email', status: 'sent' },
-        { recipient: { userId: 'user-3', email: 'test3@example.com', name: 'User 3' }, subject: 'Test 3', message: 'Message 3', category: 'system', type: 'email', channel: 'email', status: 'failed' },
-        { recipient: { userId: 'user-4', email: 'test4@example.com', name: 'User 4' }, subject: 'Test 4', message: 'Message 4', category: 'system', type: 'email', channel: 'email', status: 'sent' }
+        {
+          recipient: {
+            userId: 'user-1',
+            email: 'test1@example.com',
+            name: 'User 1',
+          },
+          subject: 'Test 1',
+          message: 'Message 1',
+          category: 'system',
+          type: 'email',
+          channel: 'email',
+          status: 'pending',
+        },
+        {
+          recipient: {
+            userId: 'user-2',
+            email: 'test2@example.com',
+            name: 'User 2',
+          },
+          subject: 'Test 2',
+          message: 'Message 2',
+          category: 'system',
+          type: 'email',
+          channel: 'email',
+          status: 'sent',
+        },
+        {
+          recipient: {
+            userId: 'user-3',
+            email: 'test3@example.com',
+            name: 'User 3',
+          },
+          subject: 'Test 3',
+          message: 'Message 3',
+          category: 'system',
+          type: 'email',
+          channel: 'email',
+          status: 'failed',
+        },
+        {
+          recipient: {
+            userId: 'user-4',
+            email: 'test4@example.com',
+            name: 'User 4',
+          },
+          subject: 'Test 4',
+          message: 'Message 4',
+          category: 'system',
+          type: 'email',
+          channel: 'email',
+          status: 'sent',
+        },
       ];
 
       await Notification.insertMany(notifications);
@@ -296,7 +380,7 @@ describe('Notifications Service API', () => {
       expect(response.body.data).toHaveProperty('sent');
       expect(response.body.data).toHaveProperty('failed');
       expect(response.body.data).toHaveProperty('byStatus');
-      
+
       expect(response.body.data.total).toBe(4);
       expect(response.body.data.pending).toBe(1);
       expect(response.body.data.sent).toBe(2);
@@ -306,9 +390,7 @@ describe('Notifications Service API', () => {
 
   describe('Root Endpoint', () => {
     test('GET / should return service information', async () => {
-      const response = await request(app)
-        .get('/')
-        .expect(200);
+      const response = await request(app).get('/').expect(200);
 
       expect(response.body.success).toBe(true);
       expect(response.body.message).toContain('Notifications Service');

@@ -12,7 +12,7 @@ const {
   TuitionPaymentFactory,
   MaterialsPaymentFactory,
   PaymentFactoryManager,
-  paymentFactoryManager
+  paymentFactoryManager,
 } = require('../../src/factories/PaymentFactory');
 
 describe('PaymentFactory Tests', () => {
@@ -25,15 +25,15 @@ describe('PaymentFactory Tests', () => {
       mockData = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
         cardDetails: {
           cardType: 'Visa',
           last4: '4242',
           brand: 'visa',
           expiryMonth: 12,
-          expiryYear: 2025
-        }
+          expiryYear: 2025,
+        },
       };
     });
 
@@ -42,7 +42,7 @@ describe('PaymentFactory Tests', () => {
 
       expect(payment.enrollmentId).toBe('enrollment-123');
       expect(payment.userId).toBe('user-456');
-      expect(payment.amount).toBe(100.00);
+      expect(payment.amount).toBe(100.0);
       expect(payment.currency).toBe('USD');
       expect(payment.paymentMethod).toBe('credit_card');
       expect(payment.status).toBe('pending');
@@ -54,8 +54,8 @@ describe('PaymentFactory Tests', () => {
       const payment = factory.buildPayment(mockData);
 
       // Fee esperado: 2.9% + $0.30 = $3.20
-      expect(payment.processingFee).toBeCloseTo(3.20, 2);
-      expect(payment.netAmount).toBeCloseTo(96.80, 2);
+      expect(payment.processingFee).toBeCloseTo(3.2, 2);
+      expect(payment.netAmount).toBeCloseTo(96.8, 2);
     });
   });
 
@@ -68,15 +68,15 @@ describe('PaymentFactory Tests', () => {
       mockData = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
         cardDetails: {
           cardType: 'Debit',
           last4: '1234',
           brand: 'mastercard',
           expiryMonth: 10,
-          expiryYear: 2026
-        }
+          expiryYear: 2026,
+        },
       };
     });
 
@@ -106,14 +106,14 @@ describe('PaymentFactory Tests', () => {
       mockData = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
         bankDetails: {
           bankName: 'Bank of America',
           accountNumber: '1234567890',
           routingNumber: '021000021',
-          accountType: 'checking'
-        }
+          accountType: 'checking',
+        },
       };
     });
 
@@ -129,8 +129,8 @@ describe('PaymentFactory Tests', () => {
       const payment = factory.buildPayment(mockData);
 
       // Fee esperado: 0.5% + $0.10 = $0.60
-      expect(payment.processingFee).toBeCloseTo(0.60, 2);
-      expect(payment.netAmount).toBeCloseTo(99.40, 2);
+      expect(payment.processingFee).toBeCloseTo(0.6, 2);
+      expect(payment.netAmount).toBeCloseTo(99.4, 2);
     });
   });
 
@@ -143,13 +143,13 @@ describe('PaymentFactory Tests', () => {
       mockData = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
         cashDetails: {
           location: 'Oficina Principal',
           reference: 'CASH-001',
-          collectedBy: 'admin-001'
-        }
+          collectedBy: 'admin-001',
+        },
       };
     });
 
@@ -166,7 +166,7 @@ describe('PaymentFactory Tests', () => {
 
       // No hay fees para pagos en efectivo
       expect(payment.processingFee).toBe(0);
-      expect(payment.netAmount).toBe(100.00);
+      expect(payment.netAmount).toBe(100.0);
     });
   });
 
@@ -179,13 +179,13 @@ describe('PaymentFactory Tests', () => {
       mockData = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
         stripeDetails: {
           paymentIntentId: 'pi_1234567890',
           paymentMethodId: 'pm_1234567890',
-          customerId: 'cus_1234567890'
-        }
+          customerId: 'cus_1234567890',
+        },
       };
     });
 
@@ -194,15 +194,17 @@ describe('PaymentFactory Tests', () => {
 
       expect(payment.paymentMethod).toBe('stripe');
       expect(payment.stripePaymentIntentId).toBe('pi_1234567890');
-      expect(payment.paymentMethodDetails.stripePaymentMethodId).toBe('pm_1234567890');
+      expect(payment.paymentMethodDetails.stripePaymentMethodId).toBe(
+        'pm_1234567890'
+      );
     });
 
     test('debe calcular fees correctamente para Stripe', () => {
       const payment = factory.buildPayment(mockData);
 
       // Fee esperado: 2.9% + $0.30 = $3.20
-      expect(payment.processingFee).toBeCloseTo(3.20, 2);
-      expect(payment.netAmount).toBeCloseTo(96.80, 2);
+      expect(payment.processingFee).toBeCloseTo(3.2, 2);
+      expect(payment.netAmount).toBeCloseTo(96.8, 2);
     });
   });
 
@@ -215,11 +217,11 @@ describe('PaymentFactory Tests', () => {
       mockData = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 500.00,
+        amount: 500.0,
         currency: 'USD',
         semester: 'Fall 2024',
         academicYear: '2024-2025',
-        paymentMethod: 'credit_card'
+        paymentMethod: 'credit_card',
       };
     });
 
@@ -230,15 +232,17 @@ describe('PaymentFactory Tests', () => {
       expect(payment.metadata.paymentType).toBe('tuition');
       expect(payment.metadata.semester).toBe('Fall 2024');
       expect(payment.metadata.academicYear).toBe('2024-2025');
-      expect(payment.metadata.description).toBe('Matrícula - Fall 2024 2024-2025');
+      expect(payment.metadata.description).toBe(
+        'Matrícula - Fall 2024 2024-2025'
+      );
     });
 
     test('debe calcular fees reducidos para matrícula', () => {
       const payment = factory.buildPayment(mockData);
 
       // Fee reducido: 1.5% + $0.20 = $7.70
-      expect(payment.processingFee).toBeCloseTo(7.70, 2);
-      expect(payment.netAmount).toBeCloseTo(492.30, 2);
+      expect(payment.processingFee).toBeCloseTo(7.7, 2);
+      expect(payment.netAmount).toBeCloseTo(492.3, 2);
     });
   });
 
@@ -251,10 +255,10 @@ describe('PaymentFactory Tests', () => {
       mockData = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 75.00,
+        amount: 75.0,
         currency: 'USD',
         materials: ['Libro de Matemáticas', 'Calculadora', 'Cuadernos'],
-        paymentMethod: 'debit_card'
+        paymentMethod: 'debit_card',
       };
     });
 
@@ -263,7 +267,11 @@ describe('PaymentFactory Tests', () => {
 
       expect(payment.paymentMethod).toBe('debit_card');
       expect(payment.metadata.paymentType).toBe('materials');
-      expect(payment.metadata.materials).toEqual(['Libro de Matemáticas', 'Calculadora', 'Cuadernos']);
+      expect(payment.metadata.materials).toEqual([
+        'Libro de Matemáticas',
+        'Calculadora',
+        'Cuadernos',
+      ]);
       expect(payment.metadata.description).toContain('Materiales académicos');
     });
 
@@ -281,33 +289,52 @@ describe('PaymentFactory Tests', () => {
       const data = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
-        cardDetails: { cardType: 'Visa', last4: '4242', brand: 'visa', expiryMonth: 12, expiryYear: 2025 }
+        cardDetails: {
+          cardType: 'Visa',
+          last4: '4242',
+          brand: 'visa',
+          expiryMonth: 12,
+          expiryYear: 2025,
+        },
       };
 
       const payment = paymentFactoryManager.createPayment('credit_card', data);
 
       expect(payment.paymentMethod).toBe('credit_card');
-      expect(payment.amount).toBe(100.00);
+      expect(payment.amount).toBe(100.0);
     });
 
     test('debe crear pago por método de pago', () => {
       const data = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
+        amount: 100.0,
         currency: 'USD',
-        cardDetails: { cardType: 'Visa', last4: '4242', brand: 'visa', expiryMonth: 12, expiryYear: 2025 }
+        cardDetails: {
+          cardType: 'Visa',
+          last4: '4242',
+          brand: 'visa',
+          expiryMonth: 12,
+          expiryYear: 2025,
+        },
       };
 
-      const payment = paymentFactoryManager.createPaymentByMethod('credit_card', data);
+      const payment = paymentFactoryManager.createPaymentByMethod(
+        'credit_card',
+        data
+      );
 
       expect(payment.paymentMethod).toBe('credit_card');
     });
 
     test('debe lanzar error para tipo de factory no encontrado', () => {
-      const data = { enrollmentId: 'enrollment-123', userId: 'user-456', amount: 100.00 };
+      const data = {
+        enrollmentId: 'enrollment-123',
+        userId: 'user-456',
+        amount: 100.0,
+      };
 
       expect(() => {
         paymentFactoryManager.createPayment('invalid_type', data);
@@ -315,7 +342,11 @@ describe('PaymentFactory Tests', () => {
     });
 
     test('debe lanzar error para método de pago no soportado', () => {
-      const data = { enrollmentId: 'enrollment-123', userId: 'user-456', amount: 100.00 };
+      const data = {
+        enrollmentId: 'enrollment-123',
+        userId: 'user-456',
+        amount: 100.0,
+      };
 
       expect(() => {
         paymentFactoryManager.createPaymentByMethod('invalid_method', data);
@@ -326,10 +357,10 @@ describe('PaymentFactory Tests', () => {
       const data = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 500.00,
+        amount: 500.0,
         currency: 'USD',
         semester: 'Fall 2024',
-        academicYear: '2024-2025'
+        academicYear: '2024-2025',
       };
 
       const payment = paymentFactoryManager.createTuitionPayment(data);
@@ -342,9 +373,9 @@ describe('PaymentFactory Tests', () => {
       const data = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 75.00,
+        amount: 75.0,
         currency: 'USD',
-        materials: ['Libro', 'Calculadora']
+        materials: ['Libro', 'Calculadora'],
       };
 
       const payment = paymentFactoryManager.createMaterialsPayment(data);
@@ -366,12 +397,12 @@ describe('PaymentFactory Tests', () => {
     });
 
     test('debe obtener información de fees', () => {
-      const feeInfo = paymentFactoryManager.getFeeInfo('credit_card', 100.00);
+      const feeInfo = paymentFactoryManager.getFeeInfo('credit_card', 100.0);
 
-      expect(feeInfo.amount).toBe(100.00);
-      expect(feeInfo.processingFee).toBeCloseTo(3.20, 2);
-      expect(feeInfo.netAmount).toBeCloseTo(96.80, 2);
-      expect(feeInfo.feePercentage).toBeCloseTo(3.20, 2);
+      expect(feeInfo.amount).toBe(100.0);
+      expect(feeInfo.processingFee).toBeCloseTo(3.2, 2);
+      expect(feeInfo.netAmount).toBeCloseTo(96.8, 2);
+      expect(feeInfo.feePercentage).toBeCloseTo(3.2, 2);
     });
 
     test('debe registrar nuevo factory', () => {
@@ -385,18 +416,21 @@ describe('PaymentFactory Tests', () => {
             paymentMethod: 'custom',
             status: 'pending',
             processingFee: 0,
-            netAmount: data.amount
+            netAmount: data.amount,
           };
         }
       }
 
-      paymentFactoryManager.registerFactory('custom', new CustomPaymentFactory());
+      paymentFactoryManager.registerFactory(
+        'custom',
+        new CustomPaymentFactory()
+      );
 
       const payment = paymentFactoryManager.createPayment('custom', {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
-        currency: 'USD'
+        amount: 100.0,
+        currency: 'USD',
       });
 
       expect(payment.paymentMethod).toBe('custom');
@@ -408,19 +442,26 @@ describe('PaymentFactory Tests', () => {
       const factory = new CreditCardPaymentFactory();
 
       expect(() => {
-        factory.buildPayment({ userId: 'user-456', amount: 100.00 });
+        factory.buildPayment({ userId: 'user-456', amount: 100.0 });
       }).toThrow('EnrollmentId es requerido');
 
       expect(() => {
-        factory.buildPayment({ enrollmentId: 'enrollment-123', amount: 100.00 });
+        factory.buildPayment({ enrollmentId: 'enrollment-123', amount: 100.0 });
       }).toThrow('UserId es requerido');
 
       expect(() => {
-        factory.buildPayment({ enrollmentId: 'enrollment-123', userId: 'user-456' });
+        factory.buildPayment({
+          enrollmentId: 'enrollment-123',
+          userId: 'user-456',
+        });
       }).toThrow('Amount debe ser mayor a 0');
 
       expect(() => {
-        factory.buildPayment({ enrollmentId: 'enrollment-123', userId: 'user-456', amount: -10 });
+        factory.buildPayment({
+          enrollmentId: 'enrollment-123',
+          userId: 'user-456',
+          amount: -10,
+        });
       }).toThrow('Amount debe ser mayor a 0');
     });
 
@@ -429,8 +470,14 @@ describe('PaymentFactory Tests', () => {
       const data = {
         enrollmentId: 'enrollment-123',
         userId: 'user-456',
-        amount: 100.00,
-        cardDetails: { cardType: 'Visa', last4: '4242', brand: 'visa', expiryMonth: 12, expiryYear: 2025 }
+        amount: 100.0,
+        cardDetails: {
+          cardType: 'Visa',
+          last4: '4242',
+          brand: 'visa',
+          expiryMonth: 12,
+          expiryYear: 2025,
+        },
       };
 
       const payment = factory.buildPayment(data);

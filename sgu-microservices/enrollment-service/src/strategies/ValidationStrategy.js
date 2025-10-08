@@ -1,6 +1,6 @@
 /**
  * Strategy Pattern - Validation Strategy
- * 
+ *
  * Este patrón Strategy permite definir diferentes algoritmos de validación
  * para el proceso de inscripción, permitiendo intercambiarlos dinámicamente
  * sin modificar el código cliente.
@@ -61,19 +61,21 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
 
   validate(data) {
     const { studentId, courseId } = data;
-    
+
     const missingPrerequisites = this.requiredCourses.filter(
       prereq => !this.studentCompletedCourses.includes(prereq)
     );
 
     const errors = [];
-    
+
     if (missingPrerequisites.length > 0) {
       errors.push(`Faltan prerequisitos: ${missingPrerequisites.join(', ')}`);
     }
 
     if (this.studentGPA < this.minGPA) {
-      errors.push(`GPA insuficiente. Requerido: ${this.minGPA}, Actual: ${this.studentGPA}`);
+      errors.push(
+        `GPA insuficiente. Requerido: ${this.minGPA}, Actual: ${this.studentGPA}`
+      );
     }
 
     return {
@@ -85,8 +87,8 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
         completedCourses: this.studentCompletedCourses,
         missingPrerequisites,
         studentGPA: this.studentGPA,
-        minGPA: this.minGPA
-      }
+        minGPA: this.minGPA,
+      },
     };
   }
 
@@ -113,12 +115,14 @@ class CapacityValidationStrategy extends ValidationStrategy {
 
   validate(data) {
     const { courseId, requestedSeats = 1 } = data;
-    
+
     const availableSeats = this.maxCapacity - this.currentEnrollments;
     const errors = [];
-    
+
     if (requestedSeats > availableSeats) {
-      errors.push(`No hay suficientes cupos disponibles. Disponibles: ${availableSeats}, Solicitados: ${requestedSeats}`);
+      errors.push(
+        `No hay suficientes cupos disponibles. Disponibles: ${availableSeats}, Solicitados: ${requestedSeats}`
+      );
     }
 
     return {
@@ -129,8 +133,8 @@ class CapacityValidationStrategy extends ValidationStrategy {
         maxCapacity: this.maxCapacity,
         currentEnrollments: this.currentEnrollments,
         availableSeats,
-        requestedSeats
-      }
+        requestedSeats,
+      },
     };
   }
 
@@ -156,13 +160,18 @@ class ScheduleValidationStrategy extends ValidationStrategy {
 
   validate(data) {
     const { courseId, studentId } = data;
-    
+
     const courseTimeSlots = this.courseSchedule.timeSlots || [];
-    const studentTimeSlots = this.studentSchedule.map(enrollment => enrollment.timeSlots).flat();
-    
-    const conflicts = this.findScheduleConflicts(courseTimeSlots, studentTimeSlots);
+    const studentTimeSlots = this.studentSchedule
+      .map(enrollment => enrollment.timeSlots)
+      .flat();
+
+    const conflicts = this.findScheduleConflicts(
+      courseTimeSlots,
+      studentTimeSlots
+    );
     const errors = [];
-    
+
     if (conflicts.length > 0) {
       errors.push(`Conflicto de horarios: ${conflicts.join(', ')}`);
     }
@@ -174,29 +183,33 @@ class ScheduleValidationStrategy extends ValidationStrategy {
       details: {
         courseTimeSlots,
         studentTimeSlots,
-        conflicts
-      }
+        conflicts,
+      },
     };
   }
 
   findScheduleConflicts(courseSlots, studentSlots) {
     const conflicts = [];
-    
+
     for (const courseSlot of courseSlots) {
       for (const studentSlot of studentSlots) {
         if (this.slotsOverlap(courseSlot, studentSlot)) {
-          conflicts.push(`${courseSlot.day} ${courseSlot.startTime}-${courseSlot.endTime}`);
+          conflicts.push(
+            `${courseSlot.day} ${courseSlot.startTime}-${courseSlot.endTime}`
+          );
         }
       }
     }
-    
+
     return conflicts;
   }
 
   slotsOverlap(slot1, slot2) {
-    return slot1.day === slot2.day && 
-           slot1.startTime < slot2.endTime && 
-           slot2.startTime < slot1.endTime;
+    return (
+      slot1.day === slot2.day &&
+      slot1.startTime < slot2.endTime &&
+      slot2.startTime < slot1.endTime
+    );
   }
 
   getPriority() {
@@ -204,7 +217,11 @@ class ScheduleValidationStrategy extends ValidationStrategy {
   }
 
   isApplicable(context) {
-    return context.hasSchedule || (this.courseSchedule.timeSlots && this.courseSchedule.timeSlots.length > 0);
+    return (
+      context.hasSchedule ||
+      (this.courseSchedule.timeSlots &&
+        this.courseSchedule.timeSlots.length > 0)
+    );
   }
 }
 
@@ -215,16 +232,20 @@ class ScheduleValidationStrategy extends ValidationStrategy {
 class PaymentValidationStrategy extends ValidationStrategy {
   constructor(config = {}) {
     super();
-    this.allowEnrollmentWithPendingPayments = config.allowEnrollmentWithPendingPayments || false;
+    this.allowEnrollmentWithPendingPayments =
+      config.allowEnrollmentWithPendingPayments || false;
     this.studentPendingPayments = config.studentPendingPayments || [];
   }
 
   validate(data) {
     const { studentId } = data;
-    
+
     const errors = [];
-    
-    if (!this.allowEnrollmentWithPendingPayments && this.studentPendingPayments.length > 0) {
+
+    if (
+      !this.allowEnrollmentWithPendingPayments &&
+      this.studentPendingPayments.length > 0
+    ) {
       errors.push('No se puede inscribir con pagos pendientes');
     }
 
@@ -234,8 +255,8 @@ class PaymentValidationStrategy extends ValidationStrategy {
       strategy: this.getStrategyName(),
       details: {
         pendingPayments: this.studentPendingPayments,
-        allowWithPending: this.allowEnrollmentWithPendingPayments
-      }
+        allowWithPending: this.allowEnrollmentWithPendingPayments,
+      },
     };
   }
 
@@ -244,7 +265,9 @@ class PaymentValidationStrategy extends ValidationStrategy {
   }
 
   isApplicable(context) {
-    return context.hasPaymentValidation || this.studentPendingPayments.length > 0;
+    return (
+      context.hasPaymentValidation || this.studentPendingPayments.length > 0
+    );
   }
 }
 
@@ -261,11 +284,13 @@ class DeadlineValidationStrategy extends ValidationStrategy {
 
   validate(data) {
     const { courseId } = data;
-    
+
     const errors = [];
-    
+
     if (this.currentDate > this.enrollmentDeadline) {
-      errors.push(`Fecha límite de inscripción vencida. Límite: ${this.enrollmentDeadline.toLocaleDateString()}`);
+      errors.push(
+        `Fecha límite de inscripción vencida. Límite: ${this.enrollmentDeadline.toLocaleDateString()}`
+      );
     }
 
     return {
@@ -275,8 +300,8 @@ class DeadlineValidationStrategy extends ValidationStrategy {
       details: {
         enrollmentDeadline: this.enrollmentDeadline,
         currentDate: this.currentDate,
-        isExpired: this.currentDate > this.enrollmentDeadline
-      }
+        isExpired: this.currentDate > this.enrollmentDeadline,
+      },
     };
   }
 
@@ -330,8 +355,8 @@ class ValidationContext {
    */
   executeValidation(data, context = {}) {
     this.results = [];
-    const applicableStrategies = this.strategies.filter(
-      strategy => strategy.isApplicable(context)
+    const applicableStrategies = this.strategies.filter(strategy =>
+      strategy.isApplicable(context)
     );
 
     let allValid = true;
@@ -341,13 +366,16 @@ class ValidationContext {
       try {
         const result = strategy.validate(data);
         this.results.push(result);
-        
+
         if (!result.isValid) {
           allValid = false;
           allErrors.push(...result.errors);
         }
       } catch (error) {
-        console.error(`Error en estrategia ${strategy.getStrategyName()}:`, error);
+        console.error(
+          `Error en estrategia ${strategy.getStrategyName()}:`,
+          error
+        );
         allValid = false;
         allErrors.push(`Error en validación: ${error.message}`);
       }
@@ -361,8 +389,8 @@ class ValidationContext {
       summary: {
         totalStrategies: applicableStrategies.length,
         validStrategies: this.results.filter(r => r.isValid).length,
-        invalidStrategies: this.results.filter(r => !r.isValid).length
-      }
+        invalidStrategies: this.results.filter(r => !r.isValid).length,
+      },
     };
   }
 
@@ -373,7 +401,9 @@ class ValidationContext {
    * @returns {Object} - Resultado de la validación
    */
   executeSpecificStrategy(strategyName, data) {
-    const strategy = this.strategies.find(s => s.getStrategyName() === strategyName);
+    const strategy = this.strategies.find(
+      s => s.getStrategyName() === strategyName
+    );
     if (!strategy) {
       throw new Error(`Estrategia '${strategyName}' no encontrada`);
     }
@@ -404,5 +434,5 @@ module.exports = {
   ScheduleValidationStrategy,
   PaymentValidationStrategy,
   DeadlineValidationStrategy,
-  ValidationContext
+  ValidationContext,
 };

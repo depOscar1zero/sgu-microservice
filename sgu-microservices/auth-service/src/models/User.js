@@ -1,13 +1,13 @@
-const { DataTypes } = require("sequelize");
-const bcrypt = require("bcryptjs");
-const { sequelize } = require("../config/database");
+const { DataTypes } = require('sequelize');
+const bcrypt = require('bcryptjs');
+const { sequelize } = require('../config/database');
 
 /**
  * Modelo de Usuario
  * Representa a los usuarios del sistema (alumnos y administrativos)
  */
 const User = sequelize.define(
-  "User",
+  'User',
   {
     id: {
       type: DataTypes.UUID,
@@ -55,16 +55,16 @@ const User = sequelize.define(
 
     // Rol del usuario
     role: {
-      type: DataTypes.ENUM("student", "admin"),
+      type: DataTypes.ENUM('student', 'admin'),
       allowNull: false,
-      defaultValue: "student",
+      defaultValue: 'student',
     },
 
     // Estado del usuario
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
-      field: "is_active",
+      field: 'is_active',
     },
 
     // Información adicional para estudiantes
@@ -75,7 +75,9 @@ const User = sequelize.define(
       validate: {
         isValidStudentId(value) {
           if (value && !/^[A-Za-z0-9\-_]+$/.test(value)) {
-            throw new Error('ID de estudiante debe contener solo letras, números, guiones y guiones bajos');
+            throw new Error(
+              'ID de estudiante debe contener solo letras, números, guiones y guiones bajos'
+            );
           }
         },
       },
@@ -99,17 +101,17 @@ const User = sequelize.define(
     },
   },
   {
-    tableName: "users",
+    tableName: 'users',
     indexes: [
       {
         unique: true,
-        fields: ["email"],
+        fields: ['email'],
       },
       {
-        fields: ["role"],
+        fields: ['role'],
       },
       {
-        fields: ["is_active"],
+        fields: ['is_active'],
       },
     ],
   }
@@ -121,7 +123,7 @@ const User = sequelize.define(
  */
 User.beforeSave(async (user, options) => {
   // Solo hashear si la contraseña fue modificada
-  if (user.changed("password")) {
+  if (user.changed('password')) {
     const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
     user.password = await bcrypt.hash(user.password, saltRounds);
   }

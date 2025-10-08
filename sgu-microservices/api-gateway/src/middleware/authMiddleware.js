@@ -14,19 +14,19 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Token de acceso requerido',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
     // Verificar token localmente
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
+
       // Agregar información del usuario al request
       req.user = {
         userId: decoded.userId,
         email: decoded.email,
-        role: decoded.role
+        role: decoded.role,
       };
 
       // Opcional: Verificar con el auth service que el usuario sigue siendo válido
@@ -42,7 +42,7 @@ const authenticateToken = async (req, res, next) => {
           success: false,
           message: 'Token expirado',
           code: 'TOKEN_EXPIRED',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
@@ -51,19 +51,18 @@ const authenticateToken = async (req, res, next) => {
           success: false,
           message: 'Token inválido',
           code: 'TOKEN_INVALID',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
       throw jwtError;
     }
-
   } catch (error) {
     console.error('Error en autenticación:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno de autenticación',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 };
@@ -71,13 +70,13 @@ const authenticateToken = async (req, res, next) => {
 /**
  * Verificar token con el servicio de autenticación
  */
-const verifyWithAuthService = async (token) => {
+const verifyWithAuthService = async token => {
   try {
     const response = await axios.get(`${services.auth.url}/api/auth/profile`, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      timeout: services.auth.timeout
+      timeout: services.auth.timeout,
     });
 
     return response.data;
@@ -85,7 +84,7 @@ const verifyWithAuthService = async (token) => {
     if (error.response && error.response.status === 401) {
       throw new Error('Token inválido según el servicio de autenticación');
     }
-    
+
     // Si el servicio de auth no está disponible, continuar con validación local
     console.warn('Auth service no disponible, usando validación local');
     return null;
@@ -95,13 +94,13 @@ const verifyWithAuthService = async (token) => {
 /**
  * Middleware para verificar roles específicos
  */
-const requireRole = (requiredRole) => {
+const requireRole = requiredRole => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
         message: 'Autenticación requerida',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -109,7 +108,7 @@ const requireRole = (requiredRole) => {
       return res.status(403).json({
         success: false,
         message: `Acceso denegado. Se requiere rol: ${requiredRole}`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -120,13 +119,13 @@ const requireRole = (requiredRole) => {
 /**
  * Middleware para verificar múltiples roles
  */
-const requireAnyRole = (roles) => {
+const requireAnyRole = roles => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
         message: 'Autenticación requerida',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -134,7 +133,7 @@ const requireAnyRole = (roles) => {
       return res.status(403).json({
         success: false,
         message: `Acceso denegado. Roles permitidos: ${roles.join(', ')}`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -156,7 +155,7 @@ const optionalAuth = async (req, res, next) => {
         req.user = {
           userId: decoded.userId,
           email: decoded.email,
-          role: decoded.role
+          role: decoded.role,
         };
       } catch (error) {
         // En autenticación opcional, ignoramos errores de token
@@ -175,5 +174,5 @@ module.exports = {
   authenticateToken,
   requireRole,
   requireAnyRole,
-  optionalAuth
+  optionalAuth,
 };

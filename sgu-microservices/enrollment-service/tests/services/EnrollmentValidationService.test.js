@@ -4,7 +4,7 @@
 
 const {
   EnrollmentValidationService,
-  enrollmentValidationService
+  enrollmentValidationService,
 } = require('../../src/services/EnrollmentValidationService');
 
 describe('EnrollmentValidationService Tests', () => {
@@ -20,19 +20,21 @@ describe('EnrollmentValidationService Tests', () => {
         requiredCourses: ['MATH-101', 'PHYS-101'],
         studentCompletedCourses: ['MATH-101', 'PHYS-101'],
         minGPA: 2.5,
-        studentGPA: 3.0
+        studentGPA: 3.0,
       };
 
       service.configureStrategiesForCourse(courseConfig);
 
       const stats = service.getValidationStats();
-      expect(stats.availableStrategies).toContain('PrerequisitesValidationStrategy');
+      expect(stats.availableStrategies).toContain(
+        'PrerequisitesValidationStrategy'
+      );
     });
 
     test('debe configurar estrategias para curso con límite de capacidad', () => {
       const courseConfig = {
         maxCapacity: 30,
-        currentEnrollments: 25
+        currentEnrollments: 25,
       };
 
       service.configureStrategiesForCourse(courseConfig);
@@ -48,11 +50,11 @@ describe('EnrollmentValidationService Tests', () => {
         maxCapacity: 30,
         currentEnrollments: 25,
         courseSchedule: {
-          timeSlots: [{ day: 'Monday', startTime: '10:00', endTime: '12:00' }]
+          timeSlots: [{ day: 'Monday', startTime: '10:00', endTime: '12:00' }],
         },
         studentSchedule: [],
         studentPendingPayments: [],
-        enrollmentDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        enrollmentDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       };
 
       service.configureStrategiesForCourse(courseConfig);
@@ -67,7 +69,7 @@ describe('EnrollmentValidationService Tests', () => {
       const enrollmentData = {
         studentId: 'student-123',
         courseId: 'course-456',
-        requestedSeats: 1
+        requestedSeats: 1,
       };
 
       const courseConfig = {
@@ -76,10 +78,13 @@ describe('EnrollmentValidationService Tests', () => {
         minGPA: 2.0,
         studentGPA: 3.0,
         maxCapacity: 30,
-        currentEnrollments: 25
+        currentEnrollments: 25,
       };
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toEqual([]);
@@ -93,7 +98,7 @@ describe('EnrollmentValidationService Tests', () => {
       const enrollmentData = {
         studentId: 'student-123',
         courseId: 'course-456',
-        requestedSeats: 1
+        requestedSeats: 1,
       };
 
       const courseConfig = {
@@ -102,39 +107,52 @@ describe('EnrollmentValidationService Tests', () => {
         minGPA: 2.0,
         studentGPA: 3.0,
         maxCapacity: 30,
-        currentEnrollments: 25
+        currentEnrollments: 25,
       };
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors.some(error => error.includes('Faltan prerequisitos'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Faltan prerequisitos'))
+      ).toBe(true);
     });
 
     test('debe fallar validación cuando no hay cupos', async () => {
       const enrollmentData = {
         studentId: 'student-123',
         courseId: 'course-456',
-        requestedSeats: 10
+        requestedSeats: 10,
       };
 
       const courseConfig = {
         maxCapacity: 30,
-        currentEnrollments: 25 // Solo 5 cupos disponibles
+        currentEnrollments: 25, // Solo 5 cupos disponibles
       };
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('No hay suficientes cupos'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('No hay suficientes cupos'))
+      ).toBe(true);
     });
 
     test('debe manejar errores internos correctamente', async () => {
       const enrollmentData = null; // Datos inválidos
       const courseConfig = {};
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
       // El servicio maneja datos nulos sin fallar, pero puede retornar válido si no hay estrategias
       expect(result).toBeDefined();
@@ -148,16 +166,19 @@ describe('EnrollmentValidationService Tests', () => {
       const studentData = {
         id: 'student-123',
         completedCourses: ['MATH-101', 'PHYS-101'],
-        gpa: 3.2
+        gpa: 3.2,
       };
 
       const courseData = {
         id: 'course-456',
         requiredCourses: ['MATH-101', 'PHYS-101'],
-        minGPA: 2.5
+        minGPA: 2.5,
       };
 
-      const result = await service.validatePrerequisites(studentData, courseData);
+      const result = await service.validatePrerequisites(
+        studentData,
+        courseData
+      );
 
       expect(result.isValid).toBe(true);
       expect(result.strategy).toBe('PrerequisitesValidationStrategy');
@@ -168,7 +189,7 @@ describe('EnrollmentValidationService Tests', () => {
       const courseData = {
         id: 'course-456',
         maxCapacity: 30,
-        currentEnrollments: 25
+        currentEnrollments: 25,
       };
 
       const result = await service.validateCapacity(courseData, 3);
@@ -182,15 +203,13 @@ describe('EnrollmentValidationService Tests', () => {
       const courseData = {
         id: 'course-456',
         schedule: {
-          timeSlots: [
-            { day: 'Monday', startTime: '10:00', endTime: '12:00' }
-          ]
-        }
+          timeSlots: [{ day: 'Monday', startTime: '10:00', endTime: '12:00' }],
+        },
       };
 
       const studentData = {
         id: 'student-123',
-        currentEnrollments: []
+        currentEnrollments: [],
       };
 
       const result = await service.validateSchedule(courseData, studentData);
@@ -210,7 +229,9 @@ describe('EnrollmentValidationService Tests', () => {
       );
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('no soportada'))).toBe(true);
+      expect(result.errors.some(error => error.includes('no soportada'))).toBe(
+        true
+      );
     });
   });
 
@@ -239,30 +260,38 @@ describe('EnrollmentValidationService Tests', () => {
     test('debe ejecutar solo estrategias aplicables', async () => {
       const enrollmentData = {
         studentId: 'student-123',
-        courseId: 'course-456'
+        courseId: 'course-456',
       };
 
       const courseConfig = {
         maxCapacity: 30,
-        currentEnrollments: 25
+        currentEnrollments: 25,
         // No hay prerequisitos, por lo que PrerequisitesValidationStrategy no debe ejecutarse
       };
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
-      expect(result.strategiesUsed).not.toContain('PrerequisitesValidationStrategy');
+      expect(result.strategiesUsed).not.toContain(
+        'PrerequisitesValidationStrategy'
+      );
       expect(result.strategiesUsed).toContain('CapacityValidationStrategy');
     });
 
     test('debe manejar contexto vacío correctamente', async () => {
       const enrollmentData = {
         studentId: 'student-123',
-        courseId: 'course-456'
+        courseId: 'course-456',
       };
 
       const courseConfig = {}; // Configuración vacía
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
       expect(result.isValid).toBe(true); // Sin estrategias = validación exitosa
       expect(result.strategiesUsed).toEqual([]);
@@ -278,13 +307,19 @@ describe('EnrollmentValidationService Tests', () => {
     });
 
     test('debe manejar configuración de curso inválida', async () => {
-      const enrollmentData = { studentId: 'student-123', courseId: 'course-456' };
+      const enrollmentData = {
+        studentId: 'student-123',
+        courseId: 'course-456',
+      };
       const courseConfig = {
         maxCapacity: -1, // Capacidad inválida
-        currentEnrollments: 100
+        currentEnrollments: 100,
       };
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
       // El servicio puede manejar configuraciones inválidas sin fallar
       expect(result).toBeDefined();
@@ -292,12 +327,18 @@ describe('EnrollmentValidationService Tests', () => {
     });
 
     test('debe manejar fechas inválidas en deadline', async () => {
-      const enrollmentData = { studentId: 'student-123', courseId: 'course-456' };
+      const enrollmentData = {
+        studentId: 'student-123',
+        courseId: 'course-456',
+      };
       const courseConfig = {
-        enrollmentDeadline: 'invalid-date'
+        enrollmentDeadline: 'invalid-date',
       };
 
-      const result = await service.validateEnrollment(enrollmentData, courseConfig);
+      const result = await service.validateEnrollment(
+        enrollmentData,
+        courseConfig
+      );
 
       // Debe manejar la fecha inválida sin fallar
       expect(result).toBeDefined();
@@ -306,7 +347,9 @@ describe('EnrollmentValidationService Tests', () => {
 
   describe('Singleton Service', () => {
     test('debe usar la instancia singleton correctamente', () => {
-      expect(enrollmentValidationService).toBeInstanceOf(EnrollmentValidationService);
+      expect(enrollmentValidationService).toBeInstanceOf(
+        EnrollmentValidationService
+      );
       expect(enrollmentValidationService).toStrictEqual(service);
     });
 

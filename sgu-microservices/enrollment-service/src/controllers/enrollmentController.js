@@ -1,14 +1,14 @@
-const Enrollment = require("../models/Enrollment");
+const Enrollment = require('../models/Enrollment');
 const {
   AuthServiceClient,
   CoursesServiceClient,
-} = require("../services/externalServices");
-const axios = require("axios");
+} = require('../services/externalServices');
+const axios = require('axios');
 
 /**
  * Wrapper para manejo de errores async
  */
-const catchAsync = (fn) => {
+const catchAsync = fn => {
   return (req, res, next) => {
     fn(req, res, next).catch(next);
   };
@@ -20,7 +20,7 @@ const catchAsync = (fn) => {
 const sendEnrollmentNotification = async (user, course, enrollment) => {
   try {
     const notificationsUrl =
-      process.env.NOTIFICATIONS_SERVICE_URL || "http://localhost:3005";
+      process.env.NOTIFICATIONS_SERVICE_URL || 'http://localhost:3005';
 
     const notificationData = {
       recipient: {
@@ -38,7 +38,7 @@ const sendEnrollmentNotification = async (user, course, enrollment) => {
           <p><strong>Curso:</strong> ${course.name}</p>
           <p><strong>Código:</strong> ${course.code}</p>
           <p><strong>Horario:</strong> ${
-            course.scheduleDays ? course.scheduleDays.join(", ") : "Por definir"
+            course.scheduleDays ? course.scheduleDays.join(', ') : 'Por definir'
           }</p>
           <p><strong>Instructor:</strong> ${course.instructorName}</p>
           <p><strong>Créditos:</strong> ${course.credits}</p>
@@ -49,10 +49,10 @@ const sendEnrollmentNotification = async (user, course, enrollment) => {
           Este es un email automático del Sistema de Gestión Universitaria.
         </p>
       `,
-      type: "email",
-      channel: "email",
-      priority: "high",
-      category: "enrollment",
+      type: 'email',
+      channel: 'email',
+      priority: 'high',
+      category: 'enrollment',
       metadata: {
         courseId: course.id,
         courseName: course.name,
@@ -60,8 +60,8 @@ const sendEnrollmentNotification = async (user, course, enrollment) => {
         enrollmentId: enrollment.id,
         instructorName: course.instructorName,
         schedule: course.scheduleDays
-          ? course.scheduleDays.join(", ")
-          : "Por definir",
+          ? course.scheduleDays.join(', ')
+          : 'Por definir',
       },
     };
 
@@ -72,7 +72,7 @@ const sendEnrollmentNotification = async (user, course, enrollment) => {
     console.log(`✅ Notificación de inscripción enviada a ${user.email}`);
   } catch (error) {
     console.error(
-      "❌ Error enviando notificación de inscripción:",
+      '❌ Error enviando notificación de inscripción:',
       error.message
     );
     // No lanzar error para no interrumpir la inscripción
@@ -87,9 +87,8 @@ const enrollStudent = catchAsync(async (req, res) => {
   const userId = req.user.userId;
 
   // 1. Verificar que el curso existe y está disponible
-  const courseResult = await CoursesServiceClient.checkCourseAvailability(
-    courseId
-  );
+  const courseResult =
+    await CoursesServiceClient.checkCourseAvailability(courseId);
   if (!courseResult.success) {
     return res.status(400).json({
       success: false,
@@ -102,7 +101,7 @@ const enrollStudent = catchAsync(async (req, res) => {
   if (!course.canEnroll) {
     return res.status(400).json({
       success: false,
-      message: "El curso no está disponible para inscripción",
+      message: 'El curso no está disponible para inscripción',
       details: {
         status: course.status,
         availableSlots: course.availableSlots,
@@ -116,14 +115,14 @@ const enrollStudent = catchAsync(async (req, res) => {
     where: {
       userId,
       courseId,
-      status: ["Pending", "Confirmed", "Paid", "Completed"],
+      status: ['Pending', 'Confirmed', 'Paid', 'Completed'],
     },
   });
 
   if (existingEnrollment) {
     return res.status(409).json({
       success: false,
-      message: "Ya estás inscrito en este curso",
+      message: 'Ya estás inscrito en este curso',
       enrollment: existingEnrollment.toPublicJSON(),
       timestamp: new Date().toISOString(),
     });
@@ -151,7 +150,7 @@ const enrollStudent = catchAsync(async (req, res) => {
   if (!prerequisitesResult.success) {
     return res.status(400).json({
       success: false,
-      message: "Error verificando prerrequisitos",
+      message: 'Error verificando prerrequisitos',
       error: prerequisitesResult.error,
       timestamp: new Date().toISOString(),
     });
@@ -160,7 +159,7 @@ const enrollStudent = catchAsync(async (req, res) => {
   if (!prerequisitesResult.data.canEnroll) {
     return res.status(400).json({
       success: false,
-      message: "No cumples con los prerrequisitos para este curso",
+      message: 'No cumples con los prerrequisitos para este curso',
       missingPrerequisites: prerequisitesResult.data.missingPrerequisites,
       timestamp: new Date().toISOString(),
     });
@@ -174,7 +173,7 @@ const enrollStudent = catchAsync(async (req, res) => {
   if (!reservationResult.success) {
     return res.status(400).json({
       success: false,
-      message: "No se pudo reservar cupo en el curso",
+      message: 'No se pudo reservar cupo en el curso',
       error: reservationResult.error,
       timestamp: new Date().toISOString(),
     });
@@ -186,8 +185,8 @@ const enrollStudent = catchAsync(async (req, res) => {
       userId,
       courseId,
       studentEmail: req.user.email,
-      studentName: `${req.user.firstName || ""} ${
-        req.user.lastName || ""
+      studentName: `${req.user.firstName || ''} ${
+        req.user.lastName || ''
       }`.trim(),
       studentId: req.user.studentId,
       courseCode: course.code,
@@ -195,8 +194,8 @@ const enrollStudent = catchAsync(async (req, res) => {
       courseCredits: course.credits,
       courseSemester: course.semester,
       amount: course.price,
-      currency: course.currency || "USD",
-      status: "Pending",
+      currency: course.currency || 'USD',
+      status: 'Pending',
       enrolledBy: userId,
     });
 
@@ -205,7 +204,7 @@ const enrollStudent = catchAsync(async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Inscripción realizada exitosamente",
+      message: 'Inscripción realizada exitosamente',
       data: {
         enrollment: enrollment.toPublicJSON(),
         course: {
@@ -219,7 +218,7 @@ const enrollStudent = catchAsync(async (req, res) => {
     });
   } catch (error) {
     // Si falla la creación de la inscripción, liberar el cupo
-    console.error("Error creando inscripción, liberando cupo:", error);
+    console.error('Error creando inscripción, liberando cupo:', error);
     await CoursesServiceClient.releaseSlots(courseId, 1);
     throw error;
   }
@@ -238,21 +237,21 @@ const getStudentEnrollments = catchAsync(async (req, res) => {
 
   const enrollments = await Enrollment.findAll({
     where: whereClause,
-    order: [["enrollmentDate", "DESC"]],
+    order: [['enrollmentDate', 'DESC']],
   });
 
   res.status(200).json({
     success: true,
     data: {
-      enrollments: enrollments.map((e) => e.toPublicJSON()),
+      enrollments: enrollments.map(e => e.toPublicJSON()),
       summary: {
         total: enrollments.length,
         byStatus: {
-          pending: enrollments.filter((e) => e.status === "Pending").length,
-          confirmed: enrollments.filter((e) => e.status === "Confirmed").length,
-          paid: enrollments.filter((e) => e.status === "Paid").length,
-          completed: enrollments.filter((e) => e.status === "Completed").length,
-          cancelled: enrollments.filter((e) => e.status === "Cancelled").length,
+          pending: enrollments.filter(e => e.status === 'Pending').length,
+          confirmed: enrollments.filter(e => e.status === 'Confirmed').length,
+          paid: enrollments.filter(e => e.status === 'Paid').length,
+          completed: enrollments.filter(e => e.status === 'Completed').length,
+          cancelled: enrollments.filter(e => e.status === 'Cancelled').length,
         },
       },
     },
@@ -271,7 +270,7 @@ const getCourseEnrollments = catchAsync(async (req, res) => {
   if (!courseResult.success) {
     return res.status(404).json({
       success: false,
-      message: "Curso no encontrado",
+      message: 'Curso no encontrado',
       timestamp: new Date().toISOString(),
     });
   }
@@ -282,13 +281,13 @@ const getCourseEnrollments = catchAsync(async (req, res) => {
     success: true,
     data: {
       course: courseResult.data,
-      enrollments: enrollments.map((e) => e.toPublicJSON()),
+      enrollments: enrollments.map(e => e.toPublicJSON()),
       summary: {
         totalEnrolled: enrollments.length,
         byStatus: {
-          confirmed: enrollments.filter((e) => e.status === "Confirmed").length,
-          paid: enrollments.filter((e) => e.status === "Paid").length,
-          completed: enrollments.filter((e) => e.status === "Completed").length,
+          confirmed: enrollments.filter(e => e.status === 'Confirmed').length,
+          paid: enrollments.filter(e => e.status === 'Paid').length,
+          completed: enrollments.filter(e => e.status === 'Completed').length,
         },
       },
     },
@@ -309,16 +308,16 @@ const getEnrollmentById = catchAsync(async (req, res) => {
   if (!enrollment) {
     return res.status(404).json({
       success: false,
-      message: "Inscripción no encontrada",
+      message: 'Inscripción no encontrada',
       timestamp: new Date().toISOString(),
     });
   }
 
   // Verificar permisos: solo el propietario o un admin puede ver la inscripción
-  if (enrollment.userId !== userId && userRole !== "admin") {
+  if (enrollment.userId !== userId && userRole !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: "No tienes permisos para ver esta inscripción",
+      message: 'No tienes permisos para ver esta inscripción',
       timestamp: new Date().toISOString(),
     });
   }
@@ -346,16 +345,16 @@ const cancelEnrollment = catchAsync(async (req, res) => {
   if (!enrollment) {
     return res.status(404).json({
       success: false,
-      message: "Inscripción no encontrada",
+      message: 'Inscripción no encontrada',
       timestamp: new Date().toISOString(),
     });
   }
 
   // Verificar permisos
-  if (enrollment.userId !== userId && userRole !== "admin") {
+  if (enrollment.userId !== userId && userRole !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: "No tienes permisos para cancelar esta inscripción",
+      message: 'No tienes permisos para cancelar esta inscripción',
       timestamp: new Date().toISOString(),
     });
   }
@@ -364,7 +363,7 @@ const cancelEnrollment = catchAsync(async (req, res) => {
   if (!enrollment.canBeCancelled()) {
     return res.status(400).json({
       success: false,
-      message: "Esta inscripción no puede ser cancelada",
+      message: 'Esta inscripción no puede ser cancelada',
       currentStatus: enrollment.status,
       timestamp: new Date().toISOString(),
     });
@@ -376,7 +375,7 @@ const cancelEnrollment = catchAsync(async (req, res) => {
     1
   );
   if (!releaseResult.success) {
-    console.warn("No se pudo liberar cupo en el curso:", releaseResult.error);
+    console.warn('No se pudo liberar cupo en el curso:', releaseResult.error);
   }
 
   // Cancelar inscripción
@@ -384,7 +383,7 @@ const cancelEnrollment = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Inscripción cancelada exitosamente",
+    message: 'Inscripción cancelada exitosamente',
     data: {
       enrollment: enrollment.toPublicJSON(),
     },
@@ -405,7 +404,7 @@ const processPayment = catchAsync(async (req, res) => {
   if (!enrollment) {
     return res.status(404).json({
       success: false,
-      message: "Inscripción no encontrada",
+      message: 'Inscripción no encontrada',
       timestamp: new Date().toISOString(),
     });
   }
@@ -414,7 +413,7 @@ const processPayment = catchAsync(async (req, res) => {
   if (enrollment.userId !== userId) {
     return res.status(403).json({
       success: false,
-      message: "No tienes permisos para procesar el pago de esta inscripción",
+      message: 'No tienes permisos para procesar el pago de esta inscripción',
       timestamp: new Date().toISOString(),
     });
   }
@@ -423,7 +422,7 @@ const processPayment = catchAsync(async (req, res) => {
   if (!enrollment.requiresPayment()) {
     return res.status(400).json({
       success: false,
-      message: "Esta inscripción no requiere pago",
+      message: 'Esta inscripción no requiere pago',
       paymentStatus: enrollment.paymentStatus,
       timestamp: new Date().toISOString(),
     });
@@ -433,7 +432,7 @@ const processPayment = catchAsync(async (req, res) => {
   if (amount && parseFloat(amount) !== parseFloat(enrollment.amount)) {
     return res.status(400).json({
       success: false,
-      message: "El monto del pago no coincide con el monto de la inscripción",
+      message: 'El monto del pago no coincide con el monto de la inscripción',
       expected: enrollment.amount,
       received: amount,
       timestamp: new Date().toISOString(),
@@ -445,7 +444,7 @@ const processPayment = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Pago procesado exitosamente",
+    message: 'Pago procesado exitosamente',
     data: {
       enrollment: enrollment.toPublicJSON(),
     },
@@ -466,25 +465,25 @@ const getEnrollmentStats = catchAsync(async (req, res) => {
 
   const enrollmentsByStatus = await Enrollment.findAll({
     attributes: [
-      "status",
+      'status',
       [
-        Enrollment.sequelize.fn("COUNT", Enrollment.sequelize.col("status")),
-        "count",
+        Enrollment.sequelize.fn('COUNT', Enrollment.sequelize.col('status')),
+        'count',
       ],
     ],
     where: semester ? { courseSemester: semester } : {},
-    group: ["status"],
+    group: ['status'],
     raw: true,
   });
 
   // Obtener inscripciones por semestre de forma más simple
   const allEnrollments = await Enrollment.findAll({
-    attributes: ["courseSemester"],
+    attributes: ['courseSemester'],
     raw: true,
   });
-  
+
   const enrollmentsBySemester = allEnrollments.reduce((acc, enrollment) => {
-    const semester = enrollment.courseSemester || "Unknown";
+    const semester = enrollment.courseSemester || 'Unknown';
     acc[semester] = (acc[semester] || 0) + 1;
     return acc;
   }, {});
@@ -497,10 +496,12 @@ const getEnrollmentStats = catchAsync(async (req, res) => {
         acc[item.status] = parseInt(item.count);
         return acc;
       }, {}),
-      bySemester: Object.entries(enrollmentsBySemester).map(([semester, count]) => ({
-        semester,
-        count,
-      })),
+      bySemester: Object.entries(enrollmentsBySemester).map(
+        ([semester, count]) => ({
+          semester,
+          count,
+        })
+      ),
     },
     timestamp: new Date().toISOString(),
   });
@@ -519,20 +520,20 @@ const getAllEnrollments = catchAsync(async (req, res) => {
 
   const enrollments = await Enrollment.findAll({
     where: whereClause,
-    order: [["enrollmentDate", "DESC"]],
+    order: [['enrollmentDate', 'DESC']],
   });
 
   res.status(200).json({
     success: true,
-    data: enrollments.map((e) => e.toPublicJSON()),
+    data: enrollments.map(e => e.toPublicJSON()),
     summary: {
       total: enrollments.length,
       byStatus: {
-        pending: enrollments.filter((e) => e.status === "Pending").length,
-        confirmed: enrollments.filter((e) => e.status === "Confirmed").length,
-        paid: enrollments.filter((e) => e.status === "Paid").length,
-        completed: enrollments.filter((e) => e.status === "Completed").length,
-        cancelled: enrollments.filter((e) => e.status === "Cancelled").length,
+        pending: enrollments.filter(e => e.status === 'Pending').length,
+        confirmed: enrollments.filter(e => e.status === 'Confirmed').length,
+        paid: enrollments.filter(e => e.status === 'Paid').length,
+        completed: enrollments.filter(e => e.status === 'Completed').length,
+        cancelled: enrollments.filter(e => e.status === 'Cancelled').length,
       },
     },
     timestamp: new Date().toISOString(),
@@ -550,15 +551,15 @@ const approveEnrollment = catchAsync(async (req, res) => {
   if (!enrollment) {
     return res.status(404).json({
       success: false,
-      message: "Inscripción no encontrada",
+      message: 'Inscripción no encontrada',
       timestamp: new Date().toISOString(),
     });
   }
 
-  if (enrollment.status !== "Pending") {
+  if (enrollment.status !== 'Pending') {
     return res.status(400).json({
       success: false,
-      message: "Solo se pueden aprobar inscripciones pendientes",
+      message: 'Solo se pueden aprobar inscripciones pendientes',
       currentStatus: enrollment.status,
       timestamp: new Date().toISOString(),
     });
@@ -568,7 +569,7 @@ const approveEnrollment = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Inscripción aprobada exitosamente",
+    message: 'Inscripción aprobada exitosamente',
     data: {
       enrollment: enrollment.toPublicJSON(),
     },
@@ -588,36 +589,39 @@ const rejectEnrollment = catchAsync(async (req, res) => {
   if (!enrollment) {
     return res.status(404).json({
       success: false,
-      message: "Inscripción no encontrada",
+      message: 'Inscripción no encontrada',
       timestamp: new Date().toISOString(),
     });
   }
 
-  if (!["Pending", "Confirmed"].includes(enrollment.status)) {
+  if (!['Pending', 'Confirmed'].includes(enrollment.status)) {
     return res.status(400).json({
       success: false,
-      message: "Solo se pueden rechazar inscripciones pendientes o confirmadas",
+      message: 'Solo se pueden rechazar inscripciones pendientes o confirmadas',
       currentStatus: enrollment.status,
       timestamp: new Date().toISOString(),
     });
   }
 
   // Liberar cupo en el curso si estaba confirmada
-  if (enrollment.status === "Confirmed") {
+  if (enrollment.status === 'Confirmed') {
     const releaseResult = await CoursesServiceClient.releaseSlots(
       enrollment.courseId,
       1
     );
     if (!releaseResult.success) {
-      console.warn("No se pudo liberar cupo en el curso:", releaseResult.error);
+      console.warn('No se pudo liberar cupo en el curso:', releaseResult.error);
     }
   }
 
-  await enrollment.cancel(reason || "Rechazada por administrador", req.user.userId);
+  await enrollment.cancel(
+    reason || 'Rechazada por administrador',
+    req.user.userId
+  );
 
   res.status(200).json({
     success: true,
-    message: "Inscripción rechazada exitosamente",
+    message: 'Inscripción rechazada exitosamente',
     data: {
       enrollment: enrollment.toPublicJSON(),
     },

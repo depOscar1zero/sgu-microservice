@@ -1,5 +1,5 @@
-const express = require("express");
-const notificationController = require("../controllers/notificationController");
+const express = require('express');
+const notificationController = require('../controllers/notificationController');
 
 const router = express.Router();
 
@@ -9,21 +9,21 @@ const router = express.Router();
  */
 
 // Health check
-router.get("/health", notificationController.healthCheck);
+router.get('/health', notificationController.healthCheck);
 
 // Obtener estadísticas
-router.get("/stats", notificationController.getNotificationStats);
+router.get('/stats', notificationController.getNotificationStats);
 
 // Obtener notificaciones pendientes
-router.get("/pending", notificationController.getPendingNotifications);
+router.get('/pending', notificationController.getPendingNotifications);
 
 // Obtener notificaciones de un usuario específico
-router.get("/user/:userId", notificationController.getUserNotifications);
+router.get('/user/:userId', notificationController.getUserNotifications);
 
 // Crear nueva notificación
-router.post("/", notificationController.createNotification);
+router.post('/', notificationController.createNotification);
 
 // Reenviar notificación fallida
-router.post("/:notificationId/retry", notificationController.retryNotification);
+router.post('/:notificationId/retry', notificationController.retryNotification);
 
 module.exports = router;

@@ -1,19 +1,19 @@
-const jwt = require("jsonwebtoken");
-const { AuthServiceClient } = require("../services/externalServices");
+const jwt = require('jsonwebtoken');
+const { AuthServiceClient } = require('../services/externalServices');
 
 /**
  * Middleware para verificar autenticación
  */
 const authenticateToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: "Token de acceso requerido",
-        code: "MISSING_TOKEN",
+        error: 'Token de acceso requerido',
+        code: 'MISSING_TOKEN',
       });
     }
 
@@ -23,7 +23,7 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         error: authResult.error,
-        code: "INVALID_TOKEN",
+        code: 'INVALID_TOKEN',
       });
     }
 
@@ -32,11 +32,11 @@ const authenticateToken = async (req, res, next) => {
     req.token = token;
     next();
   } catch (error) {
-    console.error("Error en autenticación:", error);
+    console.error('Error en autenticación:', error);
     res.status(401).json({
       success: false,
-      error: "Error verificando autenticación",
-      code: "AUTH_ERROR",
+      error: 'Error verificando autenticación',
+      code: 'AUTH_ERROR',
     });
   }
 };
@@ -45,11 +45,11 @@ const authenticateToken = async (req, res, next) => {
  * Middleware para verificar roles de administrador
  */
 const requireAdmin = (req, res, next) => {
-  if (req.user.role !== "admin") {
+  if (req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
-      error: "Se requieren permisos de administrador",
-      code: "INSUFFICIENT_PERMISSIONS",
+      error: 'Se requieren permisos de administrador',
+      code: 'INSUFFICIENT_PERMISSIONS',
     });
   }
   next();
@@ -58,17 +58,17 @@ const requireAdmin = (req, res, next) => {
 /**
  * Middleware para verificar que el usuario es propietario del recurso
  */
-const requireOwnership = (resourceUserIdField = "userId") => {
+const requireOwnership = (resourceUserIdField = 'userId') => {
   return (req, res, next) => {
     const resourceUserId =
       req.params[resourceUserIdField] || req.body[resourceUserIdField];
     const currentUserId = req.user.id;
 
-    if (resourceUserId !== currentUserId && req.user.role !== "admin") {
+    if (resourceUserId !== currentUserId && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: "No tienes permisos para acceder a este recurso",
-        code: "ACCESS_DENIED",
+        error: 'No tienes permisos para acceder a este recurso',
+        code: 'ACCESS_DENIED',
       });
     }
     next();
@@ -89,7 +89,7 @@ const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
     // Limpiar requests antiguos
     if (requests.has(clientId)) {
       const clientRequests = requests.get(clientId);
-      const validRequests = clientRequests.filter((time) => time > windowStart);
+      const validRequests = clientRequests.filter(time => time > windowStart);
       requests.set(clientId, validRequests);
     } else {
       requests.set(clientId, []);
@@ -100,8 +100,8 @@ const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
     if (clientRequests.length >= maxRequests) {
       return res.status(429).json({
         success: false,
-        error: "Demasiadas peticiones, intenta más tarde",
-        code: "RATE_LIMIT_EXCEEDED",
+        error: 'Demasiadas peticiones, intenta más tarde',
+        code: 'RATE_LIMIT_EXCEEDED',
         retryAfter: Math.ceil(windowMs / 1000),
       });
     }
@@ -124,24 +124,24 @@ const validatePaymentInput = (req, res, next) => {
   if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
     return res.status(400).json({
       success: false,
-      error: "Monto inválido",
-      code: "INVALID_AMOUNT",
+      error: 'Monto inválido',
+      code: 'INVALID_AMOUNT',
     });
   }
 
   // Validar método de pago
   const validPaymentMethods = [
-    "credit_card",
-    "debit_card",
-    "bank_transfer",
-    "cash",
-    "stripe",
+    'credit_card',
+    'debit_card',
+    'bank_transfer',
+    'cash',
+    'stripe',
   ];
   if (!paymentMethod || !validPaymentMethods.includes(paymentMethod)) {
     return res.status(400).json({
       success: false,
-      error: "Método de pago inválido",
-      code: "INVALID_PAYMENT_METHOD",
+      error: 'Método de pago inválido',
+      code: 'INVALID_PAYMENT_METHOD',
     });
   }
 
@@ -153,7 +153,7 @@ const validatePaymentInput = (req, res, next) => {
     return res.status(400).json({
       success: false,
       error: `El monto excede el límite máximo de $${maxAmount}`,
-      code: "AMOUNT_EXCEEDED",
+      code: 'AMOUNT_EXCEEDED',
     });
   }
 
@@ -161,7 +161,7 @@ const validatePaymentInput = (req, res, next) => {
     return res.status(400).json({
       success: false,
       error: `El monto debe ser al menos $${minAmount}`,
-      code: "AMOUNT_TOO_LOW",
+      code: 'AMOUNT_TOO_LOW',
     });
   }
 
@@ -171,7 +171,7 @@ const validatePaymentInput = (req, res, next) => {
 /**
  * Middleware para logging de pagos
  */
-const logPaymentActivity = (action) => {
+const logPaymentActivity = action => {
   return (req, res, next) => {
     const originalSend = res.send;
 
@@ -183,7 +183,7 @@ const logPaymentActivity = (action) => {
         action,
         timestamp: new Date().toISOString(),
         ip: req.ip,
-        userAgent: req.get("User-Agent"),
+        userAgent: req.get('User-Agent'),
         success: res.statusCode < 400,
       });
 
@@ -199,43 +199,43 @@ const logPaymentActivity = (action) => {
  */
 const verifyJWT = (req, res, next) => {
   try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: "Token de acceso requerido",
+        error: 'Token de acceso requerido',
       });
     }
 
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "fallback-secret"
+      process.env.JWT_SECRET || 'fallback-secret'
     );
     req.user = decoded;
     next();
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
+    if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        error: "Token expirado",
-        code: "TOKEN_EXPIRED",
+        error: 'Token expirado',
+        code: 'TOKEN_EXPIRED',
       });
     }
 
-    if (error.name === "JsonWebTokenError") {
+    if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
-        error: "Token inválido",
-        code: "INVALID_TOKEN",
+        error: 'Token inválido',
+        code: 'INVALID_TOKEN',
       });
     }
 
     return res.status(401).json({
       success: false,
-      error: "Error verificando token",
-      code: "TOKEN_ERROR",
+      error: 'Error verificando token',
+      code: 'TOKEN_ERROR',
     });
   }
 };

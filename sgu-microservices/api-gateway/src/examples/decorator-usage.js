@@ -3,8 +3,8 @@
  * Demuestra cómo aplicar decoradores a diferentes componentes
  */
 
-const DecoratorFactory = require("../decorators/DecoratorFactory");
-const { createProxyMiddleware } = require("http-proxy-middleware");
+const DecoratorFactory = require('../decorators/DecoratorFactory');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 /**
  * Ejemplo 1: Decorar un middleware simple
@@ -12,7 +12,7 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 function createDecoratedMiddleware() {
   // Middleware original
   const originalMiddleware = (req, res, next) => {
-    console.log("Middleware original ejecutado");
+    console.log('Middleware original ejecutado');
     next();
   };
 
@@ -21,9 +21,9 @@ function createDecoratedMiddleware() {
     originalMiddleware,
     {
       decorators: [
-        { type: "logging", config: { logLevel: "info" } },
-        { type: "metrics", config: { collectResponseTime: true } },
-        { type: "security", config: { enableRequestValidation: true } },
+        { type: 'logging', config: { logLevel: 'info' } },
+        { type: 'metrics', config: { collectResponseTime: true } },
+        { type: 'security', config: { enableRequestValidation: true } },
       ],
     }
   );
@@ -36,7 +36,7 @@ function createDecoratedMiddleware() {
  */
 function createDecoratedProxy() {
   const proxyConfig = {
-    target: "http://localhost:3001",
+    target: 'http://localhost:3001',
     changeOrigin: true,
     timeout: 30000,
   };
@@ -44,13 +44,13 @@ function createDecoratedProxy() {
   // Aplicar decoradores al proxy
   const decoratedProxy = DecoratorFactory.createDecoratedProxy(proxyConfig, {
     decorators: [
-      { type: "logging", config: { logLevel: "debug", includeHeaders: true } },
+      { type: 'logging', config: { logLevel: 'debug', includeHeaders: true } },
       {
-        type: "metrics",
+        type: 'metrics',
         config: { collectResponseTime: true, collectStatusCode: true },
       },
-      { type: "caching", config: { ttl: 300000, maxSize: 100 } },
-      { type: "security", config: { enableCORS: true, enableHelmet: true } },
+      { type: 'caching', config: { ttl: 300000, maxSize: 100 } },
+      { type: 'security', config: { enableCORS: true, enableHelmet: true } },
     ],
   });
 
@@ -62,10 +62,10 @@ function createDecoratedProxy() {
  */
 function createRouteSpecificDecorators() {
   const routes = {
-    auth: DecoratorFactory.getDefaultConfig("auth"),
-    courses: DecoratorFactory.getDefaultConfig("courses"),
-    enrollments: DecoratorFactory.getDefaultConfig("enrollments"),
-    payments: DecoratorFactory.getDefaultConfig("payments"),
+    auth: DecoratorFactory.getDefaultConfig('auth'),
+    courses: DecoratorFactory.getDefaultConfig('courses'),
+    enrollments: DecoratorFactory.getDefaultConfig('enrollments'),
+    payments: DecoratorFactory.getDefaultConfig('payments'),
   };
 
   return routes;
@@ -76,7 +76,7 @@ function createRouteSpecificDecorators() {
  */
 function createCustomDecorator() {
   // Definir decorador personalizado
-  class CustomDecorator extends require("../decorators/BaseDecorator") {
+  class CustomDecorator extends require('../decorators/BaseDecorator') {
     constructor(component, options = {}) {
       super(component);
       this._options = options;
@@ -89,8 +89,8 @@ function createCustomDecorator() {
   }
 
   // Registrar decorador personalizado
-  DecoratorFactory.registerCustomDecorator("custom", CustomDecorator, {
-    customOption: "defaultValue",
+  DecoratorFactory.registerCustomDecorator('custom', CustomDecorator, {
+    customOption: 'defaultValue',
   });
 
   return CustomDecorator;
@@ -104,13 +104,13 @@ function getDecoratorMetrics() {
 
   const decorated = DecoratorFactory.createDecoratedComponent(component, {
     decorators: [
-      { type: "metrics", config: { collectResponseTime: true } },
-      { type: "caching", config: { ttl: 300000 } },
+      { type: 'metrics', config: { collectResponseTime: true } },
+      { type: 'caching', config: { ttl: 300000 } },
     ],
   });
 
   // Simular algunas requests para generar métricas
-  const mockReq = { method: "GET", url: "/test", headers: {} };
+  const mockReq = { method: 'GET', url: '/test', headers: {} };
   const mockRes = { statusCode: 200, send: () => {} };
 
   for (let i = 0; i < 5; i++) {
@@ -133,15 +133,15 @@ function demonstrateDecoratorChain() {
 
   const decorated = DecoratorFactory.createDecoratedComponent(component, {
     decorators: [
-      { type: "logging", config: {} },
-      { type: "metrics", config: {} },
-      { type: "caching", config: {} },
-      { type: "security", config: {} },
+      { type: 'logging', config: {} },
+      { type: 'metrics', config: {} },
+      { type: 'caching', config: {} },
+      { type: 'security', config: {} },
     ],
   });
 
   const chain = decorated.getDecoratorChain();
-  console.log("Cadena de decoradores:", chain);
+  console.log('Cadena de decoradores:', chain);
 
   return chain;
 }

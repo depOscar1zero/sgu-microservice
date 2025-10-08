@@ -7,9 +7,21 @@ require('dotenv').config();
 
 // Importar configuraciones y middleware
 const { services, proxyConfig } = require('./config/services');
-const { generalLimiter, authLimiter, registerLimiter, writeLimiter } = require('./middleware/rateLimiter');
-const { authenticateToken, requireRole, optionalAuth } = require('./middleware/authMiddleware');
-const { getServiceStatus, startHealthMonitoring } = require('./utils/healthChecker');
+const {
+  generalLimiter,
+  authLimiter,
+  registerLimiter,
+  writeLimiter,
+} = require('./middleware/rateLimiter');
+const {
+  authenticateToken,
+  requireRole,
+  optionalAuth,
+} = require('./middleware/authMiddleware');
+const {
+  getServiceStatus,
+  startHealthMonitoring,
+} = require('./utils/healthChecker');
 
 const app = express();
 
@@ -20,7 +32,11 @@ app.use(helmet());
 const corsOptions = {
   origin: function (origin, callback) {
     // Permitir requests sin origin (como Postman) o desde localhost:3005
-    if (!origin || origin === 'http://localhost:3005' || origin === 'http://127.0.0.1:3005') {
+    if (
+      !origin ||
+      origin === 'http://localhost:3005' ||
+      origin === 'http://127.0.0.1:3005'
+    ) {
       callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));
@@ -28,43 +44,49 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 app.use(cors(corsOptions));
 
 // Logging agresivo para debug
 app.use((req, res, next) => {
-  console.log(`📥 REQUEST: ${req.method} ${req.url} from ${req.headers.origin || 'no-origin'}`);
+  console.log(
+    `📥 REQUEST: ${req.method} ${req.url} from ${req.headers.origin || 'no-origin'}`
+  );
   console.log(`   Headers:`, JSON.stringify(req.headers, null, 2));
   next();
 });
 
 // Proxy para Payments Service (requiere autenticación)
-app.use('/api/payments', authenticateToken, createProxyMiddleware({
-  target: services.payments.url,
-  changeOrigin: true,
-  timeout: 30000,
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`💳 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
-    
-    // Si hay un body, asegurar que se envía correctamente
-    if (req.body && Object.keys(req.body).length > 0) {
-      const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
-    }
-  },
-  onError: (err, req, res) => {
-    console.error('Error en proxy payments:', err.message);
-    res.status(503).json({
-      success: false,
-      message: 'Servicio de pagos temporalmente no disponible',
-      timestamp: new Date().toISOString()
-    });
-  }
-}));
+app.use(
+  '/api/payments',
+  authenticateToken,
+  createProxyMiddleware({
+    target: services.payments.url,
+    changeOrigin: true,
+    timeout: 30000,
+    onProxyReq: (proxyReq, req, res) => {
+      console.log(`💳 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+
+      // Si hay un body, asegurar que se envía correctamente
+      if (req.body && Object.keys(req.body).length > 0) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+    onError: (err, req, res) => {
+      console.error('Error en proxy payments:', err.message);
+      res.status(503).json({
+        success: false,
+        message: 'Servicio de pagos temporalmente no disponible',
+        timestamp: new Date().toISOString(),
+      });
+    },
+  })
+);
 
 // Middleware de logging
 app.use(morgan('combined'));
@@ -78,7 +100,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Middleware para agregar Request ID
 app.use((req, res, next) => {
-  req.headers['x-request-id'] = req.headers['x-request-id'] || 
+  req.headers['x-request-id'] =
+    req.headers['x-request-id'] ||
     Date.now().toString(36) + Math.random().toString(36).substr(2);
   next();
 });
@@ -94,7 +117,7 @@ app.get('/health', (req, res) => {
     service: 'API Gateway',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -102,19 +125,20 @@ app.get('/health', (req, res) => {
 app.get('/status', async (req, res) => {
   try {
     const status = getServiceStatus();
-    const overallStatus = status.summary.unhealthy === 0 ? 'healthy' : 'degraded';
-    
+    const overallStatus =
+      status.summary.unhealthy === 0 ? 'healthy' : 'degraded';
+
     res.status(overallStatus === 'healthy' ? 200 : 503).json({
       status: overallStatus,
       ...status,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.status(500).json({
       status: 'error',
       message: 'Error checking service status',
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });
@@ -123,23 +147,24 @@ app.get('/status', async (req, res) => {
 app.get('/info', (req, res) => {
   res.status(200).json({
     service: 'API Gateway',
-    description: 'Punto único de entrada para el Sistema de Gestión Universitaria',
+    description:
+      'Punto único de entrada para el Sistema de Gestión Universitaria',
     version: '1.0.0',
     services: Object.keys(services),
     routes: {
       auth: '/api/auth/*',
       courses: '/api/courses/*',
       enrollments: '/api/enrollments/*',
-      payments: '/api/payments/*'
+      payments: '/api/payments/*',
     },
     features: [
       'Authentication & Authorization',
       'Rate Limiting',
       'Service Discovery',
       'Health Monitoring',
-      'Request Logging'
+      'Request Logging',
     ],
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -150,155 +175,185 @@ app.get('/info', (req, res) => {
 // Proxy para Auth Service con rate limiting específico
 app.use('/api/auth/register', registerLimiter);
 app.use('/api/auth/login', authLimiter);
-app.use('/api/auth', createProxyMiddleware({
-  target: services.auth.url,
-  changeOrigin: true,
-  timeout: 30000,
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
-    
-    // Si hay un body, asegurar que se envía correctamente
-    if (req.body && Object.keys(req.body).length > 0) {
-      const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
-    }
-  },
-  onProxyRes: (proxyRes, req, res) => {
-    // Asegurar que los headers CORS se apliquen
-    const origin = req.headers.origin;
-    if (origin === 'http://localhost:3005' || origin === 'http://127.0.0.1:3005') {
-      proxyRes.headers['access-control-allow-origin'] = origin;
-      proxyRes.headers['access-control-allow-credentials'] = 'true';
-      proxyRes.headers['access-control-allow-methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-      proxyRes.headers['access-control-allow-headers'] = 'Content-Type, Authorization, X-Requested-With';
-    }
-  },
-  onError: (err, req, res) => {
-    console.error('Error en proxy auth:', err.message);
-    res.status(503).json({
-      success: false,
-      message: 'Servicio de autenticación temporalmente no disponible',
-      timestamp: new Date().toISOString()
-    });
-  }
-}));
+app.use(
+  '/api/auth',
+  createProxyMiddleware({
+    target: services.auth.url,
+    changeOrigin: true,
+    timeout: 30000,
+    onProxyReq: (proxyReq, req, res) => {
+      console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+
+      // Si hay un body, asegurar que se envía correctamente
+      if (req.body && Object.keys(req.body).length > 0) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+    onProxyRes: (proxyRes, req, res) => {
+      // Asegurar que los headers CORS se apliquen
+      const origin = req.headers.origin;
+      if (
+        origin === 'http://localhost:3005' ||
+        origin === 'http://127.0.0.1:3005'
+      ) {
+        proxyRes.headers['access-control-allow-origin'] = origin;
+        proxyRes.headers['access-control-allow-credentials'] = 'true';
+        proxyRes.headers['access-control-allow-methods'] =
+          'GET, POST, PUT, DELETE, OPTIONS';
+        proxyRes.headers['access-control-allow-headers'] =
+          'Content-Type, Authorization, X-Requested-With';
+      }
+    },
+    onError: (err, req, res) => {
+      console.error('Error en proxy auth:', err.message);
+      res.status(503).json({
+        success: false,
+        message: 'Servicio de autenticación temporalmente no disponible',
+        timestamp: new Date().toISOString(),
+      });
+    },
+  })
+);
 
 // Proxy para Users Service (parte del auth-service)
-app.use('/api/users', authenticateToken, createProxyMiddleware({
-  target: services.auth.url,
-  changeOrigin: true,
-  timeout: 30000,
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`👤 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
-    
-    // Si hay un body, asegurar que se envía correctamente
-    if (req.body && Object.keys(req.body).length > 0) {
-      const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
-    }
-  },
-  onProxyRes: (proxyRes, req, res) => {
-    // Asegurar que los headers CORS se apliquen
-    const origin = req.headers.origin;
-    if (origin === 'http://localhost:3005' || origin === 'http://127.0.0.1:3005') {
-      proxyRes.headers['access-control-allow-origin'] = origin;
-      proxyRes.headers['access-control-allow-credentials'] = 'true';
-      proxyRes.headers['access-control-allow-methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-      proxyRes.headers['access-control-allow-headers'] = 'Content-Type, Authorization, X-Requested-With';
-    }
-  },
-  onError: (err, req, res) => {
-    console.error('Error en proxy users:', err.message);
-    res.status(503).json({
-      success: false,
-      message: 'Servicio de usuarios temporalmente no disponible',
-      timestamp: new Date().toISOString()
-    });
-  }
-}));
+app.use(
+  '/api/users',
+  authenticateToken,
+  createProxyMiddleware({
+    target: services.auth.url,
+    changeOrigin: true,
+    timeout: 30000,
+    onProxyReq: (proxyReq, req, res) => {
+      console.log(`👤 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+
+      // Si hay un body, asegurar que se envía correctamente
+      if (req.body && Object.keys(req.body).length > 0) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+    onProxyRes: (proxyRes, req, res) => {
+      // Asegurar que los headers CORS se apliquen
+      const origin = req.headers.origin;
+      if (
+        origin === 'http://localhost:3005' ||
+        origin === 'http://127.0.0.1:3005'
+      ) {
+        proxyRes.headers['access-control-allow-origin'] = origin;
+        proxyRes.headers['access-control-allow-credentials'] = 'true';
+        proxyRes.headers['access-control-allow-methods'] =
+          'GET, POST, PUT, DELETE, OPTIONS';
+        proxyRes.headers['access-control-allow-headers'] =
+          'Content-Type, Authorization, X-Requested-With';
+      }
+    },
+    onError: (err, req, res) => {
+      console.error('Error en proxy users:', err.message);
+      res.status(503).json({
+        success: false,
+        message: 'Servicio de usuarios temporalmente no disponible',
+        timestamp: new Date().toISOString(),
+      });
+    },
+  })
+);
 
 // Proxy para Courses Service
-app.use('/api/courses', (req, res, next) => {
-  // Permitir GET sin autenticación
-  if (req.method === 'GET') {
-    return next();
-  }
-  
-  // Requerir autenticación para operaciones de escritura
-  if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
-    return writeLimiter(req, res, () => {
-      authenticateToken(req, res, next);
-    });
-  }
-  
-  next();
-}, createProxyMiddleware({
-  target: services.courses.url,
-  changeOrigin: true,
-  timeout: 30000,
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
-    
-    if (req.body && Object.keys(req.body).length > 0) {
-      const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
+app.use(
+  '/api/courses',
+  (req, res, next) => {
+    // Permitir GET sin autenticación
+    if (req.method === 'GET') {
+      return next();
     }
+
+    // Requerir autenticación para operaciones de escritura
+    if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+      return writeLimiter(req, res, () => {
+        authenticateToken(req, res, next);
+      });
+    }
+
+    next();
   },
-  onError: (err, req, res) => {
-    console.error('Error en proxy courses:', err.message);
-    res.status(503).json({
-      success: false,
-      message: 'Servicio de cursos temporalmente no disponible',
-      timestamp: new Date().toISOString()
-    });
-  }
-}));
+  createProxyMiddleware({
+    target: services.courses.url,
+    changeOrigin: true,
+    timeout: 30000,
+    onProxyReq: (proxyReq, req, res) => {
+      console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+
+      if (req.body && Object.keys(req.body).length > 0) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+    onError: (err, req, res) => {
+      console.error('Error en proxy courses:', err.message);
+      res.status(503).json({
+        success: false,
+        message: 'Servicio de cursos temporalmente no disponible',
+        timestamp: new Date().toISOString(),
+      });
+    },
+  })
+);
 
 // Proxy para Enrollment Service (requiere autenticación)
-app.use('/api/enrollments', authenticateToken, createProxyMiddleware({
-  target: services.enrollments.url,
-  changeOrigin: true,
-  timeout: 30000,
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
-    
-    // Si hay un body, asegurar que se envía correctamente
-    if (req.body && Object.keys(req.body).length > 0) {
-      const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
-    }
-  },
-  onError: (err, req, res) => {
-    console.error('Error en proxy enrollment:', err.message);
-    res.status(503).json({
-      success: false,
-      message: 'Servicio de inscripciones temporalmente no disponible',
-      timestamp: new Date().toISOString()
-    });
-  }
-}));
+app.use(
+  '/api/enrollments',
+  authenticateToken,
+  createProxyMiddleware({
+    target: services.enrollments.url,
+    changeOrigin: true,
+    timeout: 30000,
+    onProxyReq: (proxyReq, req, res) => {
+      console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
+
+      // Si hay un body, asegurar que se envía correctamente
+      if (req.body && Object.keys(req.body).length > 0) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+    onError: (err, req, res) => {
+      console.error('Error en proxy enrollment:', err.message);
+      res.status(503).json({
+        success: false,
+        message: 'Servicio de inscripciones temporalmente no disponible',
+        timestamp: new Date().toISOString(),
+      });
+    },
+  })
+);
 
 /**
  * Rutas específicas con autenticación
  */
 
 // Ejemplo: Ruta que requiere autenticación específica
-app.get('/api/admin/*', authenticateToken, requireRole('admin'), (req, res, next) => {
-  // Aquí podrías proxy a un servicio de administración
-  res.json({
-    message: 'Ruta de administración',
-    user: req.user,
-    timestamp: new Date().toISOString()
-  });
-});
+app.get(
+  '/api/admin/*',
+  authenticateToken,
+  requireRole('admin'),
+  (req, res, next) => {
+    // Aquí podrías proxy a un servicio de administración
+    res.json({
+      message: 'Ruta de administración',
+      user: req.user,
+      timestamp: new Date().toISOString(),
+    });
+  }
+);
 
 /**
  * Middleware de manejo de errores
@@ -313,7 +368,7 @@ app.use((err, req, res, next) => {
       message: 'Servicio temporalmente no disponible',
       error: 'SERVICE_UNAVAILABLE',
       requestId: req.headers['x-request-id'],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -324,7 +379,7 @@ app.use((err, req, res, next) => {
       message: 'Tiempo de espera agotado',
       error: 'GATEWAY_TIMEOUT',
       requestId: req.headers['x-request-id'],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -336,8 +391,8 @@ app.use((err, req, res, next) => {
     timestamp: new Date().toISOString(),
     ...(process.env.NODE_ENV === 'development' && {
       error: err.message,
-      stack: err.stack
-    })
+      stack: err.stack,
+    }),
   });
 });
 
@@ -348,7 +403,7 @@ app.use('*', (req, res) => {
     message: `Ruta ${req.originalUrl} no encontrada`,
     availableRoutes: [
       'GET /health',
-      'GET /status', 
+      'GET /status',
       'GET /info',
       'POST /api/auth/register',
       'POST /api/auth/login',
@@ -361,10 +416,10 @@ app.use('*', (req, res) => {
       'GET /api/enrollments/:id',
       'POST /api/payments',
       'GET /api/payments/my',
-      'PUT /api/payments/:id/confirm'
+      'PUT /api/payments/:id/confirm',
     ],
     requestId: req.headers['x-request-id'],
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 

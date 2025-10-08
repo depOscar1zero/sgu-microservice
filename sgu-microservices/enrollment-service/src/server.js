@@ -13,27 +13,35 @@ const startServer = async () => {
     if (!connected) {
       process.exit(1);
     }
-    
+
     // Sincronizar modelos
     await syncDatabase();
-    
+
     // Iniciar servidor HTTP
     const server = app.listen(PORT, () => {
       console.log('🚀 Enrollment Service iniciado correctamente');
       console.log(`📡 Servidor corriendo en puerto ${PORT}`);
       console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📅 Fecha de inicio: ${new Date().toISOString()}`);
-      
+
       // Configuración de servicios externos
       console.log('\n🔗 Servicios integrados:');
-      console.log(`   Auth Service: ${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}`);
-      console.log(`   Courses Service: ${process.env.COURSES_SERVICE_URL || 'http://localhost:3002'}`);
-      
+      console.log(
+        `   Auth Service: ${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}`
+      );
+      console.log(
+        `   Courses Service: ${process.env.COURSES_SERVICE_URL || 'http://localhost:3002'}`
+      );
+
       // Reglas de negocio
       console.log('\n📋 Reglas de negocio:');
-      console.log(`   Máximo inscripciones por estudiante: ${process.env.MAX_ENROLLMENTS_PER_STUDENT || 8}`);
-      console.log(`   Plazo límite de inscripción: ${process.env.ENROLLMENT_DEADLINE_HOURS || 24} horas`);
-      
+      console.log(
+        `   Máximo inscripciones por estudiante: ${process.env.MAX_ENROLLMENTS_PER_STUDENT || 8}`
+      );
+      console.log(
+        `   Plazo límite de inscripción: ${process.env.ENROLLMENT_DEADLINE_HOURS || 24} horas`
+      );
+
       // Endpoints disponibles
       console.log('\n✅ Endpoints disponibles:');
       console.log(`   GET  http://localhost:${PORT}/health`);
@@ -41,9 +49,15 @@ const startServer = async () => {
       console.log(`   POST http://localhost:${PORT}/api/enrollments`);
       console.log(`   GET  http://localhost:${PORT}/api/enrollments/my`);
       console.log(`   GET  http://localhost:${PORT}/api/enrollments/:id`);
-      console.log(`   PUT  http://localhost:${PORT}/api/enrollments/:id/cancel`);
-      console.log(`   PUT  http://localhost:${PORT}/api/enrollments/:id/payment`);
-      console.log(`   GET  http://localhost:${PORT}/api/enrollments/course/:courseId`);
+      console.log(
+        `   PUT  http://localhost:${PORT}/api/enrollments/:id/cancel`
+      );
+      console.log(
+        `   PUT  http://localhost:${PORT}/api/enrollments/:id/payment`
+      );
+      console.log(
+        `   GET  http://localhost:${PORT}/api/enrollments/course/:courseId`
+      );
       console.log(`   GET  http://localhost:${PORT}/api/enrollments/stats`);
     });
 
@@ -72,13 +86,13 @@ const startServer = async () => {
 };
 
 // Manejo de errores no capturados
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   console.log('💥 UNCAUGHT EXCEPTION! Cerrando Enrollment Service...');
   console.log(err.name, err.message);
   process.exit(1);
 });
 
-process.on('unhandledRejection', (err) => {
+process.on('unhandledRejection', err => {
   console.log('💥 UNHANDLED REJECTION! Cerrando Enrollment Service...');
   console.log(err.name, err.message);
   process.exit(1);

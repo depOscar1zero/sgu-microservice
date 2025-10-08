@@ -1,12 +1,12 @@
-const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/database");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
 /**
  * Modelo de Inscripción
  * Representa la inscripción de un estudiante a un curso
  */
 const Enrollment = sequelize.define(
-  "Enrollment",
+  'Enrollment',
   {
     id: {
       type: DataTypes.UUID,
@@ -18,15 +18,15 @@ const Enrollment = sequelize.define(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      comment: "ID del usuario desde el Auth Service",
-      field: "user_id",
+      comment: 'ID del usuario desde el Auth Service',
+      field: 'user_id',
     },
 
     courseId: {
       type: DataTypes.STRING(24), // MongoDB ObjectId format
       allowNull: false,
-      comment: "ID del curso desde el Courses Service",
-      field: "course_id",
+      comment: 'ID del curso desde el Courses Service',
+      field: 'course_id',
     },
 
     // Información del estudiante (desnormalizada para performance)
@@ -77,28 +77,28 @@ const Enrollment = sequelize.define(
     // Estado de la inscripción
     status: {
       type: DataTypes.ENUM(
-        "Pending", // Pendiente de confirmación
-        "Confirmed", // Confirmada
-        "Paid", // Pagada
-        "Cancelled", // Cancelada
-        "Completed", // Completada
-        "Failed" // Falló por alguna razón
+        'Pending', // Pendiente de confirmación
+        'Confirmed', // Confirmada
+        'Paid', // Pagada
+        'Cancelled', // Cancelada
+        'Completed', // Completada
+        'Failed' // Falló por alguna razón
       ),
       allowNull: false,
-      defaultValue: "Pending",
+      defaultValue: 'Pending',
     },
 
     // Información de pago
     paymentStatus: {
-      type: DataTypes.ENUM("Pending", "Paid", "Failed", "Refunded"),
+      type: DataTypes.ENUM('Pending', 'Paid', 'Failed', 'Refunded'),
       allowNull: false,
-      defaultValue: "Pending",
+      defaultValue: 'Pending',
     },
 
     paymentId: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "ID de la transacción de pago",
+      comment: 'ID de la transacción de pago',
     },
 
     amount: {
@@ -112,7 +112,7 @@ const Enrollment = sequelize.define(
     currency: {
       type: DataTypes.STRING(3),
       allowNull: false,
-      defaultValue: "USD",
+      defaultValue: 'USD',
     },
 
     // Fechas importantes
@@ -153,8 +153,8 @@ const Enrollment = sequelize.define(
       type: DataTypes.UUID,
       allowNull: true,
       comment:
-        "ID del usuario que realizó la inscripción (puede ser diferente al estudiante)",
-      field: "enrolled_by",
+        'ID del usuario que realizó la inscripción (puede ser diferente al estudiante)',
+      field: 'enrolled_by',
     },
 
     grade: {
@@ -164,7 +164,7 @@ const Enrollment = sequelize.define(
         min: 0,
         max: 100,
       },
-      comment: "Calificación final del curso",
+      comment: 'Calificación final del curso',
     },
 
     attendancePercentage: {
@@ -174,34 +174,34 @@ const Enrollment = sequelize.define(
         min: 0,
         max: 100,
       },
-      field: "attendance_percentage",
+      field: 'attendance_percentage',
     },
   },
   {
-    tableName: "enrollments",
+    tableName: 'enrollments',
     indexes: [
       {
         unique: true,
-        fields: ["user_id", "course_id"], // Un estudiante no puede inscribirse dos veces al mismo curso
-        name: "unique_user_course_enrollment",
+        fields: ['user_id', 'course_id'], // Un estudiante no puede inscribirse dos veces al mismo curso
+        name: 'unique_user_course_enrollment',
       },
       {
-        fields: ["user_id"],
+        fields: ['user_id'],
       },
       {
-        fields: ["course_id"],
+        fields: ['course_id'],
       },
       {
-        fields: ["status"],
+        fields: ['status'],
       },
       {
-        fields: ["payment_status"],
+        fields: ['payment_status'],
       },
       {
-        fields: ["enrollment_date"],
+        fields: ['enrollment_date'],
       },
       {
-        fields: ["course_semester"],
+        fields: ['course_semester'],
       },
     ],
   }
@@ -213,15 +213,15 @@ const Enrollment = sequelize.define(
 
 // Confirmar inscripción
 Enrollment.prototype.confirm = async function () {
-  this.status = "Confirmed";
+  this.status = 'Confirmed';
   this.confirmationDate = new Date();
   await this.save();
 };
 
 // Marcar como pagada
 Enrollment.prototype.markAsPaid = async function (paymentId) {
-  this.status = "Paid";
-  this.paymentStatus = "Paid";
+  this.status = 'Paid';
+  this.paymentStatus = 'Paid';
   this.paymentId = paymentId;
   this.paymentDate = new Date();
   await this.save();
@@ -229,7 +229,7 @@ Enrollment.prototype.markAsPaid = async function (paymentId) {
 
 // Cancelar inscripción
 Enrollment.prototype.cancel = async function (reason, cancelledBy) {
-  this.status = "Cancelled";
+  this.status = 'Cancelled';
   this.cancellationDate = new Date();
   this.cancellationReason = reason;
   if (cancelledBy) {
@@ -240,7 +240,7 @@ Enrollment.prototype.cancel = async function (reason, cancelledBy) {
 
 // Completar curso
 Enrollment.prototype.complete = async function (grade, attendance) {
-  this.status = "Completed";
+  this.status = 'Completed';
   if (grade !== undefined) this.grade = grade;
   if (attendance !== undefined) this.attendancePercentage = attendance;
   await this.save();
@@ -248,14 +248,14 @@ Enrollment.prototype.complete = async function (grade, attendance) {
 
 // Verificar si puede ser cancelada
 Enrollment.prototype.canBeCancelled = function () {
-  return ["Pending", "Confirmed", "Paid"].includes(this.status);
+  return ['Pending', 'Confirmed', 'Paid'].includes(this.status);
 };
 
 // Verificar si requiere pago
 Enrollment.prototype.requiresPayment = function () {
   return (
-    this.paymentStatus === "Pending" &&
-    ["Confirmed", "Pending"].includes(this.status)
+    this.paymentStatus === 'Pending' &&
+    ['Confirmed', 'Pending'].includes(this.status)
   );
 };
 
@@ -275,9 +275,9 @@ Enrollment.findActiveByUser = function (userId) {
   return this.findAll({
     where: {
       userId,
-      status: ["Pending", "Confirmed", "Paid"],
+      status: ['Pending', 'Confirmed', 'Paid'],
     },
-    order: [["enrollmentDate", "DESC"]],
+    order: [['enrollmentDate', 'DESC']],
   });
 };
 
@@ -286,9 +286,9 @@ Enrollment.findByCourse = function (courseId) {
   return this.findAll({
     where: {
       courseId,
-      status: ["Confirmed", "Paid", "Completed"],
+      status: ['Confirmed', 'Paid', 'Completed'],
     },
-    order: [["enrollmentDate", "ASC"]],
+    order: [['enrollmentDate', 'ASC']],
   });
 };
 
@@ -297,7 +297,7 @@ Enrollment.countBySemester = function (semester) {
   return this.count({
     where: {
       courseSemester: semester,
-      status: ["Confirmed", "Paid", "Completed"],
+      status: ['Confirmed', 'Paid', 'Completed'],
     },
   });
 };

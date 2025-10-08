@@ -7,15 +7,15 @@
 class AcademicPeriod {
   constructor(value) {
     if (!value) {
-      throw new Error("AcademicPeriod no puede ser nulo o vacío");
+      throw new Error('AcademicPeriod no puede ser nulo o vacío');
     }
 
-    if (typeof value !== "string") {
-      throw new Error("AcademicPeriod debe ser una cadena de texto");
+    if (typeof value !== 'string') {
+      throw new Error('AcademicPeriod debe ser una cadena de texto');
     }
 
     if (value.trim().length === 0) {
-      throw new Error("AcademicPeriod no puede ser una cadena vacía");
+      throw new Error('AcademicPeriod no puede ser una cadena vacía');
     }
 
     this._value = value.trim();
@@ -78,7 +78,7 @@ class AcademicPeriod {
    * @param {string} semester - Semestre (1, 2, 3, 4)
    * @returns {AcademicPeriod}
    */
-  static createCurrent(year = new Date().getFullYear(), semester = "1") {
+  static createCurrent(year = new Date().getFullYear(), semester = '1') {
     const period = `${year}-${semester}`;
     return new AcademicPeriod(period);
   }
@@ -88,7 +88,7 @@ class AcademicPeriod {
    * @returns {number}
    */
   getYear() {
-    const parts = this._value.split("-");
+    const parts = this._value.split('-');
     return parseInt(parts[0]) || new Date().getFullYear();
   }
 
@@ -97,8 +97,8 @@ class AcademicPeriod {
    * @returns {string}
    */
   getSemester() {
-    const parts = this._value.split("-");
-    return parts[1] || "1";
+    const parts = this._value.split('-');
+    return parts[1] || '1';
   }
 }
 

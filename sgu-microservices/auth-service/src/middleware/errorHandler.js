@@ -11,7 +11,7 @@ const errorHandler = (err, req, res, next) => {
     url: req.url,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent')
+    userAgent: req.get('User-Agent'),
   });
 
   // Error de validación de Sequelize
@@ -21,8 +21,8 @@ const errorHandler = (err, req, res, next) => {
       message: 'Los datos proporcionados no son válidos',
       details: err.errors.map(e => ({
         field: e.path,
-        message: e.message
-      }))
+        message: e.message,
+      })),
     });
   }
 
@@ -31,7 +31,7 @@ const errorHandler = (err, req, res, next) => {
     return res.status(409).json({
       error: 'Conflicto de datos',
       message: 'Ya existe un registro con estos datos',
-      field: err.errors[0]?.path || 'campo'
+      field: err.errors[0]?.path || 'campo',
     });
   }
 
@@ -39,7 +39,7 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'SequelizeConnectionError') {
     return res.status(503).json({
       error: 'Error de conexión',
-      message: 'No se pudo conectar a la base de datos'
+      message: 'No se pudo conectar a la base de datos',
     });
   }
 
@@ -47,14 +47,14 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({
       error: 'Token inválido',
-      message: 'El token proporcionado no es válido'
+      message: 'El token proporcionado no es válido',
     });
   }
 
   if (err.name === 'TokenExpiredError') {
     return res.status(401).json({
       error: 'Token expirado',
-      message: 'El token ha expirado, por favor inicia sesión nuevamente'
+      message: 'El token ha expirado, por favor inicia sesión nuevamente',
     });
   }
 
@@ -63,7 +63,7 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).json({
       error: 'Error de validación',
       message: 'Los datos proporcionados no son válidos',
-      details: err.errors
+      details: err.errors,
     });
   }
 
@@ -71,7 +71,8 @@ const errorHandler = (err, req, res, next) => {
   if (err.status === 429) {
     return res.status(429).json({
       error: 'Demasiadas solicitudes',
-      message: 'Has excedido el límite de solicitudes, intenta de nuevo más tarde'
+      message:
+        'Has excedido el límite de solicitudes, intenta de nuevo más tarde',
     });
   }
 
@@ -82,10 +83,10 @@ const errorHandler = (err, req, res, next) => {
   res.status(statusCode).json({
     error: statusCode === 500 ? 'Error interno del servidor' : 'Error',
     message: statusCode === 500 ? 'Ha ocurrido un error inesperado' : message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
 
 module.exports = {
-  errorHandler
+  errorHandler,
 };

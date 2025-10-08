@@ -1,6 +1,6 @@
 /**
  * Factory Method Pattern - Payment Factory
- * 
+ *
  * Este factory se encarga de crear diferentes tipos de pagos
  * según el método de pago y contexto especificado, siguiendo el patrón Factory Method.
  */
@@ -96,7 +96,7 @@ class PaymentFactory {
 class CreditCardPaymentFactory extends PaymentFactory {
   createPayment(data) {
     const { enrollmentId, userId, amount, currency, cardDetails } = data;
-    
+
     return new Payment({
       enrollmentId,
       userId,
@@ -109,24 +109,24 @@ class CreditCardPaymentFactory extends PaymentFactory {
         last4: cardDetails.last4,
         brand: cardDetails.brand,
         expiryMonth: cardDetails.expiryMonth,
-        expiryYear: cardDetails.expiryYear
+        expiryYear: cardDetails.expiryYear,
       },
       metadata: {
         paymentType: 'credit_card',
         cardDetails: {
           brand: cardDetails.brand,
-          last4: cardDetails.last4
-        }
-      }
+          last4: cardDetails.last4,
+        },
+      },
     });
   }
 
   calculateFees(payment) {
     // Fee típico para tarjetas de crédito: 2.9% + $0.30
     const feePercentage = 0.029;
-    const fixedFee = 0.30;
-    
-    payment.processingFee = (payment.amount * feePercentage) + fixedFee;
+    const fixedFee = 0.3;
+
+    payment.processingFee = payment.amount * feePercentage + fixedFee;
     payment.netAmount = payment.amount - payment.processingFee;
   }
 }
@@ -137,7 +137,7 @@ class CreditCardPaymentFactory extends PaymentFactory {
 class DebitCardPaymentFactory extends PaymentFactory {
   createPayment(data) {
     const { enrollmentId, userId, amount, currency, cardDetails } = data;
-    
+
     return new Payment({
       enrollmentId,
       userId,
@@ -150,15 +150,15 @@ class DebitCardPaymentFactory extends PaymentFactory {
         last4: cardDetails.last4,
         brand: cardDetails.brand,
         expiryMonth: cardDetails.expiryMonth,
-        expiryYear: cardDetails.expiryYear
+        expiryYear: cardDetails.expiryYear,
       },
       metadata: {
         paymentType: 'debit_card',
         cardDetails: {
           brand: cardDetails.brand,
-          last4: cardDetails.last4
-        }
-      }
+          last4: cardDetails.last4,
+        },
+      },
     });
   }
 
@@ -166,8 +166,8 @@ class DebitCardPaymentFactory extends PaymentFactory {
     // Fee típico para tarjetas de débito: 1.5% + $0.15
     const feePercentage = 0.015;
     const fixedFee = 0.15;
-    
-    payment.processingFee = (payment.amount * feePercentage) + fixedFee;
+
+    payment.processingFee = payment.amount * feePercentage + fixedFee;
     payment.netAmount = payment.amount - payment.processingFee;
   }
 }
@@ -178,7 +178,7 @@ class DebitCardPaymentFactory extends PaymentFactory {
 class BankTransferPaymentFactory extends PaymentFactory {
   createPayment(data) {
     const { enrollmentId, userId, amount, currency, bankDetails } = data;
-    
+
     return new Payment({
       enrollmentId,
       userId,
@@ -190,24 +190,24 @@ class BankTransferPaymentFactory extends PaymentFactory {
         bankName: bankDetails.bankName,
         accountNumber: bankDetails.accountNumber,
         routingNumber: bankDetails.routingNumber,
-        accountType: bankDetails.accountType
+        accountType: bankDetails.accountType,
       },
       metadata: {
         paymentType: 'bank_transfer',
         bankDetails: {
           bankName: bankDetails.bankName,
-          accountType: bankDetails.accountType
-        }
-      }
+          accountType: bankDetails.accountType,
+        },
+      },
     });
   }
 
   calculateFees(payment) {
     // Fee típico para transferencias bancarias: 0.5% + $0.10
     const feePercentage = 0.005;
-    const fixedFee = 0.10;
-    
-    payment.processingFee = (payment.amount * feePercentage) + fixedFee;
+    const fixedFee = 0.1;
+
+    payment.processingFee = payment.amount * feePercentage + fixedFee;
     payment.netAmount = payment.amount - payment.processingFee;
   }
 }
@@ -218,7 +218,7 @@ class BankTransferPaymentFactory extends PaymentFactory {
 class CashPaymentFactory extends PaymentFactory {
   createPayment(data) {
     const { enrollmentId, userId, amount, currency, cashDetails } = data;
-    
+
     return new Payment({
       enrollmentId,
       userId,
@@ -229,15 +229,15 @@ class CashPaymentFactory extends PaymentFactory {
       paymentMethodDetails: {
         location: cashDetails.location,
         reference: cashDetails.reference,
-        collectedBy: cashDetails.collectedBy
+        collectedBy: cashDetails.collectedBy,
       },
       metadata: {
         paymentType: 'cash',
         cashDetails: {
           location: cashDetails.location,
-          reference: cashDetails.reference
-        }
-      }
+          reference: cashDetails.reference,
+        },
+      },
     });
   }
 
@@ -254,7 +254,7 @@ class CashPaymentFactory extends PaymentFactory {
 class StripePaymentFactory extends PaymentFactory {
   createPayment(data) {
     const { enrollmentId, userId, amount, currency, stripeDetails } = data;
-    
+
     return new Payment({
       enrollmentId,
       userId,
@@ -265,24 +265,24 @@ class StripePaymentFactory extends PaymentFactory {
       stripePaymentIntentId: stripeDetails.paymentIntentId,
       paymentMethodDetails: {
         stripePaymentMethodId: stripeDetails.paymentMethodId,
-        stripeCustomerId: stripeDetails.customerId
+        stripeCustomerId: stripeDetails.customerId,
       },
       metadata: {
         paymentType: 'stripe',
         stripeDetails: {
           paymentIntentId: stripeDetails.paymentIntentId,
-          customerId: stripeDetails.customerId
-        }
-      }
+          customerId: stripeDetails.customerId,
+        },
+      },
     });
   }
 
   calculateFees(payment) {
     // Fee de Stripe: 2.9% + $0.30 para tarjetas, 0.8% para ACH
     const feePercentage = 0.029;
-    const fixedFee = 0.30;
-    
-    payment.processingFee = (payment.amount * feePercentage) + fixedFee;
+    const fixedFee = 0.3;
+
+    payment.processingFee = payment.amount * feePercentage + fixedFee;
     payment.netAmount = payment.amount - payment.processingFee;
   }
 }
@@ -292,8 +292,9 @@ class StripePaymentFactory extends PaymentFactory {
  */
 class TuitionPaymentFactory extends PaymentFactory {
   createPayment(data) {
-    const { enrollmentId, userId, amount, currency, semester, academicYear } = data;
-    
+    const { enrollmentId, userId, amount, currency, semester, academicYear } =
+      data;
+
     return new Payment({
       enrollmentId,
       userId,
@@ -305,17 +306,17 @@ class TuitionPaymentFactory extends PaymentFactory {
         paymentType: 'tuition',
         semester,
         academicYear,
-        description: `Matrícula - ${semester} ${academicYear}`
-      }
+        description: `Matrícula - ${semester} ${academicYear}`,
+      },
     });
   }
 
   calculateFees(payment) {
     // Fee reducido para matrícula: 1.5% + $0.20
     const feePercentage = 0.015;
-    const fixedFee = 0.20;
-    
-    payment.processingFee = (payment.amount * feePercentage) + fixedFee;
+    const fixedFee = 0.2;
+
+    payment.processingFee = payment.amount * feePercentage + fixedFee;
     payment.netAmount = payment.amount - payment.processingFee;
   }
 }
@@ -326,7 +327,7 @@ class TuitionPaymentFactory extends PaymentFactory {
 class MaterialsPaymentFactory extends PaymentFactory {
   createPayment(data) {
     const { enrollmentId, userId, amount, currency, materials } = data;
-    
+
     return new Payment({
       enrollmentId,
       userId,
@@ -337,8 +338,8 @@ class MaterialsPaymentFactory extends PaymentFactory {
       metadata: {
         paymentType: 'materials',
         materials: materials,
-        description: `Materiales académicos - ${materials.join(', ')}`
-      }
+        description: `Materiales académicos - ${materials.join(', ')}`,
+      },
     });
   }
 
@@ -346,8 +347,8 @@ class MaterialsPaymentFactory extends PaymentFactory {
     // Fee estándar para materiales: 2.5% + $0.25
     const feePercentage = 0.025;
     const fixedFee = 0.25;
-    
-    payment.processingFee = (payment.amount * feePercentage) + fixedFee;
+
+    payment.processingFee = payment.amount * feePercentage + fixedFee;
     payment.netAmount = payment.amount - payment.processingFee;
   }
 }
@@ -365,7 +366,7 @@ class PaymentFactoryManager {
       cash: new CashPaymentFactory(),
       stripe: new StripePaymentFactory(),
       tuition: new TuitionPaymentFactory(),
-      materials: new MaterialsPaymentFactory()
+      materials: new MaterialsPaymentFactory(),
     };
   }
 
@@ -377,7 +378,7 @@ class PaymentFactoryManager {
    */
   createPayment(type, data) {
     const factory = this.factories[type];
-    
+
     if (!factory) {
       throw new Error(`Factory para tipo '${type}' no encontrado`);
     }
@@ -393,11 +394,11 @@ class PaymentFactoryManager {
    */
   createPaymentByMethod(paymentMethod, data) {
     const methodFactoryMap = {
-      'credit_card': 'credit_card',
-      'debit_card': 'debit_card',
-      'bank_transfer': 'bank_transfer',
-      'cash': 'cash',
-      'stripe': 'stripe'
+      credit_card: 'credit_card',
+      debit_card: 'debit_card',
+      bank_transfer: 'bank_transfer',
+      cash: 'cash',
+      stripe: 'stripe',
     };
 
     const factoryType = methodFactoryMap[paymentMethod];
@@ -466,7 +467,7 @@ class PaymentFactoryManager {
       amount,
       processingFee: tempPayment.processingFee,
       netAmount: tempPayment.netAmount,
-      feePercentage: tempPayment.processingFee / amount * 100
+      feePercentage: (tempPayment.processingFee / amount) * 100,
     };
   }
 }
@@ -484,5 +485,5 @@ module.exports = {
   TuitionPaymentFactory,
   MaterialsPaymentFactory,
   PaymentFactoryManager,
-  paymentFactoryManager
+  paymentFactoryManager,
 };

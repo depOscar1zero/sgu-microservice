@@ -3,11 +3,11 @@
  * Aplicando principios del Decorator Pattern
  */
 
-const BaseDecorator = require("./BaseDecorator");
-const LoggingDecorator = require("./LoggingDecorator");
-const MetricsDecorator = require("./MetricsDecorator");
-const CachingDecorator = require("./CachingDecorator");
-const SecurityDecorator = require("./SecurityDecorator");
+const BaseDecorator = require('./BaseDecorator');
+const LoggingDecorator = require('./LoggingDecorator');
+const MetricsDecorator = require('./MetricsDecorator');
+const CachingDecorator = require('./CachingDecorator');
+const SecurityDecorator = require('./SecurityDecorator');
 
 class DecoratorFactory {
   /**
@@ -26,19 +26,19 @@ class DecoratorFactory {
       const { type, config = {} } = decoratorConfig;
 
       switch (type) {
-        case "logging":
+        case 'logging':
           decoratedComponent = new LoggingDecorator(decoratedComponent, config);
           break;
 
-        case "metrics":
+        case 'metrics':
           decoratedComponent = new MetricsDecorator(decoratedComponent, config);
           break;
 
-        case "caching":
+        case 'caching':
           decoratedComponent = new CachingDecorator(decoratedComponent, config);
           break;
 
-        case "security":
+        case 'security':
           decoratedComponent = new SecurityDecorator(
             decoratedComponent,
             config
@@ -77,7 +77,7 @@ class DecoratorFactory {
    * @returns {Function} Proxy decorado
    */
   static createDecoratedProxy(proxyConfig, options = {}) {
-    const { createProxyMiddleware } = require("http-proxy-middleware");
+    const { createProxyMiddleware } = require('http-proxy-middleware');
 
     const originalProxy = createProxyMiddleware(proxyConfig);
 
@@ -100,46 +100,46 @@ class DecoratorFactory {
     const baseConfig = {
       decorators: [
         {
-          type: "logging",
-          config: { logLevel: "info", includeHeaders: false },
+          type: 'logging',
+          config: { logLevel: 'info', includeHeaders: false },
         },
         {
-          type: "metrics",
+          type: 'metrics',
           config: { collectResponseTime: true, collectStatusCode: true },
         },
-        { type: "security", config: { enableRequestValidation: true } },
+        { type: 'security', config: { enableRequestValidation: true } },
       ],
     };
 
     switch (routeType) {
-      case "auth":
+      case 'auth':
         return {
           ...baseConfig,
           decorators: [
             ...baseConfig.decorators,
-            { type: "caching", config: { ttl: 60000, maxSize: 50 } }, // 1 minuto para auth
+            { type: 'caching', config: { ttl: 60000, maxSize: 50 } }, // 1 minuto para auth
           ],
         };
 
-      case "courses":
+      case 'courses':
         return {
           ...baseConfig,
           decorators: [
             ...baseConfig.decorators,
-            { type: "caching", config: { ttl: 300000, maxSize: 100 } }, // 5 minutos para courses
+            { type: 'caching', config: { ttl: 300000, maxSize: 100 } }, // 5 minutos para courses
           ],
         };
 
-      case "enrollments":
+      case 'enrollments':
         return {
           ...baseConfig,
           decorators: [
             ...baseConfig.decorators,
-            { type: "caching", config: { ttl: 120000, maxSize: 50 } }, // 2 minutos para enrollments
+            { type: 'caching', config: { ttl: 120000, maxSize: 50 } }, // 2 minutos para enrollments
           ],
         };
 
-      case "payments":
+      case 'payments':
         return {
           ...baseConfig,
           decorators: [
@@ -175,29 +175,29 @@ class DecoratorFactory {
     return {
       builtin: {
         logging: {
-          description: "Logging detallado de requests y responses",
-          options: ["logLevel", "includeHeaders", "includeBody", "logResponse"],
+          description: 'Logging detallado de requests y responses',
+          options: ['logLevel', 'includeHeaders', 'includeBody', 'logResponse'],
         },
         metrics: {
-          description: "Recolección de métricas de performance",
+          description: 'Recolección de métricas de performance',
           options: [
-            "collectResponseTime",
-            "collectStatusCode",
-            "collectUserAgent",
-            "collectIP",
+            'collectResponseTime',
+            'collectStatusCode',
+            'collectUserAgent',
+            'collectIP',
           ],
         },
         caching: {
-          description: "Cache en memoria para responses",
-          options: ["ttl", "maxSize", "cacheKeyGenerator", "shouldCache"],
+          description: 'Cache en memoria para responses',
+          options: ['ttl', 'maxSize', 'cacheKeyGenerator', 'shouldCache'],
         },
         security: {
-          description: "Medidas de seguridad adicionales",
+          description: 'Medidas de seguridad adicionales',
           options: [
-            "enableCORS",
-            "enableHelmet",
-            "enableRateLimit",
-            "enableRequestValidation",
+            'enableCORS',
+            'enableHelmet',
+            'enableRateLimit',
+            'enableRequestValidation',
           ],
         },
       },

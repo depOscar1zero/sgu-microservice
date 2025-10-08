@@ -18,7 +18,7 @@ const {
   PaymentValidatorFactory,
   DeadlineValidatorFactory,
   ValidatorFactoryManager,
-  validatorFactoryManager
+  validatorFactoryManager,
 } = require('../../src/factories/ValidatorFactory');
 
 describe('ValidatorFactory Tests', () => {
@@ -30,7 +30,7 @@ describe('ValidatorFactory Tests', () => {
       factory = new CapacityValidatorFactory();
       validator = factory.buildValidator({
         maxCapacity: 30,
-        currentEnrollments: 25
+        currentEnrollments: 25,
       });
     });
 
@@ -48,7 +48,9 @@ describe('ValidatorFactory Tests', () => {
       const result = validator.performValidation(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('No hay suficientes cupos disponibles. Disponibles: 5, Solicitados: 10');
+      expect(result.errors).toContain(
+        'No hay suficientes cupos disponibles. Disponibles: 5, Solicitados: 10'
+      );
       expect(result.availableSeats).toBe(5);
       expect(result.requestedSeats).toBe(10);
     });
@@ -70,7 +72,7 @@ describe('ValidatorFactory Tests', () => {
       factory = new PrerequisitesValidatorFactory();
       validator = factory.buildValidator({
         requiredCourses: ['MATH-101', 'PHYS-101'],
-        studentCompletedCourses: ['MATH-101', 'PHYS-101', 'CHEM-101']
+        studentCompletedCourses: ['MATH-101', 'PHYS-101', 'CHEM-101'],
       });
     });
 
@@ -80,13 +82,17 @@ describe('ValidatorFactory Tests', () => {
 
       expect(result.isValid).toBe(true);
       expect(result.requiredCourses).toEqual(['MATH-101', 'PHYS-101']);
-      expect(result.completedCourses).toEqual(['MATH-101', 'PHYS-101', 'CHEM-101']);
+      expect(result.completedCourses).toEqual([
+        'MATH-101',
+        'PHYS-101',
+        'CHEM-101',
+      ]);
     });
 
     test('debe fallar cuando faltan prerequisitos', () => {
       const validatorWithMissing = factory.buildValidator({
         requiredCourses: ['MATH-101', 'PHYS-101', 'ENG-101'],
-        studentCompletedCourses: ['MATH-101', 'PHYS-101']
+        studentCompletedCourses: ['MATH-101', 'PHYS-101'],
       });
 
       const data = { studentId: 'student-123', courseId: 'course-456' };
@@ -100,7 +106,7 @@ describe('ValidatorFactory Tests', () => {
     test('debe manejar cuando no hay prerequisitos requeridos', () => {
       const validatorNoPrereqs = factory.buildValidator({
         requiredCourses: [],
-        studentCompletedCourses: ['MATH-101']
+        studentCompletedCourses: ['MATH-101'],
       });
 
       const data = { studentId: 'student-123', courseId: 'course-456' };
@@ -120,17 +126,17 @@ describe('ValidatorFactory Tests', () => {
         courseSchedule: {
           timeSlots: [
             { day: 'Monday', startTime: '10:00', endTime: '12:00' },
-            { day: 'Wednesday', startTime: '10:00', endTime: '12:00' }
-          ]
+            { day: 'Wednesday', startTime: '10:00', endTime: '12:00' },
+          ],
         },
         studentSchedule: [
           {
             timeSlots: [
               { day: 'Tuesday', startTime: '09:00', endTime: '11:00' },
-              { day: 'Thursday', startTime: '14:00', endTime: '16:00' }
-            ]
-          }
-        ]
+              { day: 'Thursday', startTime: '14:00', endTime: '16:00' },
+            ],
+          },
+        ],
       });
     });
 
@@ -145,24 +151,24 @@ describe('ValidatorFactory Tests', () => {
     test('debe fallar cuando hay conflictos de horario', () => {
       const validatorWithConflict = factory.buildValidator({
         courseSchedule: {
-          timeSlots: [
-            { day: 'Monday', startTime: '10:00', endTime: '12:00' }
-          ]
+          timeSlots: [{ day: 'Monday', startTime: '10:00', endTime: '12:00' }],
         },
         studentSchedule: [
           {
             timeSlots: [
-              { day: 'Monday', startTime: '11:00', endTime: '13:00' }
-            ]
-          }
-        ]
+              { day: 'Monday', startTime: '11:00', endTime: '13:00' },
+            ],
+          },
+        ],
       });
 
       const data = { courseId: 'course-123', studentId: 'student-456' };
       const result = validatorWithConflict.performValidation(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Conflicto de horarios: Monday 10:00-12:00');
+      expect(result.errors).toContain(
+        'Conflicto de horarios: Monday 10:00-12:00'
+      );
       expect(result.conflicts).toContain('Monday 10:00-12:00');
     });
   });
@@ -177,7 +183,7 @@ describe('ValidatorFactory Tests', () => {
         minGPA: 2.0,
         requiredStatus: 'active',
         studentGPA: 3.2,
-        studentStatus: 'active'
+        studentStatus: 'active',
       });
     });
 
@@ -195,14 +201,16 @@ describe('ValidatorFactory Tests', () => {
         minGPA: 2.5,
         requiredStatus: 'active',
         studentGPA: 2.0,
-        studentStatus: 'active'
+        studentStatus: 'active',
       });
 
       const data = { studentId: 'student-123' };
       const result = validatorLowGPA.performValidation(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('GPA insuficiente. Requerido: 2.5, Actual: 2');
+      expect(result.errors).toContain(
+        'GPA insuficiente. Requerido: 2.5, Actual: 2'
+      );
     });
 
     test('debe fallar cuando el estado académico no es válido', () => {
@@ -210,14 +218,16 @@ describe('ValidatorFactory Tests', () => {
         minGPA: 2.0,
         requiredStatus: 'active',
         studentGPA: 3.2,
-        studentStatus: 'suspended'
+        studentStatus: 'suspended',
       });
 
       const data = { studentId: 'student-123' };
       const result = validatorInvalidStatus.performValidation(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Estado académico inválido. Requerido: active, Actual: suspended');
+      expect(result.errors).toContain(
+        'Estado académico inválido. Requerido: active, Actual: suspended'
+      );
     });
   });
 
@@ -229,7 +239,7 @@ describe('ValidatorFactory Tests', () => {
       factory = new PaymentValidatorFactory();
       validator = factory.buildValidator({
         allowEnrollmentWithPendingPayments: false,
-        studentPendingPayments: []
+        studentPendingPayments: [],
       });
     });
 
@@ -245,15 +255,17 @@ describe('ValidatorFactory Tests', () => {
       const validatorWithPending = factory.buildValidator({
         allowEnrollmentWithPendingPayments: false,
         studentPendingPayments: [
-          { id: 'payment-1', amount: 100.00, dueDate: '2024-01-15' }
-        ]
+          { id: 'payment-1', amount: 100.0, dueDate: '2024-01-15' },
+        ],
       });
 
       const data = { studentId: 'student-123' };
       const result = validatorWithPending.performValidation(data);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('No se puede inscribir con pagos pendientes');
+      expect(result.errors).toContain(
+        'No se puede inscribir con pagos pendientes'
+      );
       expect(result.pendingPayments).toHaveLength(1);
     });
 
@@ -261,15 +273,17 @@ describe('ValidatorFactory Tests', () => {
       const validatorAllowPending = factory.buildValidator({
         allowEnrollmentWithPendingPayments: true,
         studentPendingPayments: [
-          { id: 'payment-1', amount: 100.00, dueDate: '2024-01-15' }
-        ]
+          { id: 'payment-1', amount: 100.0, dueDate: '2024-01-15' },
+        ],
       });
 
       const data = { studentId: 'student-123' };
       const result = validatorAllowPending.performValidation(data);
 
       expect(result.isValid).toBe(true);
-      expect(result.warning).toBe('Hay pagos pendientes pero se permite la inscripción');
+      expect(result.warning).toBe(
+        'Hay pagos pendientes pero se permite la inscripción'
+      );
     });
   });
 
@@ -281,10 +295,10 @@ describe('ValidatorFactory Tests', () => {
       factory = new DeadlineValidatorFactory();
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 7);
-      
+
       validator = factory.buildValidator({
         enrollmentDeadline: futureDate,
-        currentDate: new Date()
+        currentDate: new Date(),
       });
     });
 
@@ -298,10 +312,10 @@ describe('ValidatorFactory Tests', () => {
     test('debe fallar cuando la fecha actual está después del límite', () => {
       const pastDate = new Date();
       pastDate.setDate(pastDate.getDate() - 7);
-      
+
       const validatorExpired = factory.buildValidator({
         enrollmentDeadline: pastDate,
-        currentDate: new Date()
+        currentDate: new Date(),
       });
 
       const data = { courseId: 'course-123' };
@@ -316,21 +330,34 @@ describe('ValidatorFactory Tests', () => {
     test('debe crear validador usando el factory apropiado', () => {
       const config = {
         maxCapacity: 30,
-        currentEnrollments: 25
+        currentEnrollments: 25,
       };
 
-      const validator = validatorFactoryManager.createValidator('capacity', config);
+      const validator = validatorFactoryManager.createValidator(
+        'capacity',
+        config
+      );
 
       expect(validator).toBeInstanceOf(CapacityValidator);
     });
 
     test('debe crear múltiples validadores', () => {
       const validatorConfigs = [
-        { type: 'capacity', config: { maxCapacity: 30, currentEnrollments: 25 } },
-        { type: 'prerequisites', config: { requiredCourses: ['MATH-101'], studentCompletedCourses: ['MATH-101'] } }
+        {
+          type: 'capacity',
+          config: { maxCapacity: 30, currentEnrollments: 25 },
+        },
+        {
+          type: 'prerequisites',
+          config: {
+            requiredCourses: ['MATH-101'],
+            studentCompletedCourses: ['MATH-101'],
+          },
+        },
       ];
 
-      const validators = validatorFactoryManager.createMultipleValidators(validatorConfigs);
+      const validators =
+        validatorFactoryManager.createMultipleValidators(validatorConfigs);
 
       expect(validators).toHaveLength(2);
       expect(validators[0]).toBeInstanceOf(CapacityValidator);
@@ -349,16 +376,21 @@ describe('ValidatorFactory Tests', () => {
         minGPA: 2.0,
         studentStatus: 'active',
         studentPendingPayments: [],
-        enrollmentDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        enrollmentDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       };
 
-      const validators = validatorFactoryManager.createEnrollmentValidators(enrollmentConfig);
+      const validators =
+        validatorFactoryManager.createEnrollmentValidators(enrollmentConfig);
 
       expect(validators).toHaveLength(6); // Todos los validadores
       expect(validators.some(v => v instanceof CapacityValidator)).toBe(true);
-      expect(validators.some(v => v instanceof PrerequisitesValidator)).toBe(true);
+      expect(validators.some(v => v instanceof PrerequisitesValidator)).toBe(
+        true
+      );
       expect(validators.some(v => v instanceof ScheduleValidator)).toBe(true);
-      expect(validators.some(v => v instanceof AcademicStatusValidator)).toBe(true);
+      expect(validators.some(v => v instanceof AcademicStatusValidator)).toBe(
+        true
+      );
       expect(validators.some(v => v instanceof PaymentValidator)).toBe(true);
       expect(validators.some(v => v instanceof DeadlineValidator)).toBe(true);
     });
@@ -393,7 +425,10 @@ describe('ValidatorFactory Tests', () => {
         }
       }
 
-      validatorFactoryManager.registerFactory('custom', new CustomValidatorFactory());
+      validatorFactoryManager.registerFactory(
+        'custom',
+        new CustomValidatorFactory()
+      );
 
       const validator = validatorFactoryManager.createValidator('custom', {});
       const result = validator.performValidation({});
@@ -415,7 +450,7 @@ describe('ValidatorFactory Tests', () => {
     test('debe configurar validador correctamente', () => {
       const factory = new CapacityValidatorFactory();
       const config = { maxCapacity: 30, currentEnrollments: 25 };
-      
+
       const validator = factory.buildValidator(config);
 
       expect(validator.maxCapacity).toBe(30);

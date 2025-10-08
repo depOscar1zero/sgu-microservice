@@ -1,15 +1,15 @@
-const User = require("../models/User");
-const { generateToken } = require("../config/auth");
-const { catchAsync, AppError } = require("../middleware/errorHandler");
-const axios = require("axios");
+const User = require('../models/User');
+const { generateToken } = require('../config/auth');
+const { catchAsync, AppError } = require('../middleware/errorHandler');
+const axios = require('axios');
 
 /**
  * Función para enviar notificación de bienvenida
  */
-const sendWelcomeNotification = async (user) => {
+const sendWelcomeNotification = async user => {
   try {
     const notificationsUrl =
-      process.env.NOTIFICATIONS_SERVICE_URL || "http://localhost:3005";
+      process.env.NOTIFICATIONS_SERVICE_URL || 'http://localhost:3005';
 
     const notificationData = {
       recipient: {
@@ -17,13 +17,13 @@ const sendWelcomeNotification = async (user) => {
         email: user.email,
         name: `${user.firstName} ${user.lastName}`,
       },
-      subject: "¡Bienvenido al Sistema de Gestión Universitaria!",
+      subject: '¡Bienvenido al Sistema de Gestión Universitaria!',
       message: `
         <h2>¡Bienvenido a SGU!</h2>
         <p>Hola <strong>${user.firstName}</strong>,</p>
         <p>Tu cuenta ha sido creada exitosamente en el Sistema de Gestión Universitaria.</p>
         <p><strong>ID de Estudiante:</strong> ${
-          user.studentId || "Pendiente"
+          user.studentId || 'Pendiente'
         }</p>
         <p>Ahora puedes acceder al sistema y comenzar a gestionar tus cursos y pagos.</p>
         <hr style="margin: 20px 0;">
@@ -31,15 +31,15 @@ const sendWelcomeNotification = async (user) => {
           Este es un email automático del Sistema de Gestión Universitaria.
         </p>
       `,
-      type: "email",
-      channel: "email",
-      priority: "normal",
-      category: "welcome",
+      type: 'email',
+      channel: 'email',
+      priority: 'normal',
+      category: 'welcome',
       metadata: {
-        templateId: "welcome_template",
+        templateId: 'welcome_template',
         variables: {
           userName: `${user.firstName} ${user.lastName}`,
-          studentId: user.studentId || "Pendiente",
+          studentId: user.studentId || 'Pendiente',
         },
       },
     };
@@ -51,7 +51,7 @@ const sendWelcomeNotification = async (user) => {
     console.log(`✅ Notificación de bienvenida enviada a ${user.email}`);
   } catch (error) {
     console.error(
-      "❌ Error enviando notificación de bienvenida:",
+      '❌ Error enviando notificación de bienvenida:',
       error.message
     );
     // No lanzar error para no interrumpir el registro
@@ -66,19 +66,19 @@ const register = catchAsync(async (req, res) => {
 
   // Validaciones básicas
   if (!firstName || !lastName || !email || !password) {
-    throw new AppError("Todos los campos son requeridos", 400);
+    throw new AppError('Todos los campos son requeridos', 400);
   }
 
   // Verificar si el email ya existe
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) {
-    throw new AppError("El email ya está registrado", 409);
+    throw new AppError('El email ya está registrado', 409);
   }
 
   // Si es estudiante, verificar que tenga studentId
-  if (role === "student" && !studentId) {
+  if (role === 'student' && !studentId) {
     throw new AppError(
-      "Los estudiantes deben proporcionar un ID de estudiante",
+      'Los estudiantes deben proporcionar un ID de estudiante',
       400
     );
   }
@@ -89,7 +89,7 @@ const register = catchAsync(async (req, res) => {
     lastName,
     email,
     password,
-    role: role || "student",
+    role: role || 'student',
   };
 
   if (studentId) {
@@ -106,7 +106,7 @@ const register = catchAsync(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: "Usuario registrado exitosamente",
+    message: 'Usuario registrado exitosamente',
     data: {
       user: user.toPublicJSON(),
       token,
@@ -123,24 +123,24 @@ const login = catchAsync(async (req, res) => {
 
   // Validar campos requeridos
   if (!email || !password) {
-    throw new AppError("Email y contraseña son requeridos", 400);
+    throw new AppError('Email y contraseña son requeridos', 400);
   }
 
   // Buscar usuario por email
   const user = await User.findOne({ where: { email } });
   if (!user) {
-    throw new AppError("Credenciales inválidas", 401);
+    throw new AppError('Credenciales inválidas', 401);
   }
 
   // Verificar si el usuario está activo
   if (!user.isActive) {
-    throw new AppError("Usuario inactivo", 401);
+    throw new AppError('Usuario inactivo', 401);
   }
 
   // Verificar contraseña
   const isPasswordValid = await user.checkPassword(password);
   if (!isPasswordValid) {
-    throw new AppError("Credenciales inválidas", 401);
+    throw new AppError('Credenciales inválidas', 401);
   }
 
   // Actualizar último login
@@ -151,7 +151,7 @@ const login = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Inicio de sesión exitoso",
+    message: 'Inicio de sesión exitoso',
     data: {
       user: user.toPublicJSON(),
       token,
@@ -168,7 +168,7 @@ const getProfile = catchAsync(async (req, res) => {
   const user = await User.findByPk(req.user.userId);
 
   if (!user) {
-    throw new AppError("Usuario no encontrado", 404);
+    throw new AppError('Usuario no encontrado', 404);
   }
 
   res.status(200).json({
@@ -187,7 +187,7 @@ const refreshToken = catchAsync(async (req, res) => {
   const user = await User.findByPk(req.user.userId);
 
   if (!user || !user.isActive) {
-    throw new AppError("Usuario no válido", 401);
+    throw new AppError('Usuario no válido', 401);
   }
 
   // Generar nuevo token
@@ -195,7 +195,7 @@ const refreshToken = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Token renovado exitosamente",
+    message: 'Token renovado exitosamente',
     data: {
       token,
     },
@@ -210,12 +210,12 @@ const changePassword = catchAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    throw new AppError("Contraseña actual y nueva son requeridas", 400);
+    throw new AppError('Contraseña actual y nueva son requeridas', 400);
   }
 
   if (newPassword.length < 6) {
     throw new AppError(
-      "La nueva contraseña debe tener al menos 6 caracteres",
+      'La nueva contraseña debe tener al menos 6 caracteres',
       400
     );
   }
@@ -225,7 +225,7 @@ const changePassword = catchAsync(async (req, res) => {
   // Verificar contraseña actual
   const isCurrentPasswordValid = await user.checkPassword(currentPassword);
   if (!isCurrentPasswordValid) {
-    throw new AppError("Contraseña actual incorrecta", 400);
+    throw new AppError('Contraseña actual incorrecta', 400);
   }
 
   // Actualizar contraseña
@@ -234,7 +234,7 @@ const changePassword = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Contraseña actualizada exitosamente",
+    message: 'Contraseña actualizada exitosamente',
     timestamp: new Date().toISOString(),
   });
 });

@@ -3,10 +3,10 @@
  * Aplicando principios del Decorator Pattern
  */
 
-const { describe, test, expect, beforeEach } = require("@jest/globals");
-const MetricsDecorator = require("../../src/decorators/MetricsDecorator");
+const { describe, test, expect, beforeEach } = require('@jest/globals');
+const MetricsDecorator = require('../../src/decorators/MetricsDecorator');
 
-describe("MetricsDecorator", () => {
+describe('MetricsDecorator', () => {
   let mockComponent;
   let mockReq;
   let mockRes;
@@ -20,15 +20,15 @@ describe("MetricsDecorator", () => {
 
     // Mock de request
     mockReq = {
-      method: "GET",
-      url: "/api/test",
+      method: 'GET',
+      url: '/api/test',
       headers: {
-        "x-request-id": "test-123",
-        "User-Agent": "Test Agent",
+        'x-request-id': 'test-123',
+        'User-Agent': 'Test Agent',
       },
-      ip: "127.0.0.1",
-      body: { test: "data" },
-      get: jest.fn().mockReturnValue("Test Agent"),
+      ip: '127.0.0.1',
+      body: { test: 'data' },
+      get: jest.fn().mockReturnValue('Test Agent'),
     };
 
     // Mock de response
@@ -41,15 +41,15 @@ describe("MetricsDecorator", () => {
     mockNext = jest.fn();
   });
 
-  describe("Creación del decorador", () => {
-    test("debe crear un decorador con opciones por defecto", () => {
+  describe('Creación del decorador', () => {
+    test('debe crear un decorador con opciones por defecto', () => {
       const decorator = new MetricsDecorator(mockComponent);
 
       expect(decorator.getComponent()).toBe(mockComponent);
-      expect(decorator.getName()).toBe("MetricsDecorator");
+      expect(decorator.getName()).toBe('MetricsDecorator');
     });
 
-    test("debe crear un decorador con opciones personalizadas", () => {
+    test('debe crear un decorador con opciones personalizadas', () => {
       const options = {
         collectResponseTime: true,
         collectStatusCode: true,
@@ -63,8 +63,8 @@ describe("MetricsDecorator", () => {
     });
   });
 
-  describe("Recolección de métricas", () => {
-    test("debe recolectar métricas básicas", () => {
+  describe('Recolección de métricas', () => {
+    test('debe recolectar métricas básicas', () => {
       const decorator = new MetricsDecorator(mockComponent);
 
       decorator.handle(mockReq, mockRes, mockNext);
@@ -74,11 +74,11 @@ describe("MetricsDecorator", () => {
 
       expect(metrics.summary.totalRequests).toBe(1);
       expect(metrics.summary.totalErrors).toBe(0);
-      expect(metrics.summary.errorRate).toBe("0.00%");
+      expect(metrics.summary.errorRate).toBe('0.00%');
       expect(metrics.statusCodes[200]).toBe(1);
     });
 
-    test("debe recolectar tiempo de respuesta", () => {
+    test('debe recolectar tiempo de respuesta', () => {
       const decorator = new MetricsDecorator(mockComponent);
 
       decorator.handle(mockReq, mockRes, mockNext);
@@ -91,7 +91,7 @@ describe("MetricsDecorator", () => {
       expect(metrics.summary.maxResponseTime).toMatch(/\d+ms/);
     });
 
-    test("debe contar errores correctamente", () => {
+    test('debe contar errores correctamente', () => {
       const decorator = new MetricsDecorator(mockComponent);
 
       // Request con error
@@ -103,11 +103,11 @@ describe("MetricsDecorator", () => {
 
       expect(metrics.summary.totalRequests).toBe(1);
       expect(metrics.summary.totalErrors).toBe(1);
-      expect(metrics.summary.errorRate).toBe("100.00%");
+      expect(metrics.summary.errorRate).toBe('100.00%');
       expect(metrics.statusCodes[500]).toBe(1);
     });
 
-    test("debe recolectar User Agents cuando está habilitado", () => {
+    test('debe recolectar User Agents cuando está habilitado', () => {
       const options = { collectUserAgent: true };
       const decorator = new MetricsDecorator(mockComponent, options);
 
@@ -117,10 +117,10 @@ describe("MetricsDecorator", () => {
       const metrics = decorator.getMetrics();
 
       expect(metrics.userAgents).toBeDefined();
-      expect(metrics.userAgents["Test Agent"]).toBe(1);
+      expect(metrics.userAgents['Test Agent']).toBe(1);
     });
 
-    test("debe recolectar IPs cuando está habilitado", () => {
+    test('debe recolectar IPs cuando está habilitado', () => {
       const options = { collectIP: true };
       const decorator = new MetricsDecorator(mockComponent, options);
 
@@ -130,12 +130,12 @@ describe("MetricsDecorator", () => {
       const metrics = decorator.getMetrics();
 
       expect(metrics.ips).toBeDefined();
-      expect(metrics.ips["127.0.0.1"]).toBe(1);
+      expect(metrics.ips['127.0.0.1']).toBe(1);
     });
   });
 
-  describe("Gestión de métricas", () => {
-    test("debe resetear métricas", () => {
+  describe('Gestión de métricas', () => {
+    test('debe resetear métricas', () => {
       const decorator = new MetricsDecorator(mockComponent);
 
       // Agregar algunas métricas
@@ -150,10 +150,10 @@ describe("MetricsDecorator", () => {
       const metrics = decorator.getMetrics();
       expect(metrics.summary.totalRequests).toBe(0);
       expect(metrics.summary.totalErrors).toBe(0);
-      expect(metrics.summary.errorRate).toBe("0%");
+      expect(metrics.summary.errorRate).toBe('0%');
     });
 
-    test("debe mantener límite de response times", () => {
+    test('debe mantener límite de response times', () => {
       const decorator = new MetricsDecorator(mockComponent);
 
       // Simular muchas requests
@@ -169,8 +169,8 @@ describe("MetricsDecorator", () => {
     });
   });
 
-  describe("Cálculo de estadísticas", () => {
-    test("debe calcular promedio de tiempo de respuesta", () => {
+  describe('Cálculo de estadísticas', () => {
+    test('debe calcular promedio de tiempo de respuesta', () => {
       const decorator = new MetricsDecorator(mockComponent);
 
       // Simular requests con diferentes tiempos
@@ -185,7 +185,7 @@ describe("MetricsDecorator", () => {
       expect(metrics.summary.maxResponseTime).toMatch(/\d+ms/);
     });
 
-    test("debe calcular tasa de error correctamente", () => {
+    test('debe calcular tasa de error correctamente', () => {
       // Crear un nuevo decorador completamente aislado
       const isolatedComponent = { handle: jest.fn() };
       const decorator = new MetricsDecorator(isolatedComponent);
@@ -198,12 +198,12 @@ describe("MetricsDecorator", () => {
       const metrics = decorator.getMetrics();
       expect(metrics.summary.totalRequests).toBe(1);
       expect(metrics.summary.totalErrors).toBe(1);
-      expect(metrics.summary.errorRate).toBe("100.00%");
+      expect(metrics.summary.errorRate).toBe('100.00%');
     });
   });
 
-  describe("Opciones del decorador", () => {
-    test("debe retornar opciones configuradas", () => {
+  describe('Opciones del decorador', () => {
+    test('debe retornar opciones configuradas', () => {
       const options = {
         collectResponseTime: false,
         collectStatusCode: true,
@@ -217,7 +217,7 @@ describe("MetricsDecorator", () => {
       expect(returnedOptions).toEqual(expect.objectContaining(options));
     });
 
-    test("debe usar opciones por defecto", () => {
+    test('debe usar opciones por defecto', () => {
       const decorator = new MetricsDecorator(mockComponent);
       const options = decorator.getOptions();
 

@@ -1,5 +1,5 @@
-const { ValidationStrategy } = require("./ValidationStrategy");
-const Enrollment = require("../models/Enrollment");
+const { ValidationStrategy } = require('./ValidationStrategy');
+const Enrollment = require('../models/Enrollment');
 
 /**
  * Estrategia para validar límites de inscripción del estudiante
@@ -30,7 +30,7 @@ class EnrollmentLimitValidationStrategy extends ValidationStrategy {
           details: {
             currentEnrollments: activeEnrollments.length,
             maxEnrollments: maxEnrollments,
-            activeEnrollments: activeEnrollments.map((e) => ({
+            activeEnrollments: activeEnrollments.map(e => ({
               id: e.id,
               courseCode: e.courseCode,
               courseName: e.courseName,
@@ -53,7 +53,7 @@ class EnrollmentLimitValidationStrategy extends ValidationStrategy {
     } catch (error) {
       return {
         isValid: false,
-        error: "Error verificando límites de inscripción",
+        error: 'Error verificando límites de inscripción',
         details: error.message,
         strategy: this.getStrategyName(),
       };

@@ -4,7 +4,7 @@
  * Aplicando principios de Domain-Driven Design (DDD)
  */
 
-const { EnrollmentStatus } = require("../value-objects/EnrollmentStatus");
+const { EnrollmentStatus } = require('../value-objects/EnrollmentStatus');
 
 class EnrollmentDomainService {
   /**
@@ -28,7 +28,7 @@ class EnrollmentDomainService {
 
     // Verificar si ya está inscrito en el curso
     const alreadyEnrolled = existingEnrollments.find(
-      (enrollment) =>
+      enrollment =>
         enrollment.courseId === courseId &&
         [
           EnrollmentStatus.PENDING,
@@ -38,35 +38,33 @@ class EnrollmentDomainService {
     );
 
     if (alreadyEnrolled) {
-      errors.push("El estudiante ya está inscrito en este curso");
+      errors.push('El estudiante ya está inscrito en este curso');
     }
 
     // Verificar capacidad del curso
     if (courseInfo.enrolled >= courseInfo.capacity) {
-      errors.push("El curso está lleno");
+      errors.push('El curso está lleno');
     }
 
     // Verificar prerrequisitos
     if (prerequisites && prerequisites.length > 0) {
       const completedCourses = existingEnrollments
-        .filter(
-          (enrollment) => enrollment.status === EnrollmentStatus.COMPLETED
-        )
-        .map((enrollment) => enrollment.courseId);
+        .filter(enrollment => enrollment.status === EnrollmentStatus.COMPLETED)
+        .map(enrollment => enrollment.courseId);
 
       const missingPrerequisites = prerequisites.filter(
-        (prerequisite) => !completedCourses.includes(prerequisite)
+        prerequisite => !completedCourses.includes(prerequisite)
       );
 
       if (missingPrerequisites.length > 0) {
         errors.push(
-          `Faltan prerrequisitos: ${missingPrerequisites.join(", ")}`
+          `Faltan prerrequisitos: ${missingPrerequisites.join(', ')}`
         );
       }
     }
 
     // Verificar límite de inscripciones activas
-    const activeEnrollments = existingEnrollments.filter((enrollment) =>
+    const activeEnrollments = existingEnrollments.filter(enrollment =>
       [
         EnrollmentStatus.PENDING,
         EnrollmentStatus.CONFIRMED,
@@ -76,17 +74,17 @@ class EnrollmentDomainService {
 
     if (activeEnrollments.length >= 8) {
       // Límite configurable
-      errors.push("Has alcanzado el límite máximo de inscripciones activas");
+      errors.push('Has alcanzado el límite máximo de inscripciones activas');
     }
 
     // Verificar si el curso está disponible
-    if (courseInfo.status !== "ACTIVE") {
-      errors.push("El curso no está disponible para inscripción");
+    if (courseInfo.status !== 'ACTIVE') {
+      errors.push('El curso no está disponible para inscripción');
     }
 
     // Verificar si el curso es visible
     if (!courseInfo.isVisible) {
-      errors.push("El curso no está visible para inscripción");
+      errors.push('El curso no está visible para inscripción');
     }
 
     return {
@@ -95,13 +93,12 @@ class EnrollmentDomainService {
       warnings,
       missingPrerequisites: prerequisites
         ? prerequisites.filter(
-            (prerequisite) =>
+            prerequisite =>
               !existingEnrollments
                 .filter(
-                  (enrollment) =>
-                    enrollment.status === EnrollmentStatus.COMPLETED
+                  enrollment => enrollment.status === EnrollmentStatus.COMPLETED
                 )
-                .map((enrollment) => enrollment.courseId)
+                .map(enrollment => enrollment.courseId)
                 .includes(prerequisite)
           )
         : [],
@@ -125,7 +122,7 @@ class EnrollmentDomainService {
       refundedAmount: 0,
     };
 
-    enrollments.forEach((enrollment) => {
+    enrollments.forEach(enrollment => {
       if (
         [
           EnrollmentStatus.PENDING,
@@ -142,11 +139,11 @@ class EnrollmentDomainService {
 
       summary.totalAmount += enrollment.amount || 0;
 
-      if (enrollment.paymentStatus === "Paid") {
+      if (enrollment.paymentStatus === 'Paid') {
         summary.paidAmount += enrollment.amount || 0;
-      } else if (enrollment.paymentStatus === "Pending") {
+      } else if (enrollment.paymentStatus === 'Pending') {
         summary.pendingAmount += enrollment.amount || 0;
-      } else if (enrollment.paymentStatus === "Refunded") {
+      } else if (enrollment.paymentStatus === 'Refunded') {
         summary.refundedAmount += enrollment.amount || 0;
       }
     });
@@ -166,7 +163,7 @@ class EnrollmentDomainService {
 
     // Verificar si la inscripción puede ser cancelada
     if (!enrollment.canBeCancelled()) {
-      errors.push("Esta inscripción no puede ser cancelada");
+      errors.push('Esta inscripción no puede ser cancelada');
     }
 
     // Verificar si ha pasado el plazo de cancelación (24 horas)
@@ -175,12 +172,12 @@ class EnrollmentDomainService {
       (currentDate - enrollmentDate) / (1000 * 60 * 60);
 
     if (hoursSinceEnrollment > 24) {
-      warnings.push("Ha pasado el plazo de cancelación (24 horas)");
+      warnings.push('Ha pasado el plazo de cancelación (24 horas)');
     }
 
     // Verificar si ya se ha pagado
-    if (enrollment.paymentStatus === "Paid") {
-      warnings.push("La inscripción ya ha sido pagada, se requerirá reembolso");
+    if (enrollment.paymentStatus === 'Paid') {
+      warnings.push('La inscripción ya ha sido pagada, se requerirá reembolso');
     }
 
     return {
@@ -213,7 +210,7 @@ class EnrollmentDomainService {
     let gradeCount = 0;
     let attendanceCount = 0;
 
-    enrollments.forEach((enrollment) => {
+    enrollments.forEach(enrollment => {
       if (
         [
           EnrollmentStatus.PENDING,
@@ -230,7 +227,7 @@ class EnrollmentDomainService {
 
       stats.totalRevenue += enrollment.amount || 0;
 
-      if (enrollment.paymentStatus === "Paid") {
+      if (enrollment.paymentStatus === 'Paid') {
         stats.paidRevenue += enrollment.amount || 0;
       }
 
@@ -275,7 +272,7 @@ class EnrollmentDomainService {
     }
 
     const missingPrerequisites = prerequisites.filter(
-      (prerequisite) => !completedCourses.includes(prerequisite)
+      prerequisite => !completedCourses.includes(prerequisite)
     );
 
     return {

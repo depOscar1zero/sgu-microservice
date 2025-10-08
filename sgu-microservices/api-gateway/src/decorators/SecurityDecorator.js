@@ -3,7 +3,7 @@
  * Aplica medidas de seguridad adicionales
  */
 
-const BaseDecorator = require("./BaseDecorator");
+const BaseDecorator = require('./BaseDecorator');
 
 class SecurityDecorator extends BaseDecorator {
   constructor(component, options = {}) {
@@ -13,8 +13,8 @@ class SecurityDecorator extends BaseDecorator {
       enableHelmet: options.enableHelmet !== false,
       enableRateLimit: options.enableRateLimit !== false,
       enableRequestValidation: options.enableRequestValidation !== false,
-      maxRequestSize: options.maxRequestSize || "10mb",
-      allowedOrigins: options.allowedOrigins || ["http://localhost:3000"],
+      maxRequestSize: options.maxRequestSize || '10mb',
+      allowedOrigins: options.allowedOrigins || ['http://localhost:3000'],
       ...options,
     };
 
@@ -42,12 +42,12 @@ class SecurityDecorator extends BaseDecorator {
   handle(req, res, next) {
     // Verificar IP bloqueada
     if (this._isIPBlocked(req)) {
-      return this._sendSecurityResponse(res, 403, "IP bloqueada");
+      return this._sendSecurityResponse(res, 403, 'IP bloqueada');
     }
 
     // Validar request
     if (this._options.enableRequestValidation && !this._isValidRequest(req)) {
-      return this._sendSecurityResponse(res, 400, "Request inválida");
+      return this._sendSecurityResponse(res, 400, 'Request inválida');
     }
 
     // Aplicar headers de seguridad
@@ -55,7 +55,7 @@ class SecurityDecorator extends BaseDecorator {
 
     // Interceptar la respuesta para logging de seguridad
     const originalSend = res.send;
-    res.send = (data) => {
+    res.send = data => {
       this._logSecurityEvent(req, res);
       return originalSend.call(res, data);
     };
@@ -81,7 +81,7 @@ class SecurityDecorator extends BaseDecorator {
    */
   _isValidRequest(req) {
     // Verificar tamaño de request
-    const contentLength = parseInt(req.get("Content-Length") || "0");
+    const contentLength = parseInt(req.get('Content-Length') || '0');
     const maxSize = this._parseSize(this._options.maxRequestSize);
 
     if (contentLength > maxSize) {
@@ -112,7 +112,7 @@ class SecurityDecorator extends BaseDecorator {
    * @returns {boolean} True si contiene patrones sospechosos
    */
   _containsSuspiciousPattern(text) {
-    return this._suspiciousPatterns.some((pattern) => pattern.test(text));
+    return this._suspiciousPatterns.some(pattern => pattern.test(text));
   }
 
   /**
@@ -121,24 +121,24 @@ class SecurityDecorator extends BaseDecorator {
    */
   _applySecurityHeaders(res) {
     if (this._options.enableHelmet) {
-      res.setHeader("X-Content-Type-Options", "nosniff");
-      res.setHeader("X-Frame-Options", "DENY");
-      res.setHeader("X-XSS-Protection", "1; mode=block");
-      res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     }
 
     if (this._options.enableCORS) {
       res.setHeader(
-        "Access-Control-Allow-Origin",
-        this._options.allowedOrigins.join(", ")
+        'Access-Control-Allow-Origin',
+        this._options.allowedOrigins.join(', ')
       );
       res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS"
+        'Access-Control-Allow-Methods',
+        'GET, POST, PUT, DELETE, OPTIONS'
       );
       res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization"
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization'
       );
     }
   }
@@ -150,7 +150,7 @@ class SecurityDecorator extends BaseDecorator {
    */
   _logSecurityEvent(req, res) {
     const ip = req.ip || req.connection.remoteAddress;
-    const userAgent = req.get("User-Agent");
+    const userAgent = req.get('User-Agent');
 
     // Log de requests sospechosas
     if (res.statusCode >= 400) {
@@ -174,7 +174,7 @@ class SecurityDecorator extends BaseDecorator {
     res.status(statusCode).json({
       success: false,
       message,
-      error: "SECURITY_VIOLATION",
+      error: 'SECURITY_VIOLATION',
       timestamp: new Date().toISOString(),
     });
   }

@@ -9,7 +9,7 @@ const {
   PaymentNotificationFactory,
   SystemNotificationFactory,
   NotificationFactoryManager,
-  notificationFactoryManager
+  notificationFactoryManager,
 } = require('../../src/factories/NotificationFactory');
 
 describe('NotificationFactory Tests', () => {
@@ -23,7 +23,7 @@ describe('NotificationFactory Tests', () => {
         id: 'user-123',
         firstName: 'Juan',
         lastName: 'Pérez',
-        email: 'juan.perez@example.com'
+        email: 'juan.perez@example.com',
       };
     });
 
@@ -34,7 +34,9 @@ describe('NotificationFactory Tests', () => {
       expect(notification.recipient.userId).toBe('user-123');
       expect(notification.recipient.email).toBe('juan.perez@example.com');
       expect(notification.recipient.name).toBe('Juan Pérez');
-      expect(notification.subject).toBe('¡Bienvenido al Sistema de Gestión Universitaria!');
+      expect(notification.subject).toBe(
+        '¡Bienvenido al Sistema de Gestión Universitaria!'
+      );
       expect(notification.type).toBe('email');
       expect(notification.channel).toBe('email');
       expect(notification.category).toBe('welcome');
@@ -72,18 +74,18 @@ describe('NotificationFactory Tests', () => {
           id: 'user-123',
           firstName: 'María',
           lastName: 'González',
-          email: 'maria.gonzalez@example.com'
+          email: 'maria.gonzalez@example.com',
         },
         enrollment: {
-          id: 'enrollment-456'
+          id: 'enrollment-456',
         },
         course: {
           id: 'course-789',
           name: 'Matemáticas Avanzadas',
           code: 'MATH-301',
           schedule: 'Lunes y Miércoles 10:00-12:00',
-          instructor: 'Dr. Smith'
-        }
+          instructor: 'Dr. Smith',
+        },
       };
     });
 
@@ -91,7 +93,9 @@ describe('NotificationFactory Tests', () => {
       const notification = factory.buildNotification(mockData);
 
       expect(notification.recipient.userId).toBe('user-123');
-      expect(notification.subject).toBe('Confirmación de Inscripción - MATH-301');
+      expect(notification.subject).toBe(
+        'Confirmación de Inscripción - MATH-301'
+      );
       expect(notification.category).toBe('enrollment');
       expect(notification.metadata.enrollmentId).toBe('enrollment-456');
       expect(notification.metadata.courseId).toBe('course-789');
@@ -119,19 +123,22 @@ describe('NotificationFactory Tests', () => {
           id: 'user-123',
           firstName: 'Carlos',
           lastName: 'López',
-          email: 'carlos.lopez@example.com'
+          email: 'carlos.lopez@example.com',
         },
         payment: {
           id: 'payment-789',
-          amount: 150.00,
+          amount: 150.0,
           dueDate: '2024-01-15',
-          failureReason: 'Tarjeta expirada'
-        }
+          failureReason: 'Tarjeta expirada',
+        },
       };
     });
 
     test('debe crear notificación de recordatorio de pago', () => {
-      const notification = factory.buildNotification({ ...mockData, type: 'reminder' });
+      const notification = factory.buildNotification({
+        ...mockData,
+        type: 'reminder',
+      });
 
       expect(notification.subject).toBe('Recordatorio de Pago Pendiente');
       expect(notification.category).toBe('payment');
@@ -140,21 +147,30 @@ describe('NotificationFactory Tests', () => {
     });
 
     test('debe crear notificación de confirmación de pago', () => {
-      const notification = factory.buildNotification({ ...mockData, type: 'confirmation' });
+      const notification = factory.buildNotification({
+        ...mockData,
+        type: 'confirmation',
+      });
 
       expect(notification.subject).toBe('Confirmación de Pago Recibido');
       expect(notification.priority).toBe('normal');
     });
 
     test('debe crear notificación de pago fallido con prioridad alta', () => {
-      const notification = factory.buildNotification({ ...mockData, type: 'failed' });
+      const notification = factory.buildNotification({
+        ...mockData,
+        type: 'failed',
+      });
 
       expect(notification.subject).toBe('Pago Fallido - Acción Requerida');
       expect(notification.priority).toBe('high');
     });
 
     test('debe generar mensaje de recordatorio correctamente', () => {
-      const notification = factory.buildNotification({ ...mockData, type: 'reminder' });
+      const notification = factory.buildNotification({
+        ...mockData,
+        type: 'reminder',
+      });
 
       expect(notification.message).toContain('Carlos');
       expect(notification.message).toContain('$150');
@@ -173,13 +189,14 @@ describe('NotificationFactory Tests', () => {
           id: 'user-123',
           firstName: 'Ana',
           lastName: 'Martínez',
-          email: 'ana.martinez@example.com'
+          email: 'ana.martinez@example.com',
         },
         systemEvent: 'maintenance',
         details: {
-          message: 'El sistema estará en mantenimiento el domingo de 2:00 AM a 4:00 AM',
-          additionalInfo: 'Durante este tiempo, el acceso estará limitado'
-        }
+          message:
+            'El sistema estará en mantenimiento el domingo de 2:00 AM a 4:00 AM',
+          additionalInfo: 'Durante este tiempo, el acceso estará limitado',
+        },
       };
     });
 
@@ -199,14 +216,14 @@ describe('NotificationFactory Tests', () => {
         'Mantenimiento Programado del Sistema',
         'Actualización del Sistema',
         'Notificación de Seguridad',
-        'Interrupción del Servicio'
+        'Interrupción del Servicio',
       ];
       const expectedPriorities = ['normal', 'normal', 'high', 'urgent'];
 
       events.forEach((event, index) => {
         const notification = factory.buildNotification({
           ...mockData,
-          systemEvent: event
+          systemEvent: event,
         });
 
         expect(notification.subject).toBe(expectedSubjects[index]);
@@ -218,11 +235,19 @@ describe('NotificationFactory Tests', () => {
   describe('NotificationFactoryManager', () => {
     test('debe crear notificación usando el factory apropiado', () => {
       const data = {
-        user: { id: 'user-123', firstName: 'Test', lastName: 'User', email: 'test@example.com' },
-        studentId: 'STU-001'
+        user: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+        studentId: 'STU-001',
       };
 
-      const notification = notificationFactoryManager.createNotification('welcome', data);
+      const notification = notificationFactoryManager.createNotification(
+        'welcome',
+        data
+      );
 
       expect(notification.category).toBe('welcome');
       expect(notification.recipient.userId).toBe('user-123');
@@ -238,11 +263,29 @@ describe('NotificationFactory Tests', () => {
 
     test('debe crear múltiples notificaciones del mismo tipo', () => {
       const dataArray = [
-        { user: { id: 'user-1', firstName: 'User1', lastName: 'Test', email: 'user1@example.com' } },
-        { user: { id: 'user-2', firstName: 'User2', lastName: 'Test', email: 'user2@example.com' } }
+        {
+          user: {
+            id: 'user-1',
+            firstName: 'User1',
+            lastName: 'Test',
+            email: 'user1@example.com',
+          },
+        },
+        {
+          user: {
+            id: 'user-2',
+            firstName: 'User2',
+            lastName: 'Test',
+            email: 'user2@example.com',
+          },
+        },
       ];
 
-      const notifications = notificationFactoryManager.createMultipleNotifications('welcome', dataArray);
+      const notifications =
+        notificationFactoryManager.createMultipleNotifications(
+          'welcome',
+          dataArray
+        );
 
       expect(notifications).toHaveLength(2);
       expect(notifications[0].category).toBe('welcome');
@@ -266,23 +309,34 @@ describe('NotificationFactory Tests', () => {
             recipient: {
               userId: data.user.id,
               email: data.user.email,
-              name: `${data.user.firstName} ${data.user.lastName}`
+              name: `${data.user.firstName} ${data.user.lastName}`,
             },
             subject: 'Custom Notification',
             message: 'Custom message',
             type: 'email',
             channel: 'email',
             status: 'pending',
-            priority: 'normal'
+            priority: 'normal',
           };
         }
       }
 
-      notificationFactoryManager.registerFactory('custom', new CustomNotificationFactory());
+      notificationFactoryManager.registerFactory(
+        'custom',
+        new CustomNotificationFactory()
+      );
 
-      const notification = notificationFactoryManager.createNotification('custom', {
-        user: { id: 'user-123', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
-      });
+      const notification = notificationFactoryManager.createNotification(
+        'custom',
+        {
+          user: {
+            id: 'user-123',
+            email: 'test@example.com',
+            firstName: 'Test',
+            lastName: 'User',
+          },
+        }
+      );
 
       expect(notification.category).toBe('custom');
     });
@@ -304,7 +358,12 @@ describe('NotificationFactory Tests', () => {
     test('debe establecer valores por defecto', () => {
       const factory = new WelcomeNotificationFactory();
       const data = {
-        user: { id: 'user-123', firstName: 'Test', lastName: 'User', email: 'test@example.com' }
+        user: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
       };
 
       const notification = factory.buildNotification(data);

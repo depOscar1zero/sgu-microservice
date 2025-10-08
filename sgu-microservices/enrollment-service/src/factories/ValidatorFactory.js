@@ -1,6 +1,6 @@
 /**
  * Factory Method Pattern - Validator Factory
- * 
+ *
  * Este factory se encarga de crear diferentes tipos de validadores
  * según el contexto de validación especificado, siguiendo el patrón Factory Method.
  */
@@ -104,22 +104,24 @@ class CapacityValidator extends Validator {
 
   validate(data) {
     const { courseId, requestedSeats = 1 } = data;
-    
+
     const availableSeats = this.maxCapacity - this.currentEnrollments;
-    
+
     if (requestedSeats > availableSeats) {
       return {
         isValid: false,
-        errors: [`No hay suficientes cupos disponibles. Disponibles: ${availableSeats}, Solicitados: ${requestedSeats}`],
+        errors: [
+          `No hay suficientes cupos disponibles. Disponibles: ${availableSeats}, Solicitados: ${requestedSeats}`,
+        ],
         availableSeats,
-        requestedSeats
+        requestedSeats,
       };
     }
 
     return {
       isValid: true,
       availableSeats,
-      requestedSeats
+      requestedSeats,
     };
   }
 }
@@ -136,7 +138,7 @@ class PrerequisitesValidator extends Validator {
 
   validate(data) {
     const { studentId, courseId } = data;
-    
+
     const missingPrerequisites = this.requiredCourses.filter(
       prereq => !this.studentCompletedCourses.includes(prereq)
     );
@@ -147,14 +149,14 @@ class PrerequisitesValidator extends Validator {
         errors: [`Faltan prerequisitos: ${missingPrerequisites.join(', ')}`],
         missingPrerequisites,
         requiredCourses: this.requiredCourses,
-        completedCourses: this.studentCompletedCourses
+        completedCourses: this.studentCompletedCourses,
       };
     }
 
     return {
       isValid: true,
       requiredCourses: this.requiredCourses,
-      completedCourses: this.studentCompletedCourses
+      completedCourses: this.studentCompletedCourses,
     };
   }
 }
@@ -171,47 +173,56 @@ class ScheduleValidator extends Validator {
 
   validate(data) {
     const { courseId, studentId } = data;
-    
+
     const courseTimeSlots = this.courseSchedule.timeSlots || [];
-    const studentTimeSlots = this.studentSchedule.map(enrollment => enrollment.timeSlots).flat();
-    
-    const conflicts = this.findScheduleConflicts(courseTimeSlots, studentTimeSlots);
-    
+    const studentTimeSlots = this.studentSchedule
+      .map(enrollment => enrollment.timeSlots)
+      .flat();
+
+    const conflicts = this.findScheduleConflicts(
+      courseTimeSlots,
+      studentTimeSlots
+    );
+
     if (conflicts.length > 0) {
       return {
         isValid: false,
         errors: [`Conflicto de horarios: ${conflicts.join(', ')}`],
         conflicts,
         courseTimeSlots,
-        studentTimeSlots
+        studentTimeSlots,
       };
     }
 
     return {
       isValid: true,
       courseTimeSlots,
-      studentTimeSlots
+      studentTimeSlots,
     };
   }
 
   findScheduleConflicts(courseSlots, studentSlots) {
     const conflicts = [];
-    
+
     for (const courseSlot of courseSlots) {
       for (const studentSlot of studentSlots) {
         if (this.slotsOverlap(courseSlot, studentSlot)) {
-          conflicts.push(`${courseSlot.day} ${courseSlot.startTime}-${courseSlot.endTime}`);
+          conflicts.push(
+            `${courseSlot.day} ${courseSlot.startTime}-${courseSlot.endTime}`
+          );
         }
       }
     }
-    
+
     return conflicts;
   }
 
   slotsOverlap(slot1, slot2) {
-    return slot1.day === slot2.day && 
-           slot1.startTime < slot2.endTime && 
-           slot2.startTime < slot1.endTime;
+    return (
+      slot1.day === slot2.day &&
+      slot1.startTime < slot2.endTime &&
+      slot2.startTime < slot1.endTime
+    );
   }
 }
 
@@ -229,15 +240,19 @@ class AcademicStatusValidator extends Validator {
 
   validate(data) {
     const { studentId } = data;
-    
+
     const errors = [];
-    
+
     if (this.studentGPA < this.minGPA) {
-      errors.push(`GPA insuficiente. Requerido: ${this.minGPA}, Actual: ${this.studentGPA}`);
+      errors.push(
+        `GPA insuficiente. Requerido: ${this.minGPA}, Actual: ${this.studentGPA}`
+      );
     }
-    
+
     if (this.studentStatus !== this.requiredStatus) {
-      errors.push(`Estado académico inválido. Requerido: ${this.requiredStatus}, Actual: ${this.studentStatus}`);
+      errors.push(
+        `Estado académico inválido. Requerido: ${this.requiredStatus}, Actual: ${this.studentStatus}`
+      );
     }
 
     if (errors.length > 0) {
@@ -247,14 +262,14 @@ class AcademicStatusValidator extends Validator {
         studentGPA: this.studentGPA,
         minGPA: this.minGPA,
         studentStatus: this.studentStatus,
-        requiredStatus: this.requiredStatus
+        requiredStatus: this.requiredStatus,
       };
     }
 
     return {
       isValid: true,
       studentGPA: this.studentGPA,
-      studentStatus: this.studentStatus
+      studentStatus: this.studentStatus,
     };
   }
 }
@@ -265,18 +280,19 @@ class AcademicStatusValidator extends Validator {
 class PaymentValidator extends Validator {
   constructor(config = {}) {
     super();
-    this.allowEnrollmentWithPendingPayments = config.allowEnrollmentWithPendingPayments || false;
+    this.allowEnrollmentWithPendingPayments =
+      config.allowEnrollmentWithPendingPayments || false;
     this.studentPendingPayments = config.studentPendingPayments || [];
   }
 
   validate(data) {
     const { studentId } = data;
-    
+
     if (this.allowEnrollmentWithPendingPayments) {
       return {
         isValid: true,
         pendingPayments: this.studentPendingPayments,
-        warning: 'Hay pagos pendientes pero se permite la inscripción'
+        warning: 'Hay pagos pendientes pero se permite la inscripción',
       };
     }
 
@@ -284,13 +300,13 @@ class PaymentValidator extends Validator {
       return {
         isValid: false,
         errors: ['No se puede inscribir con pagos pendientes'],
-        pendingPayments: this.studentPendingPayments
+        pendingPayments: this.studentPendingPayments,
       };
     }
 
     return {
       isValid: true,
-      pendingPayments: []
+      pendingPayments: [],
     };
   }
 }
@@ -307,20 +323,22 @@ class DeadlineValidator extends Validator {
 
   validate(data) {
     const { courseId } = data;
-    
+
     if (this.currentDate > this.enrollmentDeadline) {
       return {
         isValid: false,
-        errors: [`Fecha límite de inscripción vencida. Límite: ${this.enrollmentDeadline.toLocaleDateString()}`],
+        errors: [
+          `Fecha límite de inscripción vencida. Límite: ${this.enrollmentDeadline.toLocaleDateString()}`,
+        ],
         enrollmentDeadline: this.enrollmentDeadline,
-        currentDate: this.currentDate
+        currentDate: this.currentDate,
       };
     }
 
     return {
       isValid: true,
       enrollmentDeadline: this.enrollmentDeadline,
-      currentDate: this.currentDate
+      currentDate: this.currentDate,
     };
   }
 }
@@ -391,7 +409,7 @@ class ValidatorFactoryManager {
       schedule: new ScheduleValidatorFactory(),
       academic_status: new AcademicStatusValidatorFactory(),
       payment: new PaymentValidatorFactory(),
-      deadline: new DeadlineValidatorFactory()
+      deadline: new DeadlineValidatorFactory(),
     };
   }
 
@@ -403,7 +421,7 @@ class ValidatorFactoryManager {
    */
   createValidator(type, config = {}) {
     const factory = this.factories[type];
-    
+
     if (!factory) {
       throw new Error(`Factory para tipo '${type}' no encontrado`);
     }
@@ -417,7 +435,7 @@ class ValidatorFactoryManager {
    * @returns {Array<Validator>} - Array de validadores creados
    */
   createMultipleValidators(validatorConfigs) {
-    return validatorConfigs.map(({ type, config }) => 
+    return validatorConfigs.map(({ type, config }) =>
       this.createValidator(type, config)
     );
   }
@@ -429,56 +447,70 @@ class ValidatorFactoryManager {
    */
   createEnrollmentValidators(enrollmentConfig) {
     const validators = [];
-    
+
     // Validador de capacidad
     if (enrollmentConfig.courseCapacity) {
-      validators.push(this.createValidator('capacity', {
-        maxCapacity: enrollmentConfig.courseCapacity,
-        currentEnrollments: enrollmentConfig.currentEnrollments || 0
-      }));
+      validators.push(
+        this.createValidator('capacity', {
+          maxCapacity: enrollmentConfig.courseCapacity,
+          currentEnrollments: enrollmentConfig.currentEnrollments || 0,
+        })
+      );
     }
-    
+
     // Validador de prerequisitos
     if (enrollmentConfig.requiredCourses) {
-      validators.push(this.createValidator('prerequisites', {
-        requiredCourses: enrollmentConfig.requiredCourses,
-        studentCompletedCourses: enrollmentConfig.studentCompletedCourses || []
-      }));
+      validators.push(
+        this.createValidator('prerequisites', {
+          requiredCourses: enrollmentConfig.requiredCourses,
+          studentCompletedCourses:
+            enrollmentConfig.studentCompletedCourses || [],
+        })
+      );
     }
-    
+
     // Validador de horarios
     if (enrollmentConfig.courseSchedule) {
-      validators.push(this.createValidator('schedule', {
-        courseSchedule: enrollmentConfig.courseSchedule,
-        studentSchedule: enrollmentConfig.studentSchedule || []
-      }));
+      validators.push(
+        this.createValidator('schedule', {
+          courseSchedule: enrollmentConfig.courseSchedule,
+          studentSchedule: enrollmentConfig.studentSchedule || [],
+        })
+      );
     }
-    
+
     // Validador de estado académico
     if (enrollmentConfig.studentGPA !== undefined) {
-      validators.push(this.createValidator('academic_status', {
-        minGPA: enrollmentConfig.minGPA || 2.0,
-        studentGPA: enrollmentConfig.studentGPA,
-        studentStatus: enrollmentConfig.studentStatus || 'active'
-      }));
+      validators.push(
+        this.createValidator('academic_status', {
+          minGPA: enrollmentConfig.minGPA || 2.0,
+          studentGPA: enrollmentConfig.studentGPA,
+          studentStatus: enrollmentConfig.studentStatus || 'active',
+        })
+      );
     }
-    
+
     // Validador de pagos
     if (enrollmentConfig.studentPendingPayments) {
-      validators.push(this.createValidator('payment', {
-        allowEnrollmentWithPendingPayments: enrollmentConfig.allowEnrollmentWithPendingPayments || false,
-        studentPendingPayments: enrollmentConfig.studentPendingPayments
-      }));
+      validators.push(
+        this.createValidator('payment', {
+          allowEnrollmentWithPendingPayments:
+            enrollmentConfig.allowEnrollmentWithPendingPayments || false,
+          studentPendingPayments: enrollmentConfig.studentPendingPayments,
+        })
+      );
     }
-    
+
     // Validador de fechas límite
     if (enrollmentConfig.enrollmentDeadline) {
-      validators.push(this.createValidator('deadline', {
-        enrollmentDeadline: enrollmentConfig.enrollmentDeadline,
-        currentDate: enrollmentConfig.currentDate || new Date()
-      }));
+      validators.push(
+        this.createValidator('deadline', {
+          enrollmentDeadline: enrollmentConfig.enrollmentDeadline,
+          currentDate: enrollmentConfig.currentDate || new Date(),
+        })
+      );
     }
-    
+
     return validators;
   }
 
@@ -522,5 +554,5 @@ module.exports = {
   PaymentValidatorFactory,
   DeadlineValidatorFactory,
   ValidatorFactoryManager,
-  validatorFactoryManager
+  validatorFactoryManager,
 };

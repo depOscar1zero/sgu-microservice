@@ -1,12 +1,12 @@
-const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/database");
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
 /**
  * Modelo de Payment
  * Representa los pagos del sistema
  */
 const Payment = sequelize.define(
-  "Payment",
+  'Payment',
   {
     id: {
       type: DataTypes.UUID,
@@ -18,7 +18,7 @@ const Payment = sequelize.define(
     enrollmentId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: "enrollment_id",
+      field: 'enrollment_id',
       validate: {
         notEmpty: true,
       },
@@ -28,7 +28,7 @@ const Payment = sequelize.define(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: "user_id",
+      field: 'user_id',
       validate: {
         notEmpty: true,
       },
@@ -48,58 +48,58 @@ const Payment = sequelize.define(
     currency: {
       type: DataTypes.STRING(3),
       allowNull: false,
-      defaultValue: "USD",
+      defaultValue: 'USD',
       validate: {
-        isIn: [["USD", "MXN", "EUR"]],
+        isIn: [['USD', 'MXN', 'EUR']],
       },
     },
 
     // Método de pago
     paymentMethod: {
       type: DataTypes.ENUM(
-        "credit_card",
-        "debit_card",
-        "bank_transfer",
-        "cash",
-        "stripe"
+        'credit_card',
+        'debit_card',
+        'bank_transfer',
+        'cash',
+        'stripe'
       ),
       allowNull: false,
-      field: "payment_method",
+      field: 'payment_method',
     },
 
     // Estado del pago
     status: {
       type: DataTypes.ENUM(
-        "pending",
-        "processing",
-        "completed",
-        "failed",
-        "cancelled",
-        "refunded"
+        'pending',
+        'processing',
+        'completed',
+        'failed',
+        'cancelled',
+        'refunded'
       ),
       allowNull: false,
-      defaultValue: "pending",
+      defaultValue: 'pending',
     },
 
     // ID del Payment Intent de Stripe
     stripePaymentIntentId: {
       type: DataTypes.STRING,
       allowNull: true,
-      field: "stripe_payment_intent_id",
+      field: 'stripe_payment_intent_id',
     },
 
     // ID del Charge de Stripe
     stripeChargeId: {
       type: DataTypes.STRING,
       allowNull: true,
-      field: "stripe_charge_id",
+      field: 'stripe_charge_id',
     },
 
     // Información del método de pago
     paymentMethodDetails: {
       type: DataTypes.JSON,
       allowNull: true,
-      field: "payment_method_details",
+      field: 'payment_method_details',
     },
 
     // Metadatos adicionales
@@ -112,80 +112,80 @@ const Payment = sequelize.define(
     processedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      field: "processed_at",
+      field: 'processed_at',
     },
 
     // Información de fallo
     failureReason: {
       type: DataTypes.TEXT,
       allowNull: true,
-      field: "failure_reason",
+      field: 'failure_reason',
     },
 
     // Información de reembolso
     refundedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      field: "refunded_at",
+      field: 'refunded_at',
     },
 
     refundAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
-      field: "refund_amount",
+      field: 'refund_amount',
     },
 
     refundReason: {
       type: DataTypes.TEXT,
       allowNull: true,
-      field: "refund_reason",
+      field: 'refund_reason',
     },
 
     // Fee de procesamiento
     processingFee: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
-      field: "processing_fee",
+      field: 'processing_fee',
     },
 
     // Neto recibido
     netAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
-      field: "net_amount",
+      field: 'net_amount',
     },
 
     // IP del cliente
     clientIp: {
       type: DataTypes.STRING(45),
       allowNull: true,
-      field: "client_ip",
+      field: 'client_ip',
     },
 
     // User Agent del cliente
     userAgent: {
       type: DataTypes.TEXT,
       allowNull: true,
-      field: "user_agent",
+      field: 'user_agent',
     },
   },
   {
-    tableName: "payments",
+    tableName: 'payments',
     indexes: [
       {
-        fields: ["enrollment_id"],
+        fields: ['enrollment_id'],
       },
       {
-        fields: ["user_id"],
+        fields: ['user_id'],
       },
       {
-        fields: ["status"],
+        fields: ['status'],
       },
       {
-        fields: ["stripe_payment_intent_id"],
+        fields: ['stripe_payment_intent_id'],
       },
       {
-        fields: ["created_at"],
+        fields: ['created_at'],
       },
     ],
   }
@@ -219,21 +219,21 @@ Payment.prototype.toPublicJSON = function () {
  * Verificar si el pago puede ser procesado
  */
 Payment.prototype.canBeProcessed = function () {
-  return this.status === "pending" || this.status === "processing";
+  return this.status === 'pending' || this.status === 'processing';
 };
 
 /**
  * Verificar si el pago puede ser reembolsado
  */
 Payment.prototype.canBeRefunded = function () {
-  return this.status === "completed" && !this.refundedAt;
+  return this.status === 'completed' && !this.refundedAt;
 };
 
 /**
  * Marcar pago como completado
  */
 Payment.prototype.markAsCompleted = async function (stripeData = null) {
-  this.status = "completed";
+  this.status = 'completed';
   this.processedAt = new Date();
 
   if (stripeData) {
@@ -252,7 +252,7 @@ Payment.prototype.markAsCompleted = async function (stripeData = null) {
  * Marcar pago como fallido
  */
 Payment.prototype.markAsFailed = async function (reason) {
-  this.status = "failed";
+  this.status = 'failed';
   this.failureReason = reason;
   await this.save();
   return this;
@@ -263,14 +263,14 @@ Payment.prototype.markAsFailed = async function (reason) {
  */
 Payment.prototype.processRefund = async function (amount, reason) {
   if (!this.canBeRefunded()) {
-    throw new Error("Este pago no puede ser reembolsado");
+    throw new Error('Este pago no puede ser reembolsado');
   }
 
   const refundAmount = amount || this.amount;
   this.refundedAt = new Date();
   this.refundAmount = refundAmount;
   this.refundReason = reason;
-  this.status = "refunded";
+  this.status = 'refunded';
 
   await this.save();
   return this;
@@ -293,7 +293,7 @@ Payment.findByUser = async function (userId, options = {}) {
     where: whereClause,
     limit,
     offset,
-    order: [["createdAt", "DESC"]],
+    order: [['createdAt', 'DESC']],
   });
 };
 
@@ -303,7 +303,7 @@ Payment.findByUser = async function (userId, options = {}) {
 Payment.findByEnrollment = async function (enrollmentId) {
   return await this.findAll({
     where: { enrollmentId },
-    order: [["createdAt", "DESC"]],
+    order: [['createdAt', 'DESC']],
   });
 };
 
@@ -325,20 +325,20 @@ Payment.getStats = async function (options = {}) {
 
   const stats = await this.findAll({
     attributes: [
-      "status",
-      [sequelize.fn("COUNT", sequelize.col("id")), "count"],
-      [sequelize.fn("SUM", sequelize.col("amount")), "totalAmount"],
+      'status',
+      [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+      [sequelize.fn('SUM', sequelize.col('amount')), 'totalAmount'],
     ],
     where: whereClause,
-    group: ["status"],
+    group: ['status'],
     raw: true,
   });
 
   const totalStats = await this.findAll({
     attributes: [
-      [sequelize.fn("COUNT", sequelize.col("id")), "totalPayments"],
-      [sequelize.fn("SUM", sequelize.col("amount")), "totalAmount"],
-      [sequelize.fn("AVG", sequelize.col("amount")), "averageAmount"],
+      [sequelize.fn('COUNT', sequelize.col('id')), 'totalPayments'],
+      [sequelize.fn('SUM', sequelize.col('amount')), 'totalAmount'],
+      [sequelize.fn('AVG', sequelize.col('amount')), 'averageAmount'],
     ],
     where: whereClause,
     raw: true,

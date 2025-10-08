@@ -19,37 +19,37 @@ const mockEnrollment = {
 };
 
 // Mock de las dependencias antes de importar las estrategias
-jest.mock("../services/externalServices", () => ({
+jest.mock('../services/externalServices', () => ({
   CoursesServiceClient: mockCoursesServiceClient,
 }));
 
-jest.mock("../models/Enrollment", () => mockEnrollment);
+jest.mock('../models/Enrollment', () => mockEnrollment);
 
 // Ahora importar las estrategias
-const EnrollmentValidationContext = require("../strategies/EnrollmentValidationContext");
-const AvailabilityValidationStrategy = require("../strategies/AvailabilityValidationStrategy");
-const PrerequisitesValidationStrategy = require("../strategies/PrerequisitesValidationStrategy");
-const EnrollmentLimitValidationStrategy = require("../strategies/EnrollmentLimitValidationStrategy");
-const DuplicateEnrollmentValidationStrategy = require("../strategies/DuplicateEnrollmentValidationStrategy");
+const EnrollmentValidationContext = require('../strategies/EnrollmentValidationContext');
+const AvailabilityValidationStrategy = require('../strategies/AvailabilityValidationStrategy');
+const PrerequisitesValidationStrategy = require('../strategies/PrerequisitesValidationStrategy');
+const EnrollmentLimitValidationStrategy = require('../strategies/EnrollmentLimitValidationStrategy');
+const DuplicateEnrollmentValidationStrategy = require('../strategies/DuplicateEnrollmentValidationStrategy');
 
 /**
  * Simular datos de contexto para la demostración
  */
-const createMockContext = (scenario = "success") => {
+const createMockContext = (scenario = 'success') => {
   const baseContext = {
     courseId: 1,
     userId: 123,
-    authToken: "Bearer token123",
+    authToken: 'Bearer token123',
   };
 
   switch (scenario) {
-    case "course_unavailable":
+    case 'course_unavailable':
       return { ...baseContext, courseId: 999 }; // Curso inexistente
-    case "prerequisites_missing":
+    case 'prerequisites_missing':
       return { ...baseContext, userId: 456 }; // Usuario sin prerrequisitos
-    case "enrollment_limit_exceeded":
+    case 'enrollment_limit_exceeded':
       return { ...baseContext, userId: 789 }; // Usuario con límite excedido
-    case "duplicate_enrollment":
+    case 'duplicate_enrollment':
       return { ...baseContext, userId: 101 }; // Usuario ya inscrito
     default:
       return baseContext;
@@ -60,7 +60,7 @@ const createMockContext = (scenario = "success") => {
  * Configurar el contexto de validación con todas las estrategias
  */
 const setupValidationContext = () => {
-  console.log("🔧 Configurando contexto de validación...");
+  console.log('🔧 Configurando contexto de validación...');
 
   const context = new EnrollmentValidationContext();
 
@@ -85,19 +85,19 @@ const setupValidationContext = () => {
 /**
  * Configurar mocks para diferentes escenarios
  */
-const setupMocks = (scenario = "success") => {
+const setupMocks = (scenario = 'success') => {
   // Limpiar mocks anteriores
   jest.clearAllMocks();
 
   switch (scenario) {
-    case "course_unavailable":
+    case 'course_unavailable':
       mockCoursesServiceClient.checkCourseAvailability.mockResolvedValue({
         success: false,
-        error: "Curso no encontrado",
+        error: 'Curso no encontrado',
       });
       break;
 
-    case "prerequisites_missing":
+    case 'prerequisites_missing':
       mockCoursesServiceClient.checkCourseAvailability.mockResolvedValue({
         success: true,
         data: { canEnroll: true, availableSlots: 5 },
@@ -106,14 +106,14 @@ const setupMocks = (scenario = "success") => {
         success: true,
         data: {
           canEnroll: false,
-          requiredPrerequisites: ["CS100", "MATH101"],
-          completedPrerequisites: ["CS100"],
-          missingPrerequisites: ["MATH101"],
+          requiredPrerequisites: ['CS100', 'MATH101'],
+          completedPrerequisites: ['CS100'],
+          missingPrerequisites: ['MATH101'],
         },
       });
       break;
 
-    case "enrollment_limit_exceeded":
+    case 'enrollment_limit_exceeded':
       mockCoursesServiceClient.checkCourseAvailability.mockResolvedValue({
         success: true,
         data: { canEnroll: true, availableSlots: 5 },
@@ -128,12 +128,12 @@ const setupMocks = (scenario = "success") => {
           .map((_, i) => ({
             id: i + 1,
             courseCode: `CS${100 + i}`,
-            status: "Confirmed",
+            status: 'Confirmed',
           }))
       );
       break;
 
-    case "duplicate_enrollment":
+    case 'duplicate_enrollment':
       mockCoursesServiceClient.checkCourseAvailability.mockResolvedValue({
         success: true,
         data: { canEnroll: true, availableSlots: 5 },
@@ -147,8 +147,8 @@ const setupMocks = (scenario = "success") => {
         id: 1,
         userId: 101,
         courseId: 1,
-        status: "Confirmed",
-        toPublicJSON: () => ({ id: 1, status: "Confirmed" }),
+        status: 'Confirmed',
+        toPublicJSON: () => ({ id: 1, status: 'Confirmed' }),
       });
       break;
 
@@ -171,13 +171,13 @@ const setupMocks = (scenario = "success") => {
  * Demostrar validación exitosa
  */
 const demonstrateSuccessfulValidation = async () => {
-  console.log("\n🎯 === DEMOSTRACIÓN: Validación Exitosa ===");
+  console.log('\n🎯 === DEMOSTRACIÓN: Validación Exitosa ===');
 
   const validationContext = setupValidationContext();
-  const context = createMockContext("success");
-  setupMocks("success");
+  const context = createMockContext('success');
+  setupMocks('success');
 
-  console.log("\n📋 Contexto de validación:");
+  console.log('\n📋 Contexto de validación:');
   console.log(`   Curso ID: ${context.courseId}`);
   console.log(`   Usuario ID: ${context.userId}`);
   console.log(`   Token: ${context.authToken.substring(0, 20)}...`);
@@ -187,11 +187,11 @@ const demonstrateSuccessfulValidation = async () => {
 
     if (result.isValid) {
       console.log(
-        "\n✅ RESULTADO: Todas las validaciones pasaron exitosamente"
+        '\n✅ RESULTADO: Todas las validaciones pasaron exitosamente'
       );
       console.log(`   Mensaje: ${result.message}`);
     } else {
-      console.log("\n❌ RESULTADO: Validación falló");
+      console.log('\n❌ RESULTADO: Validación falló');
       console.log(`   Error: ${result.firstError.error}`);
       console.log(`   Estrategia: ${result.strategy}`);
       if (result.firstError.details) {
@@ -210,13 +210,13 @@ const demonstrateSuccessfulValidation = async () => {
  */
 const demonstrateFailureScenarios = async () => {
   const scenarios = [
-    { name: "Curso No Disponible", context: "course_unavailable" },
-    { name: "Prerrequisitos Faltantes", context: "prerequisites_missing" },
+    { name: 'Curso No Disponible', context: 'course_unavailable' },
+    { name: 'Prerrequisitos Faltantes', context: 'prerequisites_missing' },
     {
-      name: "Límite de Inscripciones Excedido",
-      context: "enrollment_limit_exceeded",
+      name: 'Límite de Inscripciones Excedido',
+      context: 'enrollment_limit_exceeded',
     },
-    { name: "Inscripción Duplicada", context: "duplicate_enrollment" },
+    { name: 'Inscripción Duplicada', context: 'duplicate_enrollment' },
   ];
 
   for (const scenario of scenarios) {
@@ -234,10 +234,10 @@ const demonstrateFailureScenarios = async () => {
       const result = await validationContext.validateUntilFirstError(context);
 
       if (result.isValid) {
-        console.log("\n✅ RESULTADO: Todas las validaciones pasaron");
+        console.log('\n✅ RESULTADO: Todas las validaciones pasaron');
         console.log(`   Mensaje: ${result.message}`);
       } else {
-        console.log("\n❌ RESULTADO: Validación falló");
+        console.log('\n❌ RESULTADO: Validación falló');
         console.log(`   Error: ${result.firstError.error}`);
         console.log(`   Estrategia: ${result.strategy}`);
         if (result.firstError.details) {
@@ -256,27 +256,27 @@ const demonstrateFailureScenarios = async () => {
  * Demostrar ejecución de todas las validaciones
  */
 const demonstrateAllValidations = async () => {
-  console.log("\n🎯 === DEMOSTRACIÓN: Ejecutar Todas las Validaciones ===");
+  console.log('\n🎯 === DEMOSTRACIÓN: Ejecutar Todas las Validaciones ===');
 
   const validationContext = setupValidationContext();
-  const context = createMockContext("success");
-  setupMocks("success");
+  const context = createMockContext('success');
+  setupMocks('success');
 
   try {
     const result = await validationContext.validateAll(context);
 
-    console.log("\n📊 RESULTADO: Ejecución de todas las validaciones");
+    console.log('\n📊 RESULTADO: Ejecución de todas las validaciones');
     console.log(`   Válido: ${result.isValid}`);
     console.log(`   Validaciones ejecutadas: ${result.validations.length}`);
     console.log(`   Errores: ${result.errors.length}`);
     console.log(`   Advertencias: ${result.warnings.length}`);
 
-    console.log("\n📋 Detalles de cada validación:");
+    console.log('\n📋 Detalles de cada validación:');
     result.validations.forEach((validation, index) => {
-      const status = validation.isValid ? "✅" : "❌";
+      const status = validation.isValid ? '✅' : '❌';
       console.log(
         `   ${index + 1}. ${status} ${validation.strategy}: ${
-          validation.isValid ? "PASÓ" : "FALLÓ"
+          validation.isValid ? 'PASÓ' : 'FALLÓ'
         }`
       );
       if (!validation.isValid) {
@@ -285,7 +285,7 @@ const demonstrateAllValidations = async () => {
     });
 
     if (result.errors.length > 0) {
-      console.log("\n🚨 Errores encontrados:");
+      console.log('\n🚨 Errores encontrados:');
       result.errors.forEach((error, index) => {
         console.log(`   ${index + 1}. ${error.strategy}: ${error.error}`);
       });
@@ -299,21 +299,21 @@ const demonstrateAllValidations = async () => {
  * Demostrar flexibilidad del patrón
  */
 const demonstratePatternFlexibility = async () => {
-  console.log("\n🎯 === DEMOSTRACIÓN: Flexibilidad del Patrón ===");
+  console.log('\n🎯 === DEMOSTRACIÓN: Flexibilidad del Patrón ===');
 
   // Crear contexto con solo algunas estrategias
   const partialContext = new EnrollmentValidationContext();
   partialContext.addStrategy(new AvailabilityValidationStrategy());
   partialContext.addStrategy(new DuplicateEnrollmentValidationStrategy());
 
-  console.log("\n🔧 Contexto parcial configurado:");
+  console.log('\n🔧 Contexto parcial configurado:');
   console.log(`   Estrategias: ${partialContext.getStrategies().length}`);
   partialContext.getStrategies().forEach((strategy, index) => {
     console.log(`   ${index + 1}. ${strategy.getName()}`);
   });
 
-  const context = createMockContext("success");
-  setupMocks("success");
+  const context = createMockContext('success');
+  setupMocks('success');
   const result = await partialContext.validateUntilFirstError(context);
 
   console.log(`\n📊 RESULTADO: Validación parcial`);
@@ -328,12 +328,12 @@ const demonstratePatternFlexibility = async () => {
  * Función principal de demostración
  */
 const runDemo = async () => {
-  console.log("🚀 === DEMOSTRACIÓN DEL PATRÓN STRATEGY EN SGU ===");
+  console.log('🚀 === DEMOSTRACIÓN DEL PATRÓN STRATEGY EN SGU ===');
   console.log(
-    "📚 Sistema de Gestión Universitaria - Validaciones de Inscripción"
+    '📚 Sistema de Gestión Universitaria - Validaciones de Inscripción'
   );
   console.log(
-    "🎯 Patrón Strategy implementado para validaciones modulares y extensibles\n"
+    '🎯 Patrón Strategy implementado para validaciones modulares y extensibles\n'
   );
 
   try {
@@ -349,16 +349,16 @@ const runDemo = async () => {
     // Demostrar flexibilidad
     await demonstratePatternFlexibility();
 
-    console.log("\n🎉 === DEMOSTRACIÓN COMPLETADA ===");
-    console.log("✅ El patrón Strategy permite:");
-    console.log("   • Validaciones modulares e independientes");
-    console.log("   • Fácil extensión con nuevas estrategias");
-    console.log("   • Orden de ejecución configurable por prioridades");
-    console.log("   • Testing individual de cada estrategia");
-    console.log("   • Reutilización en diferentes contextos");
-    console.log("   • Mantenimiento simplificado");
+    console.log('\n🎉 === DEMOSTRACIÓN COMPLETADA ===');
+    console.log('✅ El patrón Strategy permite:');
+    console.log('   • Validaciones modulares e independientes');
+    console.log('   • Fácil extensión con nuevas estrategias');
+    console.log('   • Orden de ejecución configurable por prioridades');
+    console.log('   • Testing individual de cada estrategia');
+    console.log('   • Reutilización en diferentes contextos');
+    console.log('   • Mantenimiento simplificado');
   } catch (error) {
-    console.error("\n💥 ERROR EN DEMOSTRACIÓN:", error.message);
+    console.error('\n💥 ERROR EN DEMOSTRACIÓN:', error.message);
     console.error(error.stack);
   }
 };

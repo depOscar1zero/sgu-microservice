@@ -3,13 +3,13 @@
  * Aplica logging detallado a las requests
  */
 
-const BaseDecorator = require("./BaseDecorator");
+const BaseDecorator = require('./BaseDecorator');
 
 class LoggingDecorator extends BaseDecorator {
   constructor(component, options = {}) {
     super(component);
     this._options = {
-      logLevel: options.logLevel || "info",
+      logLevel: options.logLevel || 'info',
       includeHeaders: options.includeHeaders || false,
       includeBody: options.includeBody || false,
       logResponse: options.logResponse || true,
@@ -25,14 +25,14 @@ class LoggingDecorator extends BaseDecorator {
    */
   handle(req, res, next) {
     const startTime = Date.now();
-    const requestId = req.headers["x-request-id"] || "unknown";
+    const requestId = req.headers['x-request-id'] || 'unknown';
 
     // Log de entrada
     this._logRequest(req, requestId);
 
     // Interceptar la respuesta para logging
     const originalSend = res.send;
-    res.send = (data) => {
+    res.send = data => {
       const duration = Date.now() - startTime;
       this._logResponse(req, res, data, duration, requestId);
       return originalSend.call(res, data);
@@ -49,11 +49,11 @@ class LoggingDecorator extends BaseDecorator {
    */
   _logRequest(req, requestId) {
     const logData = {
-      type: "REQUEST",
+      type: 'REQUEST',
       requestId,
       method: req.method,
       url: req.url,
-      userAgent: req.get("User-Agent"),
+      userAgent: req.get('User-Agent'),
       ip: req.ip || req.connection.remoteAddress,
       timestamp: new Date().toISOString(),
     };
@@ -85,7 +85,7 @@ class LoggingDecorator extends BaseDecorator {
     if (!this._options.logResponse) return;
 
     const logData = {
-      type: "RESPONSE",
+      type: 'RESPONSE',
       requestId,
       method: req.method,
       url: req.url,
@@ -97,12 +97,12 @@ class LoggingDecorator extends BaseDecorator {
     // Log level basado en status code
     const logLevel = this._getLogLevel(res.statusCode);
 
-    if (logLevel === "error") {
+    if (logLevel === 'error') {
       console.error(
         `❌ [${requestId}] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`,
         logData
       );
-    } else if (logLevel === "warn") {
+    } else if (logLevel === 'warn') {
       console.warn(
         `⚠️ [${requestId}] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`,
         logData
@@ -121,9 +121,9 @@ class LoggingDecorator extends BaseDecorator {
    * @returns {string} Nivel de log
    */
   _getLogLevel(statusCode) {
-    if (statusCode >= 500) return "error";
-    if (statusCode >= 400) return "warn";
-    return "info";
+    if (statusCode >= 500) return 'error';
+    if (statusCode >= 400) return 'warn';
+    return 'info';
   }
 
   /**

@@ -1,5 +1,5 @@
-const Notification = require("../models/Notification");
-const emailService = require("../services/emailService");
+const Notification = require('../models/Notification');
+const emailService = require('../services/emailService');
 
 /**
  * Controlador de Notificaciones
@@ -15,9 +15,9 @@ class NotificationController {
         recipient,
         subject,
         message,
-        type = "email",
-        channel = "email",
-        priority = "normal",
+        type = 'email',
+        channel = 'email',
+        priority = 'normal',
         category,
         metadata = {},
         settings = {},
@@ -28,7 +28,7 @@ class NotificationController {
         return res.status(400).json({
           success: false,
           message:
-            "Faltan campos requeridos: recipient, subject, message, category",
+            'Faltan campos requeridos: recipient, subject, message, category',
         });
       }
 
@@ -48,17 +48,17 @@ class NotificationController {
       await notification.save();
 
       // Si es email, intentar enviarlo inmediatamente
-      if (type === "email" && channel === "email") {
+      if (type === 'email' && channel === 'email') {
         try {
           const emailResult = await emailService.sendEmail({
             to: recipient.email,
             subject,
             html: message,
-            text: message.replace(/<[^>]*>/g, ""), // Convertir HTML a texto plano
+            text: message.replace(/<[^>]*>/g, ''), // Convertir HTML a texto plano
           });
 
           if (emailResult.success) {
-            await notification.markAsSent("gmail");
+            await notification.markAsSent('gmail');
           } else {
             await notification.markAsFailed(emailResult.error);
           }
@@ -69,14 +69,14 @@ class NotificationController {
 
       res.status(201).json({
         success: true,
-        message: "Notificación creada exitosamente",
+        message: 'Notificación creada exitosamente',
         data: notification,
       });
     } catch (error) {
-      console.error("Error creando notificación:", error);
+      console.error('Error creando notificación:', error);
       res.status(500).json({
         success: false,
-        message: "Error interno del servidor",
+        message: 'Error interno del servidor',
         error: error.message,
       });
     }
@@ -105,10 +105,10 @@ class NotificationController {
         },
       });
     } catch (error) {
-      console.error("Error obteniendo notificaciones:", error);
+      console.error('Error obteniendo notificaciones:', error);
       res.status(500).json({
         success: false,
-        message: "Error interno del servidor",
+        message: 'Error interno del servidor',
         error: error.message,
       });
     }
@@ -127,10 +127,10 @@ class NotificationController {
         count: notifications.length,
       });
     } catch (error) {
-      console.error("Error obteniendo notificaciones pendientes:", error);
+      console.error('Error obteniendo notificaciones pendientes:', error);
       res.status(500).json({
         success: false,
-        message: "Error interno del servidor",
+        message: 'Error interno del servidor',
         error: error.message,
       });
     }
@@ -147,19 +147,19 @@ class NotificationController {
       if (!notification) {
         return res.status(404).json({
           success: false,
-          message: "Notificación no encontrada",
+          message: 'Notificación no encontrada',
         });
       }
 
       if (!notification.canRetry) {
         return res.status(400).json({
           success: false,
-          message: "La notificación no puede ser reintentada",
+          message: 'La notificación no puede ser reintentada',
         });
       }
 
       // Intentar reenviar
-      if (notification.type === "email") {
+      if (notification.type === 'email') {
         try {
           const emailResult = await emailService.sendEmail({
             to: notification.recipient.email,
@@ -168,7 +168,7 @@ class NotificationController {
           });
 
           if (emailResult.success) {
-            await notification.markAsSent("gmail");
+            await notification.markAsSent('gmail');
           } else {
             await notification.markAsFailed(emailResult.error);
           }
@@ -179,14 +179,14 @@ class NotificationController {
 
       res.json({
         success: true,
-        message: "Notificación reintentada",
+        message: 'Notificación reintentada',
         data: notification,
       });
     } catch (error) {
-      console.error("Error reintentando notificación:", error);
+      console.error('Error reintentando notificación:', error);
       res.status(500).json({
         success: false,
-        message: "Error interno del servidor",
+        message: 'Error interno del servidor',
         error: error.message,
       });
     }
@@ -200,7 +200,7 @@ class NotificationController {
       const stats = await Notification.aggregate([
         {
           $group: {
-            _id: "$status",
+            _id: '$status',
             count: { $sum: 1 },
           },
         },
@@ -208,11 +208,11 @@ class NotificationController {
 
       const totalNotifications = await Notification.countDocuments();
       const pendingCount = await Notification.countDocuments({
-        status: "pending",
+        status: 'pending',
       });
-      const sentCount = await Notification.countDocuments({ status: "sent" });
+      const sentCount = await Notification.countDocuments({ status: 'sent' });
       const failedCount = await Notification.countDocuments({
-        status: "failed",
+        status: 'failed',
       });
 
       res.json({
@@ -226,10 +226,10 @@ class NotificationController {
         },
       });
     } catch (error) {
-      console.error("Error obteniendo estadísticas:", error);
+      console.error('Error obteniendo estadísticas:', error);
       res.status(500).json({
         success: false,
-        message: "Error interno del servidor",
+        message: 'Error interno del servidor',
         error: error.message,
       });
     }
@@ -245,17 +245,17 @@ class NotificationController {
 
       res.json({
         success: true,
-        message: "Notifications Service funcionando",
+        message: 'Notifications Service funcionando',
         data: {
-          database: dbStatus === 1 ? "connected" : "disconnected",
-          email: emailStatus ? "configured" : "not_configured",
+          database: dbStatus === 1 ? 'connected' : 'disconnected',
+          email: emailStatus ? 'configured' : 'not_configured',
           timestamp: new Date().toISOString(),
         },
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error en health check",
+        message: 'Error en health check',
         error: error.message,
       });
     }

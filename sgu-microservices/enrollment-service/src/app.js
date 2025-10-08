@@ -11,10 +11,12 @@ const app = express();
 
 // Middleware de seguridad
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 // Middleware de logging
 app.use(morgan('combined'));
@@ -31,7 +33,7 @@ app.get('/health', (req, res) => {
     service: 'Enrollment Service',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    database: 'SQLite Connected'
+    database: 'SQLite Connected',
   });
 });
 
@@ -50,18 +52,18 @@ app.get('/info', (req, res) => {
         cancel: 'PUT /api/enrollments/:id/cancel',
         processPayment: 'PUT /api/enrollments/:id/payment',
         courseEnrollments: 'GET /api/enrollments/course/:courseId (admin)',
-        stats: 'GET /api/enrollments/stats (admin)'
-      }
+        stats: 'GET /api/enrollments/stats (admin)',
+      },
     },
     integrations: {
       authService: process.env.AUTH_SERVICE_URL,
-      coursesService: process.env.COURSES_SERVICE_URL
+      coursesService: process.env.COURSES_SERVICE_URL,
     },
     businessRules: {
       maxEnrollmentsPerStudent: process.env.MAX_ENROLLMENTS_PER_STUDENT || 8,
-      enrollmentDeadlineHours: process.env.ENROLLMENT_DEADLINE_HOURS || 24
+      enrollmentDeadlineHours: process.env.ENROLLMENT_DEADLINE_HOURS || 24,
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -73,7 +75,7 @@ app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     message: `Ruta ${req.originalUrl} no encontrada en el servicio de inscripciones`,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -86,14 +88,14 @@ app.use((err, req, res, next) => {
     const errors = err.errors.map(e => ({
       field: e.path,
       message: e.message,
-      value: e.value
+      value: e.value,
     }));
-    
+
     return res.status(400).json({
       success: false,
       message: 'Errores de validación',
       errors,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -102,7 +104,7 @@ app.use((err, req, res, next) => {
     return res.status(409).json({
       success: false,
       message: 'Ya existe una inscripción para este estudiante en este curso',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -111,7 +113,7 @@ app.use((err, req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Referencias inválidas en los datos proporcionados',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -120,7 +122,7 @@ app.use((err, req, res, next) => {
     return res.status(503).json({
       success: false,
       message: 'Servicio externo no disponible temporalmente',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -131,8 +133,8 @@ app.use((err, req, res, next) => {
     timestamp: new Date().toISOString(),
     ...(process.env.NODE_ENV === 'development' && {
       error: err.message,
-      stack: err.stack
-    })
+      stack: err.stack,
+    }),
   });
 });
 

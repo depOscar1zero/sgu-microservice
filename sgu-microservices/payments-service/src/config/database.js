@@ -1,19 +1,22 @@
-const { Sequelize } = require("sequelize");
-require("dotenv").config();
+const { Sequelize } = require('sequelize');
+require('dotenv').config();
 
 // Debug: Mostrar variables de entorno
-console.log("🔍 Debug - NODE_ENV:", process.env.NODE_ENV);
-console.log("🔍 Debug - DATABASE_URL:", process.env.DATABASE_URL ? "Definida" : "No definida");
+console.log('🔍 Debug - NODE_ENV:', process.env.NODE_ENV);
+console.log(
+  '🔍 Debug - DATABASE_URL:',
+  process.env.DATABASE_URL ? 'Definida' : 'No definida'
+);
 
 // Configuración de la base de datos
 let sequelize;
 
 // Configuración según el entorno
-if (process.env.NODE_ENV === "test") {
-  console.log("📱 Usando SQLite en memoria para tests");
+if (process.env.NODE_ENV === 'test') {
+  console.log('📱 Usando SQLite en memoria para tests');
   sequelize = new Sequelize({
-    dialect: "sqlite",
-    storage: ":memory:",
+    dialect: 'sqlite',
+    storage: ':memory:',
     logging: false,
     define: {
       timestamps: true,
@@ -21,11 +24,11 @@ if (process.env.NODE_ENV === "test") {
       freezeTableName: true,
     },
   });
-} else if (process.env.NODE_ENV === "development" || !process.env.NODE_ENV) {
-  console.log("📱 Usando SQLite para desarrollo");
+} else if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+  console.log('📱 Usando SQLite para desarrollo');
   sequelize = new Sequelize({
-    dialect: "sqlite",
-    storage: "./payments.sqlite",
+    dialect: 'sqlite',
+    storage: './payments.sqlite',
     logging: console.log,
     define: {
       timestamps: true,
@@ -34,10 +37,10 @@ if (process.env.NODE_ENV === "test") {
     },
   });
 } else if (process.env.DATABASE_URL) {
-  console.log("🏭 Usando PostgreSQL para producción");
+  console.log('🏭 Usando PostgreSQL para producción');
   sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: "postgres",
-    logging: process.env.NODE_ENV === "development" ? console.log : false,
+    dialect: 'postgres',
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
     pool: {
       max: 10,
       min: 0,
@@ -51,10 +54,10 @@ if (process.env.NODE_ENV === "test") {
     },
   });
 } else {
-  console.log("📱 Fallback a SQLite");
+  console.log('📱 Fallback a SQLite');
   sequelize = new Sequelize({
-    dialect: "sqlite",
-    storage: "./payments.sqlite",
+    dialect: 'sqlite',
+    storage: './payments.sqlite',
     logging: false,
     define: {
       timestamps: true,
@@ -70,10 +73,15 @@ if (process.env.NODE_ENV === "test") {
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log("✅ Conexión a base de datos de pagos establecida correctamente");
+    console.log(
+      '✅ Conexión a base de datos de pagos establecida correctamente'
+    );
     return true;
   } catch (error) {
-    console.error("❌ No se pudo conectar a la base de datos de pagos:", error.message);
+    console.error(
+      '❌ No se pudo conectar a la base de datos de pagos:',
+      error.message
+    );
     return false;
   }
 };
@@ -83,11 +91,13 @@ const testConnection = async () => {
  */
 const syncDatabase = async () => {
   try {
-    const force = process.env.NODE_ENV === "development" && process.env.DB_FORCE_SYNC === "true";
+    const force =
+      process.env.NODE_ENV === 'development' &&
+      process.env.DB_FORCE_SYNC === 'true';
     await sequelize.sync({ force });
-    console.log("✅ Modelos de pagos sincronizados correctamente");
+    console.log('✅ Modelos de pagos sincronizados correctamente');
   } catch (error) {
-    console.error("❌ Error sincronizando modelos de pagos:", error.message);
+    console.error('❌ Error sincronizando modelos de pagos:', error.message);
     throw error;
   }
 };
@@ -98,9 +108,9 @@ const syncDatabase = async () => {
 const closeConnection = async () => {
   try {
     await sequelize.close();
-    console.log("✅ Conexión a base de datos cerrada correctamente");
+    console.log('✅ Conexión a base de datos cerrada correctamente');
   } catch (error) {
-    console.error("❌ Error cerrando conexión a base de datos:", error.message);
+    console.error('❌ Error cerrando conexión a base de datos:', error.message);
   }
 };
 
@@ -119,7 +129,7 @@ const getDatabaseStats = async () => {
       `);
       return {
         tables: results.length,
-        connection: "active",
+        connection: 'active',
       };
     } else {
       // Para PostgreSQL
@@ -130,14 +140,14 @@ const getDatabaseStats = async () => {
       `);
       return {
         tables: results.length,
-        connection: "active",
+        connection: 'active',
       };
     }
   } catch (error) {
-    console.error("Error obteniendo estadísticas de BD:", error);
+    console.error('Error obteniendo estadísticas de BD:', error);
     return {
       tables: 0,
-      connection: "error",
+      connection: 'error',
     };
   }
 };

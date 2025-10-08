@@ -1,4 +1,4 @@
-const { ValidationStrategy } = require("./ValidationStrategy");
+const { ValidationStrategy } = require('./ValidationStrategy');
 
 /**
  * Contexto que orquesta las estrategias de validación de inscripción
@@ -15,7 +15,7 @@ class EnrollmentValidationContext {
    */
   addStrategy(strategy) {
     if (!(strategy instanceof ValidationStrategy)) {
-      throw new Error("La estrategia debe extender de ValidationStrategy");
+      throw new Error('La estrategia debe extender de ValidationStrategy');
     }
 
     this.strategies.push(strategy);
@@ -53,7 +53,7 @@ class EnrollmentValidationContext {
         results.isValid = false;
         results.errors.push({
           strategy: strategy.getName(),
-          error: "Error ejecutando validación",
+          error: 'Error ejecutando validación',
           details: error.message,
         });
       }
@@ -83,7 +83,7 @@ class EnrollmentValidationContext {
         return {
           isValid: false,
           firstError: {
-            error: "Error ejecutando validación",
+            error: 'Error ejecutando validación',
             details: error.message,
             strategy: strategy.getName(),
           },
@@ -94,7 +94,7 @@ class EnrollmentValidationContext {
 
     return {
       isValid: true,
-      message: "Todas las validaciones pasaron exitosamente",
+      message: 'Todas las validaciones pasaron exitosamente',
     };
   }
 
