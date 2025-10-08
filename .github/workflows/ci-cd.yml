@@ -29,16 +29,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
+          cache-dependency-path: "sgu-microservices/package-lock.json"
 
       - name: Install dependencies
+        working-directory: sgu-microservices
         run: |
           npm ci
 
       - name: Run ESLint
+        working-directory: sgu-microservices
         run: |
           npm run lint:all || echo "Linting completed with warnings"
 
       - name: Check code formatting
+        working-directory: sgu-microservices
         run: |
           npm run format:check || echo "Format check completed"
 
@@ -168,12 +172,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
+          cache-dependency-path: "sgu-microservices/package-lock.json"
 
       - name: Install dependencies
+        working-directory: sgu-microservices
         run: |
           npm ci
 
       - name: Run integration tests
+        working-directory: sgu-microservices
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sgu_test
           REDIS_URL: redis://localhost:6379
