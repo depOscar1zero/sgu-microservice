@@ -100,6 +100,13 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
         
+    - name: Install dependencies for patterns testing
+      run: |
+        cd sgu-microservices/enrollment-service && npm ci
+        cd ../notifications-service && npm ci
+        cd ../payments-service && npm ci
+        cd ../api-gateway && npm ci
+        
     - name: Test DDD Pattern
       working-directory: sgu-microservices/enrollment-service
       run: |
