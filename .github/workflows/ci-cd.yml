@@ -2,15 +2,15 @@ name: SGU Microservices CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
     # Ejecutar tests diariamente a las 2:00 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: "18"
   NPM_CACHE_FOLDER: ~/.npm
   CACHE_VERSION: v1
 
@@ -19,121 +19,122 @@ jobs:
   lint-and-quality:
     name: Lint & Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: |
-        npm ci
-        
-    - name: Run ESLint
-      run: |
-        npm run lint:all || echo "Linting completed with warnings"
-        
-    - name: Check code formatting
-      run: |
-        npm run format:check || echo "Format check completed"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Run ESLint
+        run: |
+          npm run lint:all || echo "Linting completed with warnings"
+
+      - name: Check code formatting
+        run: |
+          npm run format:check || echo "Format check completed"
 
   # Job para tests de todos los microservicios
   test-microservices:
     name: Test Microservices
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        service: [
-          'auth-service',
-          'courses-service', 
-          'enrollment-service',
-          'notifications-service',
-          'payments-service',
-          'api-gateway'
-        ]
-    
+        service:
+          [
+            "auth-service",
+            "courses-service",
+            "enrollment-service",
+            "notifications-service",
+            "payments-service",
+            "api-gateway",
+          ]
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies for ${{ matrix.service }}
-      working-directory: sgu-microservices/${{ matrix.service }}
-      run: |
-        npm ci
-        
-    - name: Run tests for ${{ matrix.service }}
-      working-directory: sgu-microservices/${{ matrix.service }}
-      run: |
-        npm test -- --coverage --watchAll=false
-        
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
-      with:
-        file: sgu-microservices/${{ matrix.service }}/coverage/lcov.info
-        flags: ${{ matrix.service }}
-        name: ${{ matrix.service }}-coverage
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies for ${{ matrix.service }}
+        working-directory: sgu-microservices/${{ matrix.service }}
+        run: |
+          npm ci
+
+      - name: Run tests for ${{ matrix.service }}
+        working-directory: sgu-microservices/${{ matrix.service }}
+        run: |
+          npm test -- --coverage --watchAll=false
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: sgu-microservices/${{ matrix.service }}/coverage/lcov.info
+          flags: ${{ matrix.service }}
+          name: ${{ matrix.service }}-coverage
 
   # Job para tests de patrones de diseño específicos
   test-design-patterns:
     name: Test Design Patterns
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies for patterns testing
-      run: |
-        cd sgu-microservices/enrollment-service && npm ci
-        cd ../notifications-service && npm ci
-        cd ../payments-service && npm ci
-        cd ../api-gateway && npm ci
-        
-    - name: Test DDD Pattern
-      working-directory: sgu-microservices/enrollment-service
-      run: |
-        npm test -- tests/domain/ --coverage
-        
-    - name: Test Factory Method Pattern
-      run: |
-        cd sgu-microservices/notifications-service && npm test -- tests/factories/ --coverage
-        cd ../payments-service && npm test -- tests/factories/ --coverage  
-        cd ../enrollment-service && npm test -- tests/factories/ --coverage
-        
-    - name: Test Strategy Pattern
-      working-directory: sgu-microservices/enrollment-service
-      run: |
-        npm test -- tests/strategies/ --coverage
-        npm test -- tests/services/ --coverage
-        
-    - name: Test Decorator Pattern
-      working-directory: sgu-microservices/api-gateway
-      run: |
-        npm test -- tests/decorators/ --coverage
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies for patterns testing
+        run: |
+          cd sgu-microservices/enrollment-service && npm ci
+          cd ../notifications-service && npm ci
+          cd ../payments-service && npm ci
+          cd ../api-gateway && npm ci
+
+      - name: Test DDD Pattern
+        working-directory: sgu-microservices/enrollment-service
+        run: |
+          npm test -- tests/domain/ --coverage
+
+      - name: Test Factory Method Pattern
+        run: |
+          cd sgu-microservices/notifications-service && npm test -- tests/factories/ --coverage
+          cd ../payments-service && npm test -- tests/factories/ --coverage  
+          cd ../enrollment-service && npm test -- tests/factories/ --coverage
+
+      - name: Test Strategy Pattern
+        working-directory: sgu-microservices/enrollment-service
+        run: |
+          npm test -- tests/strategies/ --coverage
+          npm test -- tests/services/ --coverage
+
+      - name: Test Decorator Pattern
+        working-directory: sgu-microservices/api-gateway
+        run: |
+          npm test -- tests/decorators/ --coverage
 
   # Job para tests de integración
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -147,7 +148,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-          
+
       redis:
         image: redis:7
         options: >-
@@ -157,146 +158,162 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: |
-        npm ci
-        
-    - name: Run integration tests
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sgu_test
-        REDIS_URL: redis://localhost:6379
-        NODE_ENV: test
-      run: |
-        npm run test:integration
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sgu_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+        run: |
+          npm run test:integration
 
   # Job para tests de Docker
   docker-tests:
     name: Docker Tests
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      
-    - name: Build Docker images
-      run: |
-        cd sgu-microservices
-        docker-compose build
-        
-    - name: Test Docker containers
-      run: |
-        cd sgu-microservices
-        docker-compose up -d
-        sleep 30
-        docker-compose ps
-        docker-compose logs
-        
-    - name: Run container health checks
-      run: |
-        cd sgu-microservices
-        # Verificar que todos los servicios estén corriendo
-        docker-compose exec -T auth-service npm test || echo "Auth service tests completed"
-        docker-compose exec -T enrollment-service npm test || echo "Enrollment service tests completed"
-        
-    - name: Cleanup
-      if: always()
-      run: |
-        cd sgu-microservices
-        docker-compose down -v
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: |
+          cd sgu-microservices
+          docker-compose build
+
+      - name: Test Docker containers
+        run: |
+          cd sgu-microservices
+          docker-compose up -d
+          sleep 30
+          docker-compose ps
+          docker-compose logs
+
+      - name: Run container health checks
+        run: |
+          cd sgu-microservices
+          # Verificar que todos los servicios estén corriendo
+          docker-compose exec -T auth-service npm test || echo "Auth service tests completed"
+          docker-compose exec -T enrollment-service npm test || echo "Enrollment service tests completed"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          cd sgu-microservices
+          docker-compose down -v
 
   # Job para análisis de seguridad
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: |
-        npm ci
-        
-    - name: Run security audit
-      run: |
-        npm audit --audit-level moderate
-        
-    - name: Run Snyk security scan
-      uses: snyk/actions/node@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Run security audit
+        run: |
+          npm audit --audit-level moderate
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
 
   # Job para deployment (solo en main)
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [lint-and-quality, test-microservices, test-design-patterns, integration-tests, docker-tests, security-scan]
+    needs:
+      [
+        lint-and-quality,
+        test-microservices,
+        test-design-patterns,
+        integration-tests,
+        docker-tests,
+        security-scan,
+      ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        
-    - name: Deploy to production
-      run: |
-        echo "🚀 Deploying SGU Microservices to production..."
-        echo "✅ All tests passed successfully!"
-        echo "📊 Design patterns validated:"
-        echo "  - Domain-Driven Design (DDD)"
-        echo "  - Factory Method"
-        echo "  - Decorator"
-        echo "  - Strategy"
-        echo "🎉 Deployment completed successfully!"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying SGU Microservices to production..."
+          echo "✅ All tests passed successfully!"
+          echo "📊 Design patterns validated:"
+          echo "  - Domain-Driven Design (DDD)"
+          echo "  - Factory Method"
+          echo "  - Decorator"
+          echo "  - Strategy"
+          echo "🎉 Deployment completed successfully!"
 
   # Job para notificaciones
   notify:
     name: Notify Results
     runs-on: ubuntu-latest
-    needs: [lint-and-quality, test-microservices, test-design-patterns, integration-tests, docker-tests, security-scan]
+    needs:
+      [
+        lint-and-quality,
+        test-microservices,
+        test-design-patterns,
+        integration-tests,
+        docker-tests,
+        security-scan,
+      ]
     if: always()
-    
+
     steps:
-    - name: Notify success
-      if: ${{ needs.lint-and-quality.result == 'success' && needs.test-microservices.result == 'success' && needs.test-design-patterns.result == 'success' }}
-      run: |
-        echo "✅ All CI/CD checks passed successfully!"
-        echo "🎯 Design patterns validated:"
-        echo "  - Domain-Driven Design (DDD) ✅"
-        echo "  - Factory Method ✅"
-        echo "  - Decorator ✅"
-        echo "  - Strategy ✅"
-        echo "🚀 SGU Microservices ready for deployment!"
-        
-    - name: Notify failure
-      if: ${{ needs.lint-and-quality.result == 'failure' || needs.test-microservices.result == 'failure' || needs.test-design-patterns.result == 'failure' }}
-      run: |
-        echo "❌ CI/CD checks failed!"
-        echo "Please check the logs and fix the issues before merging."
-        exit 1
+      - name: Notify success
+        if: ${{ needs.lint-and-quality.result == 'success' && needs.test-microservices.result == 'success' && needs.test-design-patterns.result == 'success' }}
+        run: |
+          echo "✅ All CI/CD checks passed successfully!"
+          echo "🎯 Design patterns validated:"
+          echo "  - Domain-Driven Design (DDD) ✅"
+          echo "  - Factory Method ✅"
+          echo "  - Decorator ✅"
+          echo "  - Strategy ✅"
+          echo "🚀 SGU Microservices ready for deployment!"
+
+      - name: Notify failure
+        if: ${{ needs.lint-and-quality.result == 'failure' || needs.test-microservices.result == 'failure' || needs.test-design-patterns.result == 'failure' }}
+        run: |
+          echo "❌ CI/CD checks failed!"
+          echo "Please check the logs and fix the issues before merging."
+          exit 1
