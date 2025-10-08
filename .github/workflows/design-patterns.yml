@@ -34,6 +34,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'sgu-microservices/enrollment-service/package-lock.json'
         
     - name: Install dependencies
       working-directory: sgu-microservices/enrollment-service
@@ -72,6 +73,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'sgu-microservices/notifications-service/package-lock.json'
         
     - name: Test Notification Factory
       working-directory: sgu-microservices/notifications-service
@@ -115,6 +117,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'sgu-microservices/enrollment-service/package-lock.json'
         
     - name: Install dependencies
       working-directory: sgu-microservices/enrollment-service
@@ -151,6 +154,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'sgu-microservices/api-gateway/package-lock.json'
         
     - name: Install dependencies
       working-directory: sgu-microservices/api-gateway
@@ -182,6 +186,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: 'sgu-microservices/enrollment-service/package-lock.json'
         
     - name: Test Factory + Strategy Integration
       working-directory: sgu-microservices/enrollment-service
