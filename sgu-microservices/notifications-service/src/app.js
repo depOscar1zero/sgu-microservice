@@ -7,8 +7,8 @@ require('dotenv').config();
 // Importar rutas
 const notificationRoutes = require('./routes/notificationRoutes');
 
-// Importar configuración de base de datos
-const dbConfig = require('./config/database');
+// Importar configuración de base de datos (necesario para inicialización)
+require('./config/database');
 
 const app = express();
 
@@ -65,7 +65,7 @@ app.get('/', (req, res) => {
 });
 
 // Middleware de manejo de errores
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error en la aplicación:', err);
   res.status(500).json({
     success: false,

@@ -1,6 +1,5 @@
 const Enrollment = require('../models/Enrollment');
 const {
-  AuthServiceClient,
   CoursesServiceClient,
 } = require('../services/externalServices');
 const axios = require('axios');
@@ -16,8 +15,10 @@ const catchAsync = fn => {
 
 /**
  * Función para enviar notificación de inscripción
+ * TODO: Implementar cuando el servicio de notificaciones esté disponible
  */
-const sendEnrollmentNotification = async (user, course, enrollment) => {
+/* eslint-disable-next-line no-unused-vars */
+const sendEnrollmentNotification = async (_user, _course, _enrollment) => {
   try {
     const notificationsUrl =
       process.env.NOTIFICATIONS_SERVICE_URL || 'http://localhost:3005';

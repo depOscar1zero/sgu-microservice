@@ -121,7 +121,7 @@ const User = sequelize.define(
  * Hook que se ejecuta antes de crear o actualizar un usuario
  * Hashea la contraseña si fue modificada
  */
-User.beforeSave(async (user, options) => {
+User.beforeSave(async (user, _options) => {
   // Solo hashear si la contraseña fue modificada
   if (user.changed('password')) {
     const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;

@@ -4,7 +4,6 @@
  */
 
 const DecoratorFactory = require('../decorators/DecoratorFactory');
-const { createProxyMiddleware } = require('http-proxy-middleware');
 
 /**
  * Ejemplo 1: Decorar un middleware simple

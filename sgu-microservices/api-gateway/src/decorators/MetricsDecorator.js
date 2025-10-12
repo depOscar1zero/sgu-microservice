@@ -58,9 +58,9 @@ class MetricsDecorator extends BaseDecorator {
    * @param {Object} req - Request object
    * @param {Object} res - Response object
    * @param {number} duration - Duración en ms
-   * @param {string} requestId - ID de la request
+   * @param {string} _requestId - ID de la request
    */
-  _collectMetrics(req, res, duration, requestId) {
+  _collectMetrics(req, res, duration, _requestId) {
     // Métricas de tiempo de respuesta
     if (this._options.collectResponseTime) {
       this._metrics.responseTimes.push(duration);

@@ -6,7 +6,11 @@
   "scripts": {
     "test": "npm run test:all",
     "test:all": "npm run test:services && npm run test:patterns",
+    "test:parallel": "npm run test:services:parallel",
     "test:services": "npm run test:auth && npm run test:courses && npm run test:enrollment && npm run test:notifications && npm run test:payments && npm run test:gateway",
+    "test:services:parallel": "concurrently --prefix-colors \"cyan,magenta,green,yellow,blue,red\" --names \"auth,courses,enrollment,notifications,payments,gateway\" \"npm run test:auth\" \"npm run test:courses\" \"npm run test:enrollment\" \"npm run test:notifications\" \"npm run test:payments\" \"npm run test:gateway\"",
+    "test:fast": "npm run test:services:fast:parallel",
+    "test:services:fast:parallel": "concurrently --prefix-colors \"cyan,magenta,green,yellow,blue,red\" --names \"auth,courses,enrollment,notifications,payments,gateway\" \"cd auth-service && npm run test:fast\" \"cd courses-service && npm run test:fast\" \"cd enrollment-service && npm run test:fast\" \"cd notifications-service && npm run test:fast\" \"cd payments-service && npm run test:fast\" \"cd api-gateway && npm run test:fast\"",
     "test:patterns": "npm run test:ddd && npm run test:factory && npm run test:strategy && npm run test:decorator",
     "test:auth": "cd auth-service && npm test",
     "test:courses": "cd courses-service && npm test",
@@ -136,11 +140,12 @@
   "author": "SGU Development Team",
   "license": "MIT",
   "devDependencies": {
-    "jest": "^29.7.0",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.0",
-    "prettier": "^3.0.0",
     "husky": "^8.0.3",
-    "lint-staged": "^15.0.0"
+    "jest": "^29.7.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.0.0"
   },
   "engines": {
     "node": ">=18.0.0",

@@ -182,7 +182,7 @@ class CoursesServiceClient {
   /**
    * Verificar prerrequisitos de un curso
    */
-  static async checkPrerequisites(courseId, userId, token) {
+  static async checkPrerequisites(courseId, _userId, _token) {
     try {
       const courseResult = await this.getCourseById(courseId);
 

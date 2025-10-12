@@ -21,7 +21,7 @@ const mockCoursesServiceClient = {
       },
     };
   },
-  checkPrerequisites: async (courseId, userId, authToken) => {
+  checkPrerequisites: async (courseId, userId, _authToken) => {
     if (userId === 456) {
       return {
         success: true,

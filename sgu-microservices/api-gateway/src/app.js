@@ -6,7 +6,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 require('dotenv').config();
 
 // Importar configuraciones y middleware
-const { services, proxyConfig } = require('./config/services');
+const { services } = require('./config/services');
 const {
   generalLimiter,
   authLimiter,
@@ -16,7 +16,6 @@ const {
 const {
   authenticateToken,
   requireRole,
-  optionalAuth,
 } = require('./middleware/authMiddleware');
 const {
   getServiceStatus,
@@ -66,7 +65,7 @@ app.use(
     target: services.payments.url,
     changeOrigin: true,
     timeout: 30000,
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req, _res) => {
       console.log(`💳 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
 
       // Si hay un body, asegurar que se envía correctamente
@@ -181,7 +180,7 @@ app.use(
     target: services.auth.url,
     changeOrigin: true,
     timeout: 30000,
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req, _res) => {
       console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
 
       // Si hay un body, asegurar que se envía correctamente
@@ -192,7 +191,7 @@ app.use(
         proxyReq.write(bodyData);
       }
     },
-    onProxyRes: (proxyRes, req, res) => {
+    onProxyRes: (proxyRes, req, _res) => {
       // Asegurar que los headers CORS se apliquen
       const origin = req.headers.origin;
       if (
@@ -226,7 +225,7 @@ app.use(
     target: services.auth.url,
     changeOrigin: true,
     timeout: 30000,
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req, _res) => {
       console.log(`👤 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
 
       // Si hay un body, asegurar que se envía correctamente
@@ -237,7 +236,7 @@ app.use(
         proxyReq.write(bodyData);
       }
     },
-    onProxyRes: (proxyRes, req, res) => {
+    onProxyRes: (proxyRes, req, _res) => {
       // Asegurar que los headers CORS se apliquen
       const origin = req.headers.origin;
       if (
@@ -285,7 +284,7 @@ app.use(
     target: services.courses.url,
     changeOrigin: true,
     timeout: 30000,
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req, _res) => {
       console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
 
       if (req.body && Object.keys(req.body).length > 0) {
@@ -314,7 +313,7 @@ app.use(
     target: services.enrollments.url,
     changeOrigin: true,
     timeout: 30000,
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req, _res) => {
       console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
 
       // Si hay un body, asegurar que se envía correctamente
@@ -345,7 +344,7 @@ app.get(
   '/api/admin/*',
   authenticateToken,
   requireRole('admin'),
-  (req, res, next) => {
+  (req, res, _next) => {
     // Aquí podrías proxy a un servicio de administración
     res.json({
       message: 'Ruta de administración',
@@ -358,7 +357,7 @@ app.get(
 /**
  * Middleware de manejo de errores
  */
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error en Gateway:', err);
 
   // Error de proxy

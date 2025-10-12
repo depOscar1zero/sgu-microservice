@@ -6,8 +6,9 @@ const emailService = require('../src/services/emailService');
 
 describe('Notifications Service API', () => {
   beforeAll(async () => {
-    // Conectar a base de datos de prueba
-    await mongoose.connect('mongodb://localhost:27017/sgu_test', {
+    // Conectar a base de datos de prueba con autenticación
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://sgu_admin:sgu_mongo_password@localhost:27017/sgu_notifications_test?authSource=admin';
+    await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -15,13 +16,21 @@ describe('Notifications Service API', () => {
 
   afterAll(async () => {
     // Limpiar y cerrar conexión
-    await Notification.deleteMany({});
+    try {
+      await Notification.deleteMany({});
+    } catch (error) {
+      console.log('Error limpiando notificaciones:', error.message);
+    }
     await mongoose.connection.close();
   });
 
   beforeEach(async () => {
     // Limpiar base de datos antes de cada test
-    await Notification.deleteMany({});
+    try {
+      await Notification.deleteMany({});
+    } catch (error) {
+      console.log('Error limpiando notificaciones:', error.message);
+    }
   });
 
   describe('Health Check', () => {
