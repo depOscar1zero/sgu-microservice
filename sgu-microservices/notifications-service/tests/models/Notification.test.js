@@ -3,12 +3,9 @@ const Notification = require('../../src/models/Notification');
 
 describe('Notification Model', () => {
   beforeAll(async () => {
-    // Conectar a base de datos de prueba con autenticación
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://sgu_admin:sgu_mongo_password@localhost:27017/sgu_notifications_test?authSource=admin';
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    // Conectar a base de datos de prueba (URI configurada en setup.js)
+    const mongoUri = process.env.MONGODB_URI;
+    await mongoose.connect(mongoUri);
   });
 
   afterAll(async () => {
