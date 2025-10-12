@@ -104,7 +104,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
 
       - name: Install dependencies for patterns testing
         run: |
@@ -241,12 +240,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
+          cache-dependency-path: "sgu-microservices/package-lock.json"
 
       - name: Install dependencies
+        working-directory: sgu-microservices
         run: |
           npm ci
 
       - name: Run security audit
+        working-directory: sgu-microservices
         run: |
           npm audit --audit-level moderate
 
