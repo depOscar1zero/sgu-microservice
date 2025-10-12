@@ -6,17 +6,18 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest",
+    "test": "jest --maxWorkers=50%",
+    "test:fast": "jest --maxWorkers=50% --bail --silent",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:strategies": "jest tests/strategies.test.js",
+    "test:coverage": "jest --coverage --maxWorkers=50%",
+    "test:strategies": "jest tests/strategies.test.js --maxWorkers=50%",
     "demo:strategy": "node src/demo/strategy-pattern-demo.js",
     "demo:strategy:standalone": "node src/demo/strategy-pattern-demo-standalone.js",
     "demo:strategy:simple": "node src/demo/strategy-pattern-demo-simple.js",
     "test:microservice": "node test-microservice.js",
     "test:strategy-integration": "node test-strategy-integration.js",
-    "test:domain": "jest tests/domain/",
-    "test:ddd": "jest tests/domain/ --verbose",
+    "test:domain": "jest tests/domain/ --maxWorkers=50%",
+    "test:ddd": "jest tests/domain/ --verbose --maxWorkers=50%",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format:write": "prettier --write src/ tests/",
@@ -51,7 +52,8 @@
     "globals": "^16.4.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "supertest": "^7.1.4"
   },
   "jest": {
     "testEnvironment": "node",
@@ -60,6 +62,16 @@
     ],
     "testMatch": [
       "**/tests/**/*.test.js"
+    ],
+    "maxWorkers": "50%",
+    "cache": true,
+    "cacheDirectory": "<rootDir>/.jest-cache",
+    "testTimeout": 10000,
+    "bail": false,
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/demo/**",
+      "!src/config/**"
     ]
   }
 }

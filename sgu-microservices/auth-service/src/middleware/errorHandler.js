@@ -3,7 +3,7 @@ const { logger } = require('../utils/logger');
 /**
  * Middleware de manejo de errores
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Log del error
   logger.error('Error en middleware:', {
     error: err.message,

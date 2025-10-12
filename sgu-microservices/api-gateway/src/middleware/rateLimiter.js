@@ -14,7 +14,7 @@ const generalLimiter = rateLimit({
   },
   standardHeaders: true, // Retornar info del rate limit en headers `RateLimit-*`
   legacyHeaders: false, // Deshabilitar headers `X-RateLimit-*`
-  skip: req => process.env.NODE_ENV === 'development', // Saltar en desarrollo
+  skip: _req => process.env.NODE_ENV === 'development', // Saltar en desarrollo
 });
 
 /**
@@ -30,7 +30,7 @@ const authLimiter = rateLimit({
     timestamp: new Date().toISOString(),
   },
   skipSuccessfulRequests: true, // No contar requests exitosos
-  skip: req => process.env.NODE_ENV === 'development', // Saltar en desarrollo
+  skip: _req => process.env.NODE_ENV === 'development', // Saltar en desarrollo
 });
 
 /**

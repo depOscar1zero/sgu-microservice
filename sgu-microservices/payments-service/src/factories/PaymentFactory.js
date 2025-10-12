@@ -13,10 +13,10 @@ const Payment = require('../models/Payment');
 class PaymentFactory {
   /**
    * Método factory abstracto - debe ser implementado por subclases
-   * @param {Object} data - Datos para crear el pago
+   * @param {Object} _data - Datos para crear el pago
    * @returns {Payment} - Instancia de pago
    */
-  createPayment(data) {
+  createPayment(_data) {
     throw new Error('createPayment debe ser implementado por subclases');
   }
 

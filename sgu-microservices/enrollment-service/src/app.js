@@ -80,7 +80,7 @@ app.use('*', (req, res) => {
 });
 
 // Middleware global de manejo de errores
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error capturado en Enrollment Service:', err);
 
   // Error de validación de Sequelize

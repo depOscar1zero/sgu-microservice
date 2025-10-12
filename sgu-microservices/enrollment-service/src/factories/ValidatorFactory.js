@@ -14,7 +14,7 @@ class Validator {
    * @param {Object} data - Datos a validar
    * @returns {Object} - Resultado de la validación
    */
-  validate(data) {
+  validate(_data) {
     throw new Error('validate debe ser implementado por subclases');
   }
 
@@ -34,7 +34,7 @@ class Validator {
    * Pre-validación (hook)
    * @param {Object} data - Datos a validar
    */
-  preValidate(data) {
+  preValidate(_data) {
     // Implementación por defecto - las subclases pueden sobrescribir
   }
 
@@ -42,7 +42,7 @@ class Validator {
    * Post-validación (hook)
    * @param {Object} result - Resultado de la validación
    */
-  postValidate(result) {
+  postValidate(_result) {
     // Implementación por defecto - las subclases pueden sobrescribir
   }
 }
@@ -56,7 +56,7 @@ class ValidatorFactory {
    * @param {Object} config - Configuración del validador
    * @returns {Validator} - Instancia del validador
    */
-  createValidator(config) {
+  createValidator(_config) {
     throw new Error('createValidator debe ser implementado por subclases');
   }
 
@@ -87,7 +87,7 @@ class ValidatorFactory {
    * @param {Validator} validator - Validador a configurar
    * @param {Object} config - Configuración
    */
-  configureValidator(validator, config) {
+  configureValidator(_validator, _config) {
     // Implementación base - las subclases pueden sobrescribir
   }
 }
@@ -103,7 +103,7 @@ class CapacityValidator extends Validator {
   }
 
   validate(data) {
-    const { courseId, requestedSeats = 1 } = data;
+    const { requestedSeats = 1 } = data;
 
     const availableSeats = this.maxCapacity - this.currentEnrollments;
 
@@ -136,9 +136,8 @@ class PrerequisitesValidator extends Validator {
     this.studentCompletedCourses = config.studentCompletedCourses || [];
   }
 
-  validate(data) {
-    const { studentId, courseId } = data;
-
+  validate(_data) {
+    // Los datos de studentId y courseId están en data pero no se usan directamente aquí
     const missingPrerequisites = this.requiredCourses.filter(
       prereq => !this.studentCompletedCourses.includes(prereq)
     );
@@ -171,9 +170,8 @@ class ScheduleValidator extends Validator {
     this.studentSchedule = config.studentSchedule || [];
   }
 
-  validate(data) {
-    const { courseId, studentId } = data;
-
+  validate(_data) {
+    // Los datos de courseId y studentId están en data pero no se usan directamente aquí
     const courseTimeSlots = this.courseSchedule.timeSlots || [];
     const studentTimeSlots = this.studentSchedule
       .map(enrollment => enrollment.timeSlots)
@@ -238,9 +236,8 @@ class AcademicStatusValidator extends Validator {
     this.studentStatus = config.studentStatus || 'inactive';
   }
 
-  validate(data) {
-    const { studentId } = data;
-
+  validate(_data) {
+    // studentId está en data pero no se usa directamente aquí
     const errors = [];
 
     if (this.studentGPA < this.minGPA) {
@@ -285,9 +282,8 @@ class PaymentValidator extends Validator {
     this.studentPendingPayments = config.studentPendingPayments || [];
   }
 
-  validate(data) {
-    const { studentId } = data;
-
+  validate(_data) {
+    // studentId está en data pero no se usa directamente aquí
     if (this.allowEnrollmentWithPendingPayments) {
       return {
         isValid: true,
@@ -321,9 +317,8 @@ class DeadlineValidator extends Validator {
     this.currentDate = config.currentDate || new Date();
   }
 
-  validate(data) {
-    const { courseId } = data;
-
+  validate(_data) {
+    // courseId está en data pero no se usa directamente aquí
     if (this.currentDate > this.enrollmentDeadline) {
       return {
         isValid: false,

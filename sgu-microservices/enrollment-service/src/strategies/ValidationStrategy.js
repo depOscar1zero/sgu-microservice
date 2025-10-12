@@ -16,7 +16,7 @@ class ValidationStrategy {
    * @param {Object} data - Datos a validar
    * @returns {Object} - Resultado de la validación
    */
-  validate(data) {
+  validate(_data) {
     throw new Error('validate debe ser implementado por subclases');
   }
 
@@ -33,7 +33,7 @@ class ValidationStrategy {
    * @param {Object} context - Contexto de validación
    * @returns {boolean} - True si es aplicable
    */
-  isApplicable(context) {
+  isApplicable(_context) {
     return true; // Por defecto, todas las estrategias son aplicables
   }
 
@@ -59,8 +59,8 @@ class PrerequisitesValidationStrategy extends ValidationStrategy {
     this.studentGPA = config.studentGPA || 0;
   }
 
-  validate(data) {
-    const { studentId, courseId } = data;
+  validate(_data) {
+    // Variables studentId y courseId disponibles en data pero no usadas directamente
 
     const missingPrerequisites = this.requiredCourses.filter(
       prereq => !this.studentCompletedCourses.includes(prereq)
@@ -114,7 +114,7 @@ class CapacityValidationStrategy extends ValidationStrategy {
   }
 
   validate(data) {
-    const { courseId, requestedSeats = 1 } = data;
+    const { requestedSeats = 1 } = data;
 
     const availableSeats = this.maxCapacity - this.currentEnrollments;
     const errors = [];
@@ -158,8 +158,8 @@ class ScheduleValidationStrategy extends ValidationStrategy {
     this.studentSchedule = config.studentSchedule || [];
   }
 
-  validate(data) {
-    const { courseId, studentId } = data;
+  validate(_data) {
+    // Variables courseId y studentId disponibles en data pero no usadas directamente
 
     const courseTimeSlots = this.courseSchedule.timeSlots || [];
     const studentTimeSlots = this.studentSchedule
@@ -237,8 +237,8 @@ class PaymentValidationStrategy extends ValidationStrategy {
     this.studentPendingPayments = config.studentPendingPayments || [];
   }
 
-  validate(data) {
-    const { studentId } = data;
+  validate(_data) {
+    // Variable studentId disponible en data pero no usada directamente
 
     const errors = [];
 
@@ -282,8 +282,8 @@ class DeadlineValidationStrategy extends ValidationStrategy {
     this.currentDate = config.currentDate || new Date();
   }
 
-  validate(data) {
-    const { courseId } = data;
+  validate(_data) {
+    // Variable courseId disponible en data pero no usada directamente
 
     const errors = [];
 

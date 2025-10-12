@@ -1,6 +1,5 @@
 const Enrollment = require('../models/Enrollment');
 const {
-  AuthServiceClient,
   CoursesServiceClient,
 } = require('../services/externalServices');
 const axios = require('axios');

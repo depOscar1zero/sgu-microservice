@@ -13,10 +13,10 @@ const Notification = require('../models/Notification');
 class NotificationFactory {
   /**
    * Método factory abstracto - debe ser implementado por subclases
-   * @param {Object} data - Datos para crear la notificación
+   * @param {Object} _data - Datos para crear la notificación
    * @returns {Notification} - Instancia de notificación
    */
-  createNotification(data) {
+  createNotification(_data) {
     throw new Error('createNotification debe ser implementado por subclases');
   }
 

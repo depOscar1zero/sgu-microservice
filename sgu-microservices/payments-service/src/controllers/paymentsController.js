@@ -18,8 +18,9 @@ const catchAsync = fn => {
 };
 
 /**
- * Función para enviar notificación de pago
+ * Función para enviar notificación de pago (para uso futuro)
  */
+/* eslint-disable-next-line no-unused-vars */
 const sendPaymentNotification = async (
   user,
   payment,

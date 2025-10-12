@@ -5,7 +5,6 @@ const { testUtils } = global;
 
 describe('Courses Service API', () => {
   let testCourse;
-  let authToken;
 
   beforeAll(async () => {
     // Limpiar y sincronizar base de datos

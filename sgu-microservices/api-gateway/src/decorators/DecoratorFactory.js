@@ -3,7 +3,6 @@
  * Aplicando principios del Decorator Pattern
  */
 
-const BaseDecorator = require('./BaseDecorator');
 const LoggingDecorator = require('./LoggingDecorator');
 const MetricsDecorator = require('./MetricsDecorator');
 const CachingDecorator = require('./CachingDecorator');

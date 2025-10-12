@@ -6,9 +6,6 @@
 const { describe, test, expect, beforeEach } = require('@jest/globals');
 const DecoratorFactory = require('../../src/decorators/DecoratorFactory');
 const LoggingDecorator = require('../../src/decorators/LoggingDecorator');
-const MetricsDecorator = require('../../src/decorators/MetricsDecorator');
-const CachingDecorator = require('../../src/decorators/CachingDecorator');
-const SecurityDecorator = require('../../src/decorators/SecurityDecorator');
 
 describe('DecoratorFactory', () => {
   let mockComponent;

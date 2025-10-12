@@ -8,10 +8,6 @@ const {
   EnrollmentStatus,
   PaymentStatus,
 } = require('../value-objects/EnrollmentStatus');
-const { StudentId } = require('../value-objects/StudentId');
-const { CourseId } = require('../value-objects/CourseId');
-const { AcademicPeriod } = require('../value-objects/AcademicPeriod');
-const { Money } = require('../value-objects/Money');
 
 class Enrollment {
   constructor({

@@ -67,7 +67,7 @@ app.get('/', (req, res) => {
 });
 
 // Middleware de manejo de errores
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error:', err);
 
   if (err.name === 'ValidationError') {

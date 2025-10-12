@@ -6,8 +6,9 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
+    "test": "jest --maxWorkers=50%",
+    "test:fast": "jest --maxWorkers=50% --bail --silent",
+    "test:coverage": "jest --coverage --maxWorkers=50%",
     "test:watch": "jest --watch",
     "test:db": "node test-db.js",
     "migrate": "node src/migrations/migrate.js",
@@ -50,6 +51,16 @@
     ],
     "testMatch": [
       "**/tests/**/*.test.js"
+    ],
+    "maxWorkers": "50%",
+    "cache": true,
+    "cacheDirectory": "<rootDir>/.jest-cache",
+    "testTimeout": 10000,
+    "bail": false,
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/migrations/**",
+      "!src/config/**"
     ]
   },
   "keywords": [

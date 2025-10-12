@@ -72,6 +72,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
+          cache-dependency-path: "sgu-microservices/${{ matrix.service }}/package-lock.json"
 
       - name: Install dependencies for ${{ matrix.service }}
         working-directory: sgu-microservices/${{ matrix.service }}
@@ -81,7 +82,7 @@ jobs:
       - name: Run tests for ${{ matrix.service }}
         working-directory: sgu-microservices/${{ matrix.service }}
         run: |
-          npm test -- --coverage --watchAll=false
+          npm run test:fast || npm test --  --watchAll=false
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -103,7 +104,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
 
       - name: Install dependencies for patterns testing
         run: |
@@ -115,24 +115,24 @@ jobs:
       - name: Test DDD Pattern
         working-directory: sgu-microservices/enrollment-service
         run: |
-          npm test -- tests/domain/ --coverage
+          npm test -- tests/domain/ --maxWorkers=50%
 
       - name: Test Factory Method Pattern
         run: |
-          cd sgu-microservices/notifications-service && npm test -- tests/factories/ --coverage
-          cd ../payments-service && npm test -- tests/factories/ --coverage  
-          cd ../enrollment-service && npm test -- tests/factories/ --coverage
+          cd sgu-microservices/notifications-service && npm test -- tests/factories/ --maxWorkers=50%
+          cd ../payments-service && npm test -- tests/factories/ --maxWorkers=50%
+          cd ../enrollment-service && npm test -- tests/factories/ --maxWorkers=50%
 
       - name: Test Strategy Pattern
         working-directory: sgu-microservices/enrollment-service
         run: |
-          npm test -- tests/strategies/ --coverage
-          npm test -- tests/services/ --coverage
+          npm test -- tests/strategies/ --maxWorkers=50%
+          npm test -- tests/services/ --maxWorkers=50%
 
       - name: Test Decorator Pattern
         working-directory: sgu-microservices/api-gateway
         run: |
-          npm test -- tests/decorators/ --coverage
+          npm test -- tests/decorators/ --maxWorkers=50%
 
   # Job para tests de integración
   integration-tests:
@@ -240,12 +240,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
+          cache-dependency-path: "sgu-microservices/package-lock.json"
 
       - name: Install dependencies
+        working-directory: sgu-microservices
         run: |
           npm ci
 
       - name: Run security audit
+        working-directory: sgu-microservices
         run: |
           npm audit --audit-level moderate
 

@@ -164,7 +164,7 @@ const optionalAuth = async (req, res, next) => {
     }
 
     next();
-  } catch (error) {
+  } catch {
     // En autenticación opcional, no fallamos si hay error
     next();
   }

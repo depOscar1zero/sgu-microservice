@@ -1,5 +1,4 @@
 // Utilidades para tests del Auth Service
-const bcrypt = require('bcryptjs');
 
 const testUtils = {
   /**

@@ -61,7 +61,7 @@ const proxyConfig = {
   },
 
   // Log de requests
-  onProxyReq: (proxyReq, req, res) => {
+  onProxyReq: (proxyReq, req, _res) => {
     console.log(`🔄 Proxy: ${req.method} ${req.url} → ${proxyReq.path}`);
 
     // Agregar headers útiles
@@ -73,7 +73,7 @@ const proxyConfig = {
   },
 
   // Log de responses
-  onProxyRes: (proxyRes, req, res) => {
+  onProxyRes: (proxyRes, req, _res) => {
     console.log(
       `✅ Response: ${proxyRes.statusCode} para ${req.method} ${req.url}`
     );

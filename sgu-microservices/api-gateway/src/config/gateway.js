@@ -170,7 +170,7 @@ class GatewayConfig {
 
   getEnabledServices() {
     return Object.entries(this.services)
-      .filter(([name, config]) => this.isServiceEnabled(name))
+      .filter(([name, _config]) => this.isServiceEnabled(name))
       .map(([name, config]) => ({ name, ...config }));
   }
 }

@@ -83,7 +83,7 @@ app.use('*', (req, res) => {
 });
 
 // Manejo global de errores
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
   console.error('Error no manejado:', error);
 
   // Error de validación
