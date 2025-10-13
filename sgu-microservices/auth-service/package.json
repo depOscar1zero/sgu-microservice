@@ -8,7 +8,7 @@
     "dev": "nodemon src/app.js",
     "test": "jest --maxWorkers=50%",
     "test:fast": "jest --maxWorkers=50% --bail --silent",
-    "test:integration": "jest tests/integration/ --maxWorkers=50% --runInBand --setupFilesAfterEnv=<rootDir>/tests/integration/setup.js",
+    "test:integration": "jest tests/integration/ --maxWorkers=50% --runInBand --setupFilesAfterEnv=./tests/integration/setup.js",
     "test:coverage": "jest --coverage --maxWorkers=50%",
     "test:watch": "jest --watch",
     "test:db": "node test-db.js",
