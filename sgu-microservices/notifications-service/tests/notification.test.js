@@ -5,20 +5,13 @@ const Notification = require('../src/models/Notification');
 const emailService = require('../src/services/emailService');
 
 describe('Notifications Service API', () => {
-  beforeAll(async () => {
-    // Conectar a base de datos de prueba (URI configurada en setup.js)
-    const mongoUri = process.env.MONGODB_URI;
-    await mongoose.connect(mongoUri);
-  });
-
   afterAll(async () => {
-    // Limpiar y cerrar conexión
+    // Limpiar notificaciones después de todos los tests
     try {
       await Notification.deleteMany({});
     } catch (error) {
       console.log('Error limpiando notificaciones:', error.message);
     }
-    await mongoose.connection.close();
   });
 
   beforeEach(async () => {

@@ -1,5 +1,6 @@
 // Setup para tests de Notifications Service
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const mongoose = require('mongoose');
 
 process.env.NODE_ENV = 'test';
 
@@ -17,12 +18,21 @@ beforeAll(async () => {
     process.env.MONGODB_URI = 'mongodb://sgu_admin:sgu_mongo_password@localhost:27017/sgu_notifications_test?authSource=admin';
     console.log('🔧 Usando MongoDB local para tests');
   }
-});
+
+  // Conectar a MongoDB usando la URI configurada
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log('✅ Conectado a MongoDB para tests');
+}, 60000); // Timeout de 60 segundos para MongoDB in-memory
 
 afterAll(async () => {
+  // Cerrar conexión a MongoDB
+  await mongoose.connection.close();
+  console.log('🔌 Desconectado de MongoDB');
+
   // Detener MongoDB in-memory si fue iniciado
   if (mongoServer) {
     await mongoServer.stop();
+    console.log('🛑 MongoDB in-memory detenido');
   }
 });
 
