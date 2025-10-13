@@ -184,6 +184,16 @@ jobs:
         run: |
           npm ci
 
+      - name: Install auth-service dependencies
+        working-directory: sgu-microservices/auth-service
+        run: |
+          npm ci
+
+      - name: Install enrollment-service dependencies
+        working-directory: sgu-microservices/enrollment-service
+        run: |
+          npm ci
+
       - name: Run integration tests
         working-directory: sgu-microservices
         env:
