@@ -19,6 +19,7 @@ jobs:
   lint-and-quality:
     name: Lint & Code Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -50,8 +51,10 @@ jobs:
   test-microservices:
     name: Test Microservices
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
         service:
           [
@@ -95,6 +98,7 @@ jobs:
   test-design-patterns:
     name: Test Design Patterns
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -138,6 +142,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -194,6 +199,7 @@ jobs:
   docker-tests:
     name: Docker Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code
@@ -232,6 +238,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -265,6 +272,7 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       [
         lint-and-quality,
@@ -300,6 +308,7 @@ jobs:
   notify:
     name: Notify Results
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs:
       [
         lint-and-quality,
