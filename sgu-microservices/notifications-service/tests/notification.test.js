@@ -5,23 +5,13 @@ const Notification = require('../src/models/Notification');
 const emailService = require('../src/services/emailService');
 
 describe('Notifications Service API', () => {
-  beforeAll(async () => {
-    // Conectar a base de datos de prueba con autenticación
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://sgu_admin:sgu_mongo_password@localhost:27017/sgu_notifications_test?authSource=admin';
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  });
-
   afterAll(async () => {
-    // Limpiar y cerrar conexión
+    // Limpiar notificaciones después de todos los tests
     try {
       await Notification.deleteMany({});
     } catch (error) {
       console.log('Error limpiando notificaciones:', error.message);
     }
-    await mongoose.connection.close();
   });
 
   beforeEach(async () => {
