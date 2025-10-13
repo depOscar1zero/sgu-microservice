@@ -186,7 +186,9 @@ jobs:
           REDIS_URL: redis://localhost:6379
           NODE_ENV: test
         run: |
-          npm run test:integration
+          # No usar docker-compose en CI (ya tenemos services configurados)
+          # Solo ejecutar los tests de integración directamente
+          npm run test:integration:run
 
   # Job para tests de Docker
   docker-tests:
