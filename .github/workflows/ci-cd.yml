@@ -221,28 +221,28 @@ jobs:
       - name: Build Docker images
         run: |
           cd sgu-microservices
-          docker-compose build
+          docker compose build
 
       - name: Test Docker containers
         run: |
           cd sgu-microservices
-          docker-compose up -d
+          docker compose up -d
           sleep 30
-          docker-compose ps
-          docker-compose logs
+          docker compose ps
+          docker compose logs
 
       - name: Run container health checks
         run: |
           cd sgu-microservices
           # Verificar que todos los servicios estén corriendo
-          docker-compose exec -T auth-service npm test || echo "Auth service tests completed"
-          docker-compose exec -T enrollment-service npm test || echo "Enrollment service tests completed"
+          docker compose exec -T auth-service npm test || echo "Auth service tests completed"
+          docker compose exec -T enrollment-service npm test || echo "Enrollment service tests completed"
 
       - name: Cleanup
         if: always()
         run: |
           cd sgu-microservices
-          docker-compose down -v
+          docker compose down -v
 
   # Job para análisis de seguridad
   security-scan:
