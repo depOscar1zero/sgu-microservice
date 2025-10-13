@@ -8,7 +8,7 @@ describe('Auth Service Integration Tests', () => {
         .get('/health')
         .expect(200);
 
-      expect(response.body.status).toBe('ok');
+      expect(response.body.status).toBe('OK');
       expect(response.body.timestamp).toBeDefined();
     });
   });
